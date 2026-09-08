@@ -501,6 +501,27 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
     border: 1px solid #e10700;
     transition: all 0.3s ease;
     margin: 10px;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+@media (max-width: 480px) {
+    .xixa-card {
+        padding: 1rem;
+        margin: 0;
+        border-radius: 14px;
+    }
+    .xixa-header h5 {
+        font-size: 15px;
+    }
+    .acctnamesam {
+        font-size: 14px;
+    }
+    .copy-btn, .generate-btn {
+        font-size: 13px;
+        padding: 10px;
+    }
 }
 
 .xixa-card:hover {
@@ -547,19 +568,23 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
     align-items: center;
     border-bottom: 1px solid #e6e6e6;
     padding-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 4px;
 }
 
 .account-number strong {
-    font-size: 26px;
-    letter-spacing: 4px;
+    font-size: clamp(16px, 5vw, 26px);
+    letter-spacing: clamp(1px, 1vw, 4px);
     font-weight: 700;
     color: #111;
+    word-break: break-all;
 }
 
-
-.xixasam{
-        font-weight: 700;
+.xixasam {
+    font-weight: 700;
     color: #e10700;
+    white-space: nowrap;
+    min-width: 90px;
 }
 
 
