@@ -21,11 +21,40 @@ if (isset($_SESSION['token'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; }
+
         body {
             font-family: 'Nunito', sans-serif;
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             min-height: 100vh;
+            margin: 0;
         }
+
+        /* Mobile: card fills full screen */
+        @media (max-width: 480px) {
+            body {
+                display: block !important;
+                background: #ffffff;
+                padding: 0;
+            }
+            .auth-card {
+                max-width: 100% !important;
+                width: 100% !important;
+                min-height: 100vh;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 32px 24px !important;
+            }
+            .auth-card::before {
+                content: '';
+                display: block;
+                height: 6px;
+                background: linear-gradient(135deg, #1a1a2e, #16213e);
+                margin: -32px -24px 28px;
+            }
+        }
+
         .auth-card {
             max-width: 420px;
             width: 100%;
@@ -54,6 +83,19 @@ if (isset($_SESSION['token'])) {
             color: #fff;
         }
         .btn-admin:hover { background: #c00600; border-color: #c00600; color: #fff; }
+
+        /* Red eye toggle hover */
+        .input-group .btn-outline-secondary {
+            border-color: #dee2e6;
+            color: #6b7280;
+            transition: all .2s;
+        }
+        .input-group .btn-outline-secondary:hover {
+            background-color: #e10700;
+            border-color: #e10700;
+            color: #ffffff;
+        }
+
         #errorBox { display: none; }
     </style>
 </head>
