@@ -106,7 +106,6 @@ function loadServices(server) {
                 row.dataset.name  = svc.service_name;
                 row.dataset.price = svc.service_price;
                 row.innerHTML = `
-                    <img class="service-logo" src="${svc.logo_url}" alt="" onerror="this.style.display='none'">
                     <div class="service-info">
                         <div class="service-name">${svc.service_name}</div>
                         ${stockHtml}
