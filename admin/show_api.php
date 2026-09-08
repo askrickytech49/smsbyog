@@ -1,14 +1,4 @@
 <?php
-$host = 'verifysms.io';
-$port = 443;
-$waitTimeoutInSeconds = 2; 
-
-if ($fp = @fsockopen($host, $port, $errCode, $errStr, $waitTimeoutInSeconds)) {   
-   echo "✅ Connection to $host is OPEN on port $port";
-   fclose($fp);
-} else {
-   echo "❌ Connection to $host is CLOSED. Error: $errStr ($errCode)";
-}
 include("auth.php");
 if(!isset($_SESSION['token'])){
 	if(isset($_COOKIE['remember_me'])) {
@@ -106,143 +96,143 @@ if (isset($_POST['delete'])) {
 <tbody>
 
 <?php
+$http_code = 0; // Initialize to prevent undefined variable warning
 while ($data = mysqli_fetch_array($sql)) {
+$bal = "<span class='text-warning'>Checking...</span>"; // safe default
+
 if($data['id'] == '2'){
-    // 5sim uses a Bearer Token in the headers and returns JSON
+    // 5sim — Bearer token auth
     $url = "https://5sim.net/v1/user/profile";
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $data['api_key'],
+        'Authorization: Bearer ' . trim($data['api_key']),
         'Accept: application/json'
     ]);
     $response1 = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
     $profile = json_decode($response1, true);
 
-    if ($httpCode === 200 && isset($profile['balance'])) {
+    if ($http_code === 200 && isset($profile['balance'])) {
         $bal_usd = (float)$profile['balance'];
-        
         $bal_ngn = $bal_usd * $USD_TO_NGN;
-
-        $bal = "
-            <small class='text-muted'>$".number_format($bal_usd, 2)."</small><br>
-            <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>
-        ";
+        $bal = "<strong>\$".number_format($bal_usd, 2)."</strong><br>
+                <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>";
     } else {
-        $bal = "<span class='text-danger'>5sim Auth Failed</span>";
+        $err = $profile['message'] ?? $profile['error'] ?? "HTTP $http_code";
+        $bal = "<span class='text-danger'>5sim Error: $err</span>";
     }
-}elseif($data['id'] == '1'){
-    $url = $data['api_url'] . "/api/balance";
-$ch = curl_init($url);
 
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_URL            => $url,
-    CURLOPT_TIMEOUT        => 30,
-    CURLOPT_SSL_VERIFYPEER => false, // Bypass SSL for testing
-    CURLOPT_HTTPHEADER     => [
-        "API-KEY: " . $data['api_key'],
-        "User-Agent: SMM-Platform-Agent"
-    ],
-]);
+} elseif($data['id'] == '1'){
+    // VerifySMS — API-KEY header, returns plain number
+    $url = rtrim($data['api_url'], '/') . "/api/balance";
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_HTTPHEADER     => [
+            "API-KEY: " . trim($data['api_key']),
+            "Accept: application/json"
+        ],
+    ]);
+    $response_raw = curl_exec($ch);
+    $http_code    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_err     = curl_error($ch);
+    curl_close($ch);
 
-$response_raw = curl_exec($ch);
-$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-if (curl_errno($ch)) {
-    $bal = "<span class='text-danger'>Connection Error: " . curl_error($ch) . "</span>";
-} else {
-    // Process response logic here...
-    if ($http_code == 200 && is_numeric(trim($response_raw))) {
-        
-        $raw_balance = (float)trim($response_raw);
-        
-            // SmsVerify usually provides balance in USD
-            $bal_usd = $raw_balance;
-            $bal_ngn = $bal_usd * $USD_TO_NGN;
-    
-            $bal = "
-                <strong>$".number_format($bal_usd, 2)."</strong><br>
-                <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>
-            ";
+    if ($curl_err) {
+        $bal = "<span class='text-danger'>Connection Error: $curl_err</span>";
+    } elseif ($http_code == 200 && is_numeric(trim($response_raw))) {
+        $bal_usd = (float)trim($response_raw);
+        $bal_ngn = $bal_usd * $USD_TO_NGN;
+        $bal = "<strong>\$".number_format($bal_usd, 2)."</strong><br>
+                <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>";
     } elseif ($http_code == 401) {
-        $bal = "<span class='text-warning'>Invalid API Key</span>";
+        $bal = "<span class='text-warning'>Invalid API Key (401)</span>";
+    } else {
+        // Try JSON response
+        $json = json_decode($response_raw, true);
+        if (isset($json['balance'])) {
+            $bal_usd = (float)$json['balance'];
+            $bal_ngn = $bal_usd * $USD_TO_NGN;
+            $bal = "<strong>\$".number_format($bal_usd, 2)."</strong><br>
+                    <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>";
+        } else {
+            $bal = "<span class='text-danger'>HTTP $http_code: " . htmlspecialchars(substr($response_raw, 0, 80)) . "</span>";
+        }
     }
-}
-}
-elseif($data['id'] == '3'){
-    //Dino
-   $url = $data['api_url']."/me/balance";
-    $rate = $data['rate'];
-    $percentage = $data['percentage'];
-    $response = getfunction($url, $data['api_key']);
-    
-   
-    
-    /* DEFAULT */
+
+} elseif($data['id'] == '3'){
+    // DinoMMO — X-API-Key header
+    // Try common balance endpoints
+    $endpoints = [
+        rtrim($data['api_url'], '/') . "/account/balance",
+        rtrim($data['api_url'], '/') . "/me/balance",
+        rtrim($data['api_url'], '/') . "/sms-otp/balance",
+    ];
     $bal = "<span class='text-danger'>Invalid / Not Supported</span>";
-    
-    // 2. Process Response (SmsVerify returns a plain number on success)
-    if (isset($response['available_balance'])) {
-        
-        $raw_balance = (float)trim($response['available_balance']);
-        
-            // SmsVerify usually provides balance in USD
-            $bal_usd = $raw_balance;
+    foreach ($endpoints as $url) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_HTTPHEADER     => [
+                "X-API-Key: " . trim($data['api_key']),
+                "Accept: application/json"
+            ],
+        ]);
+        $resp     = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $json = json_decode($resp, true);
+        // Try common balance field names
+        $balance_val = $json['balance'] ?? $json['available_balance'] ?? $json['wallet_balance'] ?? null;
+        if ($http_code == 200 && $balance_val !== null) {
+            $bal_usd = (float)$balance_val;
             $bal_ngn = $bal_usd * $USD_TO_NGN;
-    
-            $bal = "
-                <strong>$".number_format($bal_usd, 2)."</strong><br>
-                <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>
-            ";
-    } elseif ($http_code == 401) {
-        $bal = "<span class='text-warning'>Invalid API Key</span>";
+            $bal = "<strong>\$".number_format($bal_usd, 2)."</strong><br>
+                    <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>";
+            break;
+        }
     }
-}
-else{
-$url = $data['api_url']."/stubs/handler_api.php?api_key=".$data['api_key']."&action=getBalance";
-$rate = $data['rate'];
-$percentage = $data['percentage'];
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$response1 = curl_exec($ch);
-curl_close($ch);
 
-$response = explode(':', $response1);
+} else {
+    // TigerSMS & others — sms-activate style getBalance
+    $url = rtrim($data['api_url'], '/') . "/stubs/handler_api.php?api_key=" . urlencode(trim($data['api_key'])) . "&action=getBalance";
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $response1 = curl_exec($ch);
+    $http_code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_err   = curl_error($ch);
+    curl_close($ch);
 
-/* DEFAULT */
-$bal = "<span class='text-danger'>Invalid / Not Supported</span>";
+    $bal = "<span class='text-danger'>Invalid / Not Supported</span>";
 
-if ($response[0] === "ACCESS_BALANCE" && is_numeric($response[1])) {
-
-	$raw_balance = (float)$response[1];
-
-	$isTiger = stripos($data['api_name'], 'tiger') !== false
-	        || stripos($data['api_url'], 'tiger-sms') !== false;
-
-	if ($isTiger) {
-		$bal_usd = $raw_balance;
-		$bal_ngn = $bal_usd * $USD_TO_NGN;
-
-		$bal = "
-			<strong>$".number_format($bal_usd,2)."</strong><br>
-			<small class='text-muted'>₦".number_format($bal_ngn,2)."</small>
-		";
-	} else {
-		$bal_usd = $raw_balance;
-		$bal_ngn = $bal_usd * $USD_TO_NGN;
-
-		$bal = "
-			<strong>$".number_format($bal_usd,2)."</strong><br>
-			<small class='text-muted'>₦".number_format($bal_ngn,2)."</small>
-		";
-	}
-}
+    if ($curl_err) {
+        $bal = "<span class='text-danger'>Connection Error: $curl_err</span>";
+    } else {
+        $response = explode(':', trim($response1));
+        if (isset($response[0]) && $response[0] === "ACCESS_BALANCE" && isset($response[1]) && is_numeric(trim($response[1]))) {
+            $bal_usd = (float)trim($response[1]);
+            $bal_ngn = $bal_usd * $USD_TO_NGN;
+            $bal = "<strong>\$".number_format($bal_usd, 2)."</strong><br>
+                    <small class='text-muted'>₦".number_format($bal_ngn, 2)."</small>";
+        } elseif ($http_code !== 200) {
+            $bal = "<span class='text-danger'>HTTP $http_code</span>";
+        } else {
+            $bal = "<span class='text-danger'>" . htmlspecialchars(substr($response1, 0, 80)) . "</span>";
+        }
+    }
 }
 ?>
 <tr>
