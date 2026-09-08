@@ -133,7 +133,7 @@ if (isset($_SESSION['token'])) {
     </form>
 
     <p class="text-center text-muted mt-4" style="font-size:12px;">
-        &larr; <a href="../login" style="color:#e10700;">Back to User Panel</a>
+        <a href="../login" style="color:#e10700;">Back to User Panel</a>
     </p>
 </div>
 
