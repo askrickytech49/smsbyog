@@ -10,7 +10,6 @@ require __DIR__ . '/class/class.control.php';
  */
 if (empty($_SESSION['token'])) {
     session_destroy();
-
     if (isset($_COOKIE['remember_me'])) {
         setcookie('remember_me', '', [
             'expires'  => time() - 3600,
@@ -18,11 +17,10 @@ if (empty($_SESSION['token'])) {
             'domain'   => $_SERVER['HTTP_HOST'],
             'secure'   => isset($_SERVER['HTTPS']),
             'httponly' => true,
-            'samesite' => 'Lax'
+            'samesite' => 'Lax',
         ]);
     }
-
-    redirect('logout');
+    redirect('login');
 }
 
 /**

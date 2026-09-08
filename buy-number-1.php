@@ -5,8 +5,18 @@ require __DIR__ . '/class/class.control.php';
 
 if (!isset($_SESSION['token'])) {
     if (isset($_COOKIE['remember_me'])) {
-        $_SESSION['token'] = $_COOKIE['remember_me'];
+        // DB-validate cookie token before trusting it
+        $_ck = mysqli_real_escape_string($conn, $_COOKIE['remember_me']);
+        $_cv = mysqli_query($conn, "SELECT lt.user_id FROM login_token lt JOIN user_data u ON lt.user_id=u.id WHERE lt.token='$_ck' AND lt.status='1' AND u.status='1' LIMIT 1");
+        if ($_cv && mysqli_num_rows($_cv) === 1) {
+            $_SESSION['token'] = $_COOKIE['remember_me'];
+        } else {
+            session_destroy();
+            setcookie('remember_me', '', ['expires' => time()-3600, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+            redirect('login');
+        }
     } else {
+        session_destroy();
         redirect('login');
     }
 }

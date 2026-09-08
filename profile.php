@@ -27,18 +27,16 @@ if($userdata===false){
 	unset($_SESSION['token']);
 	session_destroy();
 	if(isset($_COOKIE['remember_me'])) {
-		unset($_COOKIE['remember_me']);
-		setcookie('remember_me', $token, [
-			'expires' => time() - 3600,
-			'path' => '/',
-			'domain' => $_SERVER['HTTP_HOST'],
-			'secure' => true,
+		setcookie('remember_me', '', [
+			'expires'  => time() - 3600,
+			'path'     => '/',
+			'domain'   => $_SERVER['HTTP_HOST'],
+			'secure'   => isset($_SERVER['HTTPS']),
 			'httponly' => true,
-			'samesite' => 'radium'
+			'samesite' => 'Lax',
 		]);
-		
 	}
-		redirect('login');	
+	redirect('login');	
 }
 $wallet->closeConnection();
 // include 'theam/' . THEAM . '/profile.php';
