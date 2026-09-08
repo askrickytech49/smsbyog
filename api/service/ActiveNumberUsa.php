@@ -65,7 +65,9 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
                 }
 
                 // If expired from API — trigger refund
-                if ($status_http === 410 || $status_http === 404 || $left === "00:00") {
+                // Only treat as expired if API explicitly says so (410 = gone/expired)
+                // Do NOT treat 404 as expired since /api/status may not exist on all providers
+                if ($status_http === 410 || $left === "00:00") {
 
                     if ($row['sms_text'] == "") {
                         $number_id = $row['number_id'];

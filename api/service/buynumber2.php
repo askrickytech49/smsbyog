@@ -38,8 +38,6 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     echo '{"status":"500","message":"Invalid Server"}';
 } elseif (!isset($_GET['service']) || $_GET['service'] == "") {
     echo '{"status":"500","message":"Invalid Service"}';
-} elseif (!isset($_GET['operator_id']) || $_GET['operator_id'] == "") {
-    echo '{"status":"500","message":"Invalid Operator"}';
 } elseif (!isset($_GET['token']) || $_GET['token'] == "") {
     echo '{"status":"500","message":"Token Blank"}';
 } else {
@@ -49,10 +47,11 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     if ($check_token === false) {
     echo '{"status":"500","message":"Token Expired Please Logout And Login Again"}';
 } else {
-    $server = mysqli_real_escape_string($conn, $_GET['server']); // Country Name (e.g. 'england')
-    $service = mysqli_real_escape_string($conn, $_GET['service']); // Service ID (e.g. 'facebook')
-    $operator = mysqli_real_escape_string($conn, $_GET['operator_id']); // Operator (e.g. 'vodafone')
-    $user_id = $check_token;
+    $server   = mysqli_real_escape_string($conn, $_GET['server']);
+    $service  = mysqli_real_escape_string($conn, $_GET['service']);
+    // Use provided operator or default to 'any' so 5sim picks best available
+    $operator = !empty($_GET['operator_id']) ? mysqli_real_escape_string($conn, $_GET['operator_id']) : 'any';
+    $user_id  = $check_token;
 
     $sql4 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
     $api_data = mysqli_fetch_assoc($sql4);
