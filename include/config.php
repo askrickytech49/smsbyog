@@ -6,9 +6,9 @@ header("Expires: 0"); // Proxies.
 date_default_timezone_set('Africa/Lagos');
 
 define('DB_SERVER', 'localhost'); //localhost
-define('DB_USERNAME', 'root'); // db username
-define('DB_PASSWORD', ''); // db password
-define('DB_DATABASE', 'smsbyogc_main'); // db name
+define('DB_USERNAME', 'u223553481_smsbyog_user'); // db username
+define('DB_PASSWORD', '~u9AycO=C'); // db password
+define('DB_DATABASE', 'u223553481_smsbyog'); // db name
 $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_DATABASE);
 
 if ($conn->connect_error) {
