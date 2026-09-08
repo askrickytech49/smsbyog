@@ -27,25 +27,45 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
 
             while ($row = mysqli_fetch_array($result)) {
                 // Logo
-                $sql_logo = mysqli_query($conn, "SELECT img_url FROM service_icon WHERE short_code='" . mysqli_real_escape_string($conn, $row['service_id']) . "'");
-                $logo_url = (mysqli_num_rows($sql_logo) > 0)
-                    ? mysqli_fetch_assoc($sql_logo)['img_url']
-                    : "https://i.ibb.co/ySRhxqh/default.png";
+                include_once __DIR__ . '/../../include/service_icons.php';
+                $logo_url = getServiceIcon($row['service_name'], $row['service_id']);
 
-                // Timer — USA server uses 8-minute window
-                $givenTime      = strtotime($row['buy_time']);
-                $currentTime    = time();
-                $timeoutSeconds = 8 * 60;
-                $expiryTime     = $givenTime + $timeoutSeconds;
+                // Get REAL remaining time from VerifySMS API
+                $number_id = $row['number_id'];
+                $status_url = rtrim($api_url, '/') . "/api/status?transaction_id={$number_id}";
+                $ch = curl_init($status_url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "API-KEY: $api_key",
+                    "Accept: application/json"
+                ]);
+                $status_res  = curl_exec($ch);
+                $status_http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
 
-                if ($expiryTime <= $currentTime) {
-                    $left = "00:00";
+                $status_data = json_decode($status_res, true);
+
+                // Use API time_remaining if available, else fall back to local calculation
+                if ($status_http === 200 && isset($status_data['time_remaining'])) {
+                    // VerifySMS returns time_remaining in seconds
+                    $remainingSeconds = (int)$status_data['time_remaining'];
+                    $left = $remainingSeconds > 0 ? $remainingSeconds * 1000 : "00:00";
+                } elseif ($status_http === 200 && isset($status_data['expires_at'])) {
+                    // Some APIs return a timestamp
+                    $remainingSeconds = strtotime($status_data['expires_at']) - time();
+                    $left = $remainingSeconds > 0 ? $remainingSeconds * 1000 : "00:00";
                 } else {
-                    $left = ($expiryTime - $currentTime) * 1000;
+                    // Fallback to local 8-minute window from buy_time
+                    $givenTime      = strtotime($row['buy_time']);
+                    $currentTime    = time();
+                    $timeoutSeconds = 8 * 60;
+                    $expiryTime     = $givenTime + $timeoutSeconds;
+                    $left = $expiryTime > $currentTime ? ($expiryTime - $currentTime) * 1000 : "00:00";
                 }
 
-                // AUTO-REFUND on timeout
-                if ($left === "00:00" && $row['active_status'] == 2) {
+                // If expired from API — trigger refund
+                if ($status_http === 410 || $status_http === 404 || $left === "00:00") {
 
                     if ($row['sms_text'] == "") {
                         $number_id = $row['number_id'];
