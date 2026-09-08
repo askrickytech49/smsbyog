@@ -25,7 +25,7 @@ if(isset($_SESSION['token']) =="") {
     $admin_data = mysqli_fetch_array($admin_sql);
     $admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
     $final_admin = mysqli_fetch_array($admin_sql2);
-    if($final_admin['type'] == "admin"){   
+    if(in_array($final_admin['type'], ["admin", "super_admin"])){   
 if($api_name !="" && $api_url !="" &&  $api_key !=""){
   $sql = "INSERT INTO api_detail (api_name, api_url, api_key, api_code) VALUES ('$api_name','$api_url','$api_key','1')";
   $done=mysqli_query($conn,$sql);

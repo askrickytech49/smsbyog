@@ -25,7 +25,7 @@ $admin_sql2 = mysqli_query(
 
 $final_admin = mysqli_fetch_assoc($admin_sql2);
 
-if (!$final_admin || $final_admin['type'] !== "admin") {
+if (!$final_admin || !in_array($final_admin['type'], ["admin", "super_admin"])) {
     echo "Access denied";
     exit;
 }

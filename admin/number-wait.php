@@ -15,7 +15,7 @@ if(mysqli_num_rows($admin_sql) == 0) {
 $admin_data = mysqli_fetch_array($admin_sql);
 $admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
 $final_admin = mysqli_fetch_array($admin_sql2);
-if($final_admin['type'] == "admin"){
+if(in_array($final_admin['type'], ["admin", "super_admin"])){
 $sql = mysqli_query($conn,"
 SELECT 
 active_number.*, 

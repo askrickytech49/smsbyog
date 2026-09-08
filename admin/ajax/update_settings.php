@@ -26,7 +26,7 @@ if(isset($_SESSION['token']) =="") {
     $admin_data = mysqli_fetch_array($admin_sql);
     $admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
     $final_admin = mysqli_fetch_array($admin_sql2);
-    if($final_admin['type'] == "admin"){   
+    if(in_array($final_admin['type'], ["admin", "super_admin"])){   
 if($mechant_id !="" && $token !="" && $payment_qr !="" && $payment_upi !="" && $minimum_add !=""){
   $sql3 = mysqli_query($conn,"UPDATE settings SET upi_merchant_token='$token' , upi_merchant_id='$mechant_id' , upi_qr='$payment_qr' ,  upi_id='$payment_upi' , upi_min_recharge='$minimum_add' WHERE id='1'");
  

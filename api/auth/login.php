@@ -75,8 +75,8 @@ if ($result->num_rows > 0) {
                 'samesite' => 'Lax'
             ]);
 
-            // If user is admin
-            if ($data['type'] === "admin") {
+            // If user is admin or super_admin
+            if ($data['type'] === "admin" || $data['type'] === "super_admin") {
                 $_SESSION['admin'] = $token;
             }
 

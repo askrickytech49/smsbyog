@@ -16,6 +16,11 @@ __MACOSX/
 
 # Composer vendor — install via composer install
 /vendor/
+/admin/vendor/
+
+# Node modules
+node_modules/
+/home/dist/libs/
 
 # Uploads (user data — not source code)
 /upload/*

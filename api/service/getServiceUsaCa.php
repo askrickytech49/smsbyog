@@ -1,120 +1,174 @@
 <?php
-include __DIR__ . '/../../include/config.php';
-include __DIR__ . '/../../include/service_icons.php';
+include ("auth.php");
 
-function custom_price($user_id, $service_id, $server_id, $price, $conn)
-{
-    $sql = mysqli_query($conn, "SELECT * FROM custom_price WHERE user_id='" . $user_id . "' AND service_id='" . $service_id . "' AND server_id='" . $server_id . "'");
-    if (mysqli_num_rows($sql) > 0) {
-        $data = mysqli_fetch_assoc($sql);
-        if ($data['type'] == "flat") {
-            return $data['discount'];
-        } elseif ($data['type'] == "percent") {
-            $percent = $data['discount'];
-            $final_percent = ($percent / 100) * $price;
-            $sub = $price - $final_percent;
-            return $sub;
-        }
+if (!isset($_SESSION['token'])) {
+    if (isset($_COOKIE['remember_me'])) {
+        $_SESSION['token'] = $_COOKIE['remember_me'];
     } else {
-        return $price;
+        header('Location: login.php'); exit;
     }
 }
 
-if (!isset($_GET['server']) || $_GET['server'] == "") {
-    echo "Invalid Server";
-} elseif (!isset($_GET['token']) || $_GET['token'] == "") {
-    echo "Invalid Token";
-} else {
-    $token = mysqli_real_escape_string($conn, $_GET['token']);
-    $check_token = check_token($token, $conn); // Assuming this returns user_id
+$admin_sql = mysqli_query($conn, "SELECT * FROM login_token WHERE token='" . $_SESSION['token'] . "'");
+if (mysqli_num_rows($admin_sql) == 0) {
+    header('Location: login.php'); exit;
+}
 
-    if ($check_token === false) {
-    echo 'Token Expired Please Logout And Login Again';
-} else {
-    $server = mysqli_real_escape_string($conn, $_GET['server']); // Country ID (if applicable)
-    
-    // Fetch API Configuration
-    $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='3'");
-    $api_data = mysqli_fetch_assoc($api_sql);
-        
-    $conversion_rate = $api_data['rate'];
-    $fixed_profit = $api_data['profit_amount'];
-    $url = $api_data['api_url'] . '/sms-otp/services'; 
-    
-    // Fetch the list from VerifySMS
-    $api_prices = getfunction($url, $api_data['api_key']); 
+$admin_data = mysqli_fetch_array($admin_sql);
+$admin_sql2 = mysqli_query(
+    $conn,
+    "SELECT * FROM user_data WHERE id='" . $admin_data['user_id'] . "' AND status='1'"
+);
+$final_admin = mysqli_fetch_array($admin_sql2);
 
-    $final = array();
-    
-    if (is_array($api_prices) && !empty($api_prices)) {
-            
-        foreach ($api_prices as $details) {
-            
-            
-            // 1. Fetch data from the flat object
-            $raw_api_price = (float)($details['price_usd'] ?? 0);
-            $service_name  = $details['service_name'] ?? 'Unknown Service';
-            $service  = $details['service_code'] ?? 'Unknown Code';
-            
-            // Convert boolean true/false to 1/0 for your logic
-            $stock_count   = ($details['is_active'] === true) ? 1 : 0;
-    
-            $base_price_naira = $raw_api_price * $conversion_rate;
-            $base_calculated_price = $base_price_naira + $fixed_profit;
-        
-            // 3. Apply User Custom Discount
-            $op_price = custom_price($check_token, $service, $server, $base_calculated_price, $conn);
-            $final_price = round($op_price, 2);
-        
-            // --- FILTER: Only show if price is valid and in stock ---
-            if ($final_price > 0 && $stock_count > 0) {
-                
-                // Map Dinosms service_code to our service_icon short_code
-                static $iconMap = [
-                    'WhatsApp'   => 'wa',  'whatsapp'   => 'wa',
-                    'Telegram'   => 'tg',  'telegram'   => 'tg',
-                    'Instagram'  => 'idg', 'instagram'  => 'idg',
-                    'Facebook'   => 'fb',  'facebook'   => 'fb',
-                    'Google'     => 'go',  'google'     => 'go',
-                    'Gmail'      => 'go',  'gmail'      => 'go',
-                    'Twitter'    => 'tl',  'twitter'    => 'tl',
-                    'amazon'     => 'di',  'Amazon'     => 'di',
-                    'Tiktok'     => 'vk',  'tiktok'     => 'vk',
-                    'WeChat'     => 'mm',  'wechat'     => 'mm',
-                    'Yahoo'      => 'mb',  'yahoo'      => 'mb',
-                    'Snapchat'   => 'vs',  'snapchat'   => 'vs',
-                    'Linkedin'   => 'ks',  'linkedin'   => 'ks',
-                    'Microsoft'  => 'mi',  'microsoft'  => 'mi',
-                    'Uber'       => 'bb',  'uber'       => 'bb',
-                    'Discord'    => 'dy',  'discord'    => 'dy',
-                ];
-                // Use service_icons helper — bypasses DB mismatches entirely
-                $logo_url = getServiceIcon($service_name, $service);
-        
-                array_push($final, array(
-                    'id'            => $service,
-                    'service_name'  => $service_name,
-                    'service_price' => $final_price,
-                    'server_id'     => $server,
-                    'logo_url'      => $logo_url,
-                    'stock'         => $stock_count 
-                ));
-            } 
-        }
-    
-        // Clean output and return JSON
-        if (ob_get_length()) ob_clean(); 
-        header('Content-Type: application/json');
-        echo json_encode(array('service' => $final));
-        exit; 
-    
+if (!in_array($final_admin['type'], ["admin", "super_admin"])) {
+    header('Location: login.php'); exit;
+}
+
+/* =========================
+   VALIDATE SERVICE ID
+========================= */
+if (!isset($_GET['id']) || empty($_GET['id'])) {
+    echo "<div style='padding:20px;color:red;font-weight:bold'>
+            Invalid Service ID
+          </div>";
+    exit;
+}
+
+$id = mysqli_real_escape_string($conn, $_GET['id']);
+
+/* =========================
+   FETCH SERVICES
+========================= */
+$sql = mysqli_query(
+    $conn,
+    "SELECT * FROM service WHERE service_id='$id' ORDER BY id DESC"
+);
+
+if ($sql === false) {
+    echo "<div style='padding:20px;color:red;font-weight:bold'>
+            Database Error: " . mysqli_error($conn) . "
+          </div>";
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>View Service - @getallscripts</title>
+    <?php include ("include/head.php"); ?>
+    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+</head>
+
+<script>
+$(document).ready(function () {
+    $('#dashboard').removeClass("active");
+    $("#show_service").addClass("active");
+});
+</script>
+
+<body id="page-top">
+<div id="wrapper">
+
+<?php include ("include/slidebar.php"); ?>
+
+<div id="content-wrapper" class="d-flex flex-column">
+<div id="content">
+
+<?php include ("include/topbar.php"); ?>
+
+<div class="container-fluid" id="container-wrapper">
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
+        <li class="breadcrumb-item active">View Service</li>
+    </ol>
+</div>
+
+<div class="row">
+<div class="col">
+<div class="card mb-4">
+
+<div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">View Service</h6>
+</div>
+
+<div class="table-responsive p-3">
+
+<?php
+if (isset($_POST['delete'])) {
+    $delete_id = mysqli_real_escape_string($conn, $_POST['id']);
+    mysqli_query($conn, "DELETE FROM service WHERE id='$delete_id'");
+    echo "<div class='alert alert-success'>Delete success</div>";
+    echo "<meta http-equiv='refresh' content='0'>";
+}
+?>
+
+<table class="table align-items-center table-flush" id="dataTable">
+<thead class="thead-light">
+<tr>
+    <th>Service Name</th>
+    <th>Service Id</th>
+    <th>Service Price</th>
+    <th>Status</th>
+    <th>Delete</th>
+    <th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+<?php while ($data = mysqli_fetch_array($sql)) { 
+    if ($data['status'] == "1") {
+        $badge = "badge badge-success";
+        $text  = "Active";
     } else {
-        header('Content-Type: application/json');
-        echo json_encode(array('service' => [], 'error' => 'API returned no data or invalid format'));
-        exit;
+        $badge = "badge badge-danger";
+        $text  = "Inactive";
     }
-}
-mysqli_close($conn);
-}
+?>
+<tr>
+    <td><?= $data['service_name']; ?></td>
+    <td><?= $data['service_id']; ?></td>
+    <td><?= $data['service_price']; ?></td>
+    <td><span class="<?= $badge; ?>"><?= $text; ?></span></td>
+    <td>
+        <form method="post">
+            <input type="hidden" name="id" value="<?= $data['id']; ?>">
+            <button class="btn btn-sm btn-danger" name="delete">Delete</button>
+        </form>
+    </td>
+    <td>
+        <a href="edit_service?id=<?= $data['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
+    </td>
+</tr>
+<?php } ?>
+</tbody>
+</table>
 
+</div>
+</div>
+</div>
+</div>
 
+</div>
+</div>
+
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<?php include ("include/script.php"); ?>
+
+<script src="vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
+<script>
+$(document).ready(function () {
+    $('#dataTable').DataTable();
+});
+</script>
+
+</body>
+</html>
+
+<?php mysqli_close($conn); ?>

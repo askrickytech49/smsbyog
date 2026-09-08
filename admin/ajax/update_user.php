@@ -58,7 +58,7 @@ if(isset($_SESSION['token']) =="") {
     $admin_data = mysqli_fetch_array($admin_sql);
     $admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
     $final_admin = mysqli_fetch_array($admin_sql2);
-    if($final_admin['type'] == "admin"){   
+    if(in_array($final_admin['type'], ["admin", "super_admin"])){   
 if($user_id !="" && $balance !="" && $recharge !="" && $total_otp !=""){
 if(is_numeric($balance) && is_numeric($recharge) && is_numeric($total_otp)){
 $sql=mysqli_query($conn,"SELECT * FROM user_data WHERE id='$user_id'");

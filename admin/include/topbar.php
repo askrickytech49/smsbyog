@@ -14,7 +14,7 @@
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
-                <img class="rounded-circle" src="https://myogsms.com/myogsmslogo.png" style="width: 40px">
+                <img class="rounded-circle" src="<?= $site_data['logo_url'] ?? 'https://i.ibb.co/ySRhxqh/default.png' ?>" style="width: 40px; object-fit:cover;" onerror="this.src='https://i.ibb.co/ySRhxqh/default.png'">
             
               </a>
        
