@@ -1,0 +1,44 @@
+body {
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--secondary-color-50);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: auto 2rem;
+}
+
+.success-div {
+    width: auto;
+    height: auto;
+    padding: 3rem;
+    background-color: #fff;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    margin: 0 3rem;
+}
+
+.success-img {
+    width: 100%;
+    height: auto;
+}
+.password-img {
+    width: 250px;
+    height: auto;
+}
+.icon-absolute {
+    position: absolute;
+    top: 3rem;
+    right: 3rem;
+    font-size: 30px;
+}
+
+@media screen and (max-width: 768px) {
+    .success-img, .password-img {
+        width: 150px;
+    }
+}

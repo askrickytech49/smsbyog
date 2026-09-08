@@ -1,0 +1,1 @@
+   <script type="module" src="js/control.js?v=60"></script>

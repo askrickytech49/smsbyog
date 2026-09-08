@@ -1,0 +1,26 @@
+# Database dumps — never commit
+*.sql
+
+# PHP error logs
+error_log
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+__MACOSX/
+
+# PHP session / cache files
+/tmp/
+/cache/
+
+# Composer vendor — install via composer install
+/vendor/
+
+# Uploads (user data — not source code)
+/upload/*
+/uploads/*
+
+# Keep the folders but ignore contents
+!/upload/.gitkeep
+!/uploads/.gitkeep

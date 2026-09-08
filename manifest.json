@@ -1,0 +1,20 @@
+{
+  "name": "OTPBUY",
+  "short_name": "OTPBUY",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2534/2534223.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2534/2534223.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

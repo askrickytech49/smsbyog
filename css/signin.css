@@ -1,0 +1,126 @@
+:root {
+    --secondary-color-50: #f7f3f3;
+}
+
+* {
+    font-family: "Figtree", sans-serif;
+    font-optical-sizing: auto;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--secondary-color-50);
+    padding-left: 80px;
+    padding-right: 80px;
+    padding-top: 80px;
+    padding-bottom: 80px;
+    display: flex;
+    /* justify-content: space-between; */
+    align-items: center;
+    gap: 50px;
+}
+.pb-200 {
+    padding-bottom: 200px;
+}
+.pb-100 {
+    padding-bottom: 100px;
+}
+.pb-50 {
+    padding-bottom: 50px;
+}
+.main-img-div, .form-area-div {
+    flex: 50%;
+}
+.main-img-div {
+    overflow: hidden;
+}
+.form-div {
+    background-color: #FFFFFF;
+    padding: 20px;
+    border-radius: 10px;
+    border: none;
+}
+.hero-img_ {
+    height: 85vh;
+    object-fit: cover;
+}
+.forgot-password-div {
+    margin-top: 0;
+    width: auto;
+    text-align: right;
+}
+.forgot-password {
+    color: #000;
+    font-weight: bold;
+    margin-top: 0;
+}
+.mb-x {
+    margin-bottom: 30px;
+}
+
+@media screen and (max-height: 568px) and (min-width: 1192px) {
+    body {
+        display: flex;
+        align-items: flex-start;
+    }
+}
+
+@media screen and (max-width: 1192px) {
+    body {
+        padding-left: 200px;
+        padding-right: 200px;
+        padding-top: 100px;
+        padding-bottom: 100px;
+        height: auto;
+        width: 100vw;
+        display: block;
+    }
+    .main-img-div {
+        display: none;
+    }
+    .form-area-div {
+        flex: 100%;
+        width: 100%;
+        overflow-x: hidden;
+    }
+    .form-div {
+        padding: 100px;
+    }
+    .mb-x {
+        margin-bottom: 50px;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    body {
+        padding-left: 100px;
+        padding-right: 100px;
+        padding-top: 100px;
+        padding-bottom: 100px;
+    }
+    
+    .form-div {
+        padding: 50px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    body {
+        padding-left: 25px;
+        padding-right: 25px;
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+    
+    .form-div {
+        padding: 25px;
+    }
+    .mb-x {
+        margin-bottom: 20px;
+    }
+}
