@@ -571,18 +571,12 @@ if(isset($userdata['type']) && $userdata['type'] === 'admin'){
       <div class="service-row">
         <div class="service-left">
 
-          <!-- Brand favicon -->
+          <!-- Brand icon from service_icon table or getServiceIcon helper -->
           <img 
-            src="https://myogsms.com/favicon.png"
-            alt="AuthPadi"
-            style="
-              width:38px;
-              height:38px;
-              border-radius:10px;
-              object-fit:contain;
-              <!--background:#fd0001;-->
-              padding:6px;
-            "
+            src="<?= htmlspecialchars($s['service_logo'] ?? '') ?>"
+            alt="<?= htmlspecialchars(strip_tags($s['service_name'])) ?>"
+            style="width:38px;height:38px;border-radius:10px;object-fit:contain;padding:4px;"
+            onerror="this.src='https://www.google.com/s2/favicons?sz=64&domain=<?= urlencode(strtolower(preg_replace('/[^a-zA-Z]/', '', strip_tags($s['service_name'])))) ?>.com'"
           >
 
           <div>
