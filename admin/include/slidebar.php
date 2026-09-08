@@ -143,9 +143,8 @@
 <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
   <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
     <div class="sidebar-brand-icon rounded-circle">
-      <img src="<?= $site_data['logo_url'] ?? 'https://i.ibb.co/ySRhxqh/default.png' ?>"
-           style="width:50px; height:50px; object-fit:cover; border-radius:50%;"
-           onerror="this.src='https://i.ibb.co/ySRhxqh/default.png'">
+      <img src="https://smsbyog.com/favicon.png"
+           style="width:50px; height:50px; object-fit:cover; border-radius:50%;">
     </div>
   </a>
   <hr class="sidebar-divider my-0">
