@@ -14,7 +14,7 @@ if(mysqli_num_rows($admin_sql) == 0){
 
 $admin = mysqli_fetch_assoc($admin_sql);
 $admin_user = mysqli_fetch_assoc(
-    mysqli_query($conn,"SELECT * FROM user_data WHERE id='{$admin['user_id']}' AND type='admin'")
+    mysqli_query($conn,"SELECT * FROM user_data WHERE id='{$admin['user_id']}' AND type IN ('admin','super_admin') AND status='1'")
 );
 
 if(!$admin_user){
