@@ -119,6 +119,8 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
             exit;
         } else {
             $random_order = generateRandomString();
+        // TigerSMS doesn't return expiry — use 20-min window from purchase time
+        $expires_at = date('Y-m-d H:i:s', strtotime('+20 minutes'));
             mysqli_begin_transaction($conn, MYSQLI_TRANS_START_READ_WRITE);
             try {
                 $sql200 = mysqli_query($conn, "SELECT * FROM user_wallet WHERE user_id='" . $user_id . "' FOR UPDATE");
@@ -136,8 +138,8 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
                     $add_otp = $user_otp + 1;
 
                     $sql5 = mysqli_query($conn, "UPDATE user_wallet SET balance='$cut_balance', total_otp='$add_otp' WHERE user_id='$user_id'");
-                    $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, status, sms_text, service_price, service_name, active_status) 
-                VALUES ('$user_id', '8', '{$response[1]}', '{$response[2]}', '$server', '$service', '$random_order', '$current_time_in_ist', '2', '', '$service_price', '$service_name', '2')");
+                    $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, expires_at, status, sms_text, service_price, service_name, active_status) 
+                VALUES ('$user_id', '8', '{$response[1]}', '{$response[2]}', '$server', '$service', '$random_order', '$current_time_in_ist', '$expires_at', '2', '', '$service_price', '$service_name', '2')");
                     
                     if ($sql5 && $sql6) {
                         // 1. COMMIT FIRST

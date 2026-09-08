@@ -33,17 +33,18 @@ if ($check_token === false) {
             $sql_logo = mysqli_query($conn, "SELECT img_url FROM service_icon WHERE short_code='" . mysqli_real_escape_string($conn, $row['service_id']) . "'");
             $logo_url = (mysqli_num_rows($sql_logo) > 0) ? mysqli_fetch_assoc($sql_logo)['img_url'] : "https://i.ibb.co/ySRhxqh/default.png";
 
-            // Timer Logic
-            $givenTime = strtotime($row['buy_time']);
+            // Timer — use stored expires_at if available, else fall back to buy_time + 20min
             $currentTime = time();
-            $twentyMinutesInSeconds = 20 * 60;
-            $expiryTime = $givenTime + $twentyMinutesInSeconds;
+            if (!empty($row['expires_at'])) {
+                $expiryTime = strtotime($row['expires_at']);
+            } else {
+                $expiryTime = strtotime($row['buy_time']) + (20 * 60);
+            }
 
             if ($expiryTime <= $currentTime) {
                 $left = "00:00";
             } else {
                 $timeLeftSeconds = $expiryTime - $currentTime;
-                // Sending milliseconds for frontend countdowns
                 $left = $timeLeftSeconds * 1000; 
             }
 

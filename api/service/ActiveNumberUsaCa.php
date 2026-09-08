@@ -33,10 +33,10 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
                     : "https://i.ibb.co/ySRhxqh/default.png";
 
                 // Timer — USA/CA server uses 8-minute window
-                $givenTime      = strtotime($row['buy_time']);
                 $currentTime    = time();
-                $timeoutSeconds = 8 * 60;
-                $expiryTime     = $givenTime + $timeoutSeconds;
+                $expiryTime = !empty($row['expires_at'])
+                    ? strtotime($row['expires_at'])
+                    : strtotime($row['buy_time']) + (8 * 60);
 
                 if ($expiryTime <= $currentTime) {
                     $left = "00:00";

@@ -112,7 +112,11 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         // --- Purchase Successful (HTTP 200) ---
         $api_order_id = $response->transaction_id;
         $phone_number = $response->phone_number;
-        $random_order = generateRandomString(); 
+        $random_order = generateRandomString();
+        // Store real expiry from DinoMMO response if available, else 8 min fallback
+        $expires_at = isset($response->expires_at)
+            ? date('Y-m-d H:i:s', strtotime($response->expires_at))
+            : date('Y-m-d H:i:s', strtotime('+8 minutes'));
         
         mysqli_begin_transaction($conn, MYSQLI_TRANS_START_READ_WRITE);
         try {
@@ -128,8 +132,8 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
                 $sql5 = mysqli_query($conn, "UPDATE user_wallet SET balance='$cut_balance', total_otp='$add_otp' WHERE user_id='$user_id'");
                 
                 // Insert Active Number
-                $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, status, sms_text, service_price, service_name, active_status) 
-                VALUES ('$user_id', '3', '$api_order_id', '$phone_number', '$server', '$service', '$random_order', '$current_time', '2', '', '$service_price', '$service_display_name', '2')");
+                $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, expires_at, status, sms_text, service_price, service_name, active_status) 
+                VALUES ('$user_id', '3', '$api_order_id', '$phone_number', '$server', '$service', '$random_order', '$current_time', '$expires_at', '2', '', '$service_price', '$service_display_name', '2')");
                 
                 if ($sql5 && $sql6) {
                     mysqli_commit($conn); 

@@ -149,6 +149,9 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
         $api_order_id = $response['transaction_id'];
         $phone_number = $response['number'];
         $random_order = generateRandomString(); 
+        // VerifySMS rentals last 6-7 minutes — store estimated expiry
+        // (ActiveNumberUsa.php will sync the real time from /api/status)
+        $expires_at = date('Y-m-d H:i:s', strtotime('+7 minutes'));
         
         mysqli_begin_transaction($conn, MYSQLI_TRANS_START_READ_WRITE);
         try {
@@ -164,8 +167,8 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
                 $sql5 = mysqli_query($conn, "UPDATE user_wallet SET balance='$cut_balance', total_otp='$add_otp' WHERE user_id='$user_id'");
                 
                 // Insert Active Number
-                $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, status, sms_text, service_price, service_name, active_status) 
-                VALUES ('$user_id', '1', '$api_order_id', '$phone_number', '$server', '$service', '$random_order', '$current_time', '2', '', '$service_price', '$service_display_name', '2')");
+                $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, expires_at, status, sms_text, service_price, service_name, active_status) 
+                VALUES ('$user_id', '1', '$api_order_id', '$phone_number', '$server', '$service', '$random_order', '$current_time', '$expires_at', '2', '', '$service_price', '$service_display_name', '2')");
                 
                 if ($sql5 && $sql6) {
                     mysqli_commit($conn); 

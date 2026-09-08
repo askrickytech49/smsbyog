@@ -151,13 +151,17 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
                 // 5sim variables: $response['id'] is number_id, $response['phone'] is number
                 $num_id = $response['id'];
                 $phone = $response['phone'];
+                // Store the real expiry time from 5sim API response
+                $expires_at = isset($response['expires'])
+                    ? date('Y-m-d H:i:s', strtotime($response['expires']))
+                    : date('Y-m-d H:i:s', strtotime('+20 minutes'));
 
                 $sql5 = mysqli_query($conn, "UPDATE user_wallet SET balance='$cut_balance', total_otp='$add_otp' WHERE user_id='$user_id'");
                 
                 $service_display = ucfirst($service) . " (" . ucfirst($operator) . ")";
                 
-                $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, status, sms_text, service_price, service_name, active_status) 
-                VALUES ('$user_id', '2', '$num_id', '$phone', '$server', '$service', '$random_order', '$current_time', '2', '', '$service_price', '$service_display', '2')");
+                $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, expires_at, status, sms_text, service_price, service_name, active_status) 
+                VALUES ('$user_id', '2', '$num_id', '$phone', '$server', '$service', '$random_order', '$current_time', '$expires_at', '2', '', '$service_price', '$service_display', '2')");
                 
                 if ($sql5 && $sql6) {
                     mysqli_commit($conn); 

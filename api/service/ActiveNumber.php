@@ -26,16 +26,16 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
                     ? mysqli_fetch_assoc($sql_logo)['img_url']
                     : "https://i.ibb.co/ySRhxqh/default.png";
 
-                // Timer
-                $givenTime  = strtotime($row['buy_time']);
+                // Timer — use stored expires_at if available, else buy_time + 20min
                 $currentTime = time();
-                $timeoutSeconds = 20 * 60;
-                $expiryTime = $givenTime + $timeoutSeconds;
+                $expiryTime = !empty($row['expires_at'])
+                    ? strtotime($row['expires_at'])
+                    : strtotime($row['buy_time']) + (20 * 60);
 
                 if ($expiryTime <= $currentTime) {
                     $left = "00:00";
                 } else {
-                    $left = ($expiryTime - $currentTime) * 1000; // milliseconds for frontend
+                    $left = ($expiryTime - $currentTime) * 1000;
                 }
 
                 // AUTO-REFUND on timeout
