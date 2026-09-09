@@ -18,7 +18,6 @@ $page_title='Admins';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-shield-check me-2 text-red"></i>Admins</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Admins</li></ol></nav>
   </div>
 </div>

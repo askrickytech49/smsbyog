@@ -13,7 +13,6 @@ $page_title = 'Blocked Users';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-person-slash me-2 text-red"></i>Blocked Users</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Blocked Users</li></ol></nav>
   </div>
 </div>

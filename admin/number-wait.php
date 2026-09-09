@@ -12,7 +12,6 @@ $page_title='Cancelled Numbers';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-x-circle me-2 text-red"></i>Cancelled Numbers</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Cancelled Numbers</li></ol></nav>
   </div>
 </div>

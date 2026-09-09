@@ -56,7 +56,6 @@ $page_title='Transactions';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-credit-card me-2 text-red"></i>Transactions</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Transactions</li></ol></nav>
   </div>
 </div>

@@ -13,7 +13,6 @@ $page_title='Promo Codes';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-tags me-2 text-red"></i>Promo Codes</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Promo Codes</li></ol></nav>
   </div>
   <a href="add_promocode" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Promo Code</a>

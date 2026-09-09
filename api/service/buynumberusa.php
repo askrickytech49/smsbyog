@@ -148,10 +148,30 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
         // --- Purchase Successful (HTTP 200) ---
         $api_order_id = $response['transaction_id'];
         $phone_number = $response['number'];
-        $random_order = generateRandomString(); 
-        // VerifySMS rentals last 6-7 minutes — store estimated expiry
-        // (ActiveNumberUsa.php will sync the real time from /api/status)
-        $expires_at = date('Y-m-d H:i:s', strtotime('+7 minutes'));
+        $random_order = generateRandomString();
+        
+        // Try to get real expiry from response fields
+        // VerifySMS may return: expires_at, expiry, expire_time, time_left (seconds)
+        if (!empty($response['expires_at'])) {
+            $expires_at = date('Y-m-d H:i:s', strtotime($response['expires_at']));
+        } elseif (!empty($response['expiry'])) {
+            $expires_at = date('Y-m-d H:i:s', strtotime($response['expiry']));
+        } elseif (!empty($response['time_left'])) {
+            // time_left in seconds
+            $expires_at = date('Y-m-d H:i:s', time() + (int)$response['time_left']);
+        } elseif (!empty($response['time_remaining'])) {
+            $expires_at = date('Y-m-d H:i:s', time() + (int)$response['time_remaining']);
+        } elseif (!empty($response['expire_time'])) {
+            $expires_at = date('Y-m-d H:i:s', strtotime($response['expire_time']));
+        } else {
+            // Log unknown fields for debugging — remove once confirmed
+            file_put_contents(
+                __DIR__ . '/../../payments/verifysms_rent_debug.json',
+                json_encode(['response_keys' => array_keys($response ?? []), 'response' => $response, 'time' => date('Y-m-d H:i:s')], JSON_PRETTY_PRINT)
+            );
+            // Fallback: 7 minutes from now
+            $expires_at = date('Y-m-d H:i:s', strtotime('+7 minutes'));
+        }
         
         mysqli_begin_transaction($conn, MYSQLI_TRANS_START_READ_WRITE);
         try {

@@ -71,7 +71,6 @@ $page_title='Edit User — '.htmlspecialchars($user['name']??'');
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-person-gear me-2 text-red"></i>Edit User</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="all_user">All Users</a></li><li class="breadcrumb-item active"><?=htmlspecialchars($user['name']??$uid)?></li></ol></nav>
   </div>
   <a href="all_user" class="btn btn-light-action"><i class="bi bi-arrow-left me-1"></i>Back</a>

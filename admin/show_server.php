@@ -13,7 +13,6 @@ $page_title='OTP Servers';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-server me-2 text-red"></i>OTP Servers</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">OTP Servers</li></ol></nav>
   </div>
   <a href="add_server" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Server</a>

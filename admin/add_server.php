@@ -21,7 +21,6 @@ $page_title='Add Server';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-server me-2 text-red"></i>Add OTP Server</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="show_server">OTP Servers</a></li><li class="breadcrumb-item active">Add</li></ol></nav>
   </div>
   <a href="show_server" class="btn btn-light-action"><i class="bi bi-arrow-left me-1"></i>Back</a>
