@@ -250,16 +250,13 @@ a:hover { color: var(--red-dark); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .page-header h1 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0;
+  display: none;
 }
 
 .breadcrumb {
