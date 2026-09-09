@@ -56,6 +56,7 @@ a:hover { color: var(--red-dark); }
 #adminSidebar {
   width: var(--sidebar-w);
   min-height: 100vh;
+  height: 100vh;
   background: var(--navy);
   display: flex;
   flex-direction: column;
@@ -63,13 +64,16 @@ a:hover { color: var(--red-dark); }
   position: fixed;
   top: 0; left: 0;
   z-index: 1000;
-  transition: width .25s ease, transform .25s ease;
+  transition: width .3s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.4,0,.2,1);
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--navy-light) transparent;
 }
 
 #adminSidebar::-webkit-scrollbar { width: 4px; }
 #adminSidebar::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 4px; }
+#adminSidebar::-webkit-scrollbar-track { background: transparent; }
 
 /* Brand */
 .sidebar-brand {
@@ -634,6 +638,15 @@ table.dataTable thead th, table.dataTable tbody td { border: none !important; }
 .sidebar-collapsed .sidebar-brand { justify-content: center; padding: 16px 12px; }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────── */
+/* Hide hamburger toggle on desktop */
+@media (min-width: 992px) {
+  #sidebarToggle { display: none !important; }
+}
+/* Hide collapse button on mobile */
+@media (max-width: 991.98px) {
+  #sidebarCollapseBtn { display: none !important; }
+}
+
 @media (max-width: 991.98px) {
   #adminSidebar {
     transform: translateX(-100%);
@@ -651,6 +664,49 @@ table.dataTable thead th, table.dataTable tbody td { border: none !important; }
   .kpi-icon { width: 44px; height: 44px; font-size: 18px; }
   .page-header h1 { font-size: 16px; }
   .admin-table tbody td, .admin-table thead th { padding: 10px 12px; }
+}
+
+/* ── ANIMATIONS ─────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Page content fade in */
+.page-content { animation: fadeIn .3s ease; }
+
+/* Cards animate in on load */
+.admin-card {
+  animation: fadeInUp .35s ease both;
+}
+.kpi-card {
+  animation: fadeInUp .35s ease both;
+}
+
+/* Stagger KPI cards */
+.kpi-card:nth-child(1) { animation-delay: .05s; }
+.kpi-card:nth-child(2) { animation-delay: .10s; }
+.kpi-card:nth-child(3) { animation-delay: .15s; }
+.kpi-card:nth-child(4) { animation-delay: .20s; }
+
+/* Sidebar links smooth hover */
+.sidebar-link {
+  transition: background .2s ease, color .2s ease, border-left-color .2s ease;
+}
+
+/* Table rows */
+.admin-table tbody tr {
+  transition: background .15s ease;
+}
+
+/* Buttons */
+.btn-primary, .btn-admin, .btn-outline-primary, .btn-light-action {
+  transition: all .2s cubic-bezier(.4,0,.2,1);
 }
 
 /* ── MISC UTILITIES ─────────────────────────────────────────────── */

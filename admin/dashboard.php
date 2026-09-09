@@ -66,7 +66,6 @@ $page_title = 'Dashboard';
 <!-- Page Header -->
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-speedometer2 me-2 text-red"></i>Dashboard</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item active">Dashboard</li></ol></nav>
   </div>
   <div class="d-flex gap-2 flex-wrap">
@@ -133,7 +132,7 @@ $page_title = 'Dashboard';
         <h6><i class="bi bi-graph-up-arrow me-2 text-red"></i>7-Day Revenue</h6>
       </div>
       <div class="admin-card-body">
-        <div class="chart-container" style="height:220px">
+        <div class="chart-container" style="height:260px">
           <canvas id="rev7Chart"></canvas>
         </div>
       </div>
@@ -145,7 +144,7 @@ $page_title = 'Dashboard';
         <h6><i class="bi bi-bar-chart-fill me-2 text-red"></i>User Funnel</h6>
       </div>
       <div class="admin-card-body">
-        <div class="d-flex flex-column gap-3 pt-2">
+        <div class="d-flex flex-column gap-4 pt-2">
           <?php
           $funnel = [
             ['label'=>'Registered','value'=>$total_users,'icon'=>'bi-person-plus','color'=>'blue'],
@@ -154,12 +153,13 @@ $page_title = 'Dashboard';
           ];
           foreach($funnel as $f): $pct = $total_users>0?round(($f['value']/$total_users)*100):0; ?>
           <div>
-            <div class="d-flex justify-content-between mb-1">
-              <span style="font-size:13px;font-weight:600;"><i class="bi <?=$f['icon']?> me-1"></i><?=$f['label']?></span>
-              <span style="font-size:13px;color:var(--text-muted);"><?=number_format($f['value'])?> <small>(<?=$pct?>%)</small></span>
+            <div class="d-flex justify-content-between mb-2">
+              <span style="font-size:14px;font-weight:700;"><i class="bi <?=$f['icon']?> me-1"></i><?=$f['label']?></span>
+              <span style="font-size:13px;color:var(--text-muted);font-weight:600;"><?=number_format($f['value'])?> <small>(<?=$pct?>%)</small></span>
             </div>
-            <div class="progress" style="height:8px;border-radius:999px;">
-              <div class="progress-bar" style="width:<?=$pct?>%;background:var(--red);border-radius:999px;"></div>
+            <div style="background:var(--bg);border-radius:999px;height:10px;overflow:hidden;">
+              <div class="funnel-bar" data-pct="<?=$pct?>"
+                   style="width:0%;height:100%;background:var(--red);border-radius:999px;transition:width 1s cubic-bezier(.4,0,.2,1);"></div>
             </div>
           </div>
           <?php endforeach; ?>
@@ -177,7 +177,7 @@ $page_title = 'Dashboard';
         <h6><i class="bi bi-calendar3 me-2 text-red"></i>30-Day Revenue</h6>
       </div>
       <div class="admin-card-body">
-        <div class="chart-container" style="height:220px">
+        <div class="chart-container" style="height:260px">
           <canvas id="rev30Chart"></canvas>
         </div>
       </div>
@@ -218,41 +218,90 @@ $page_title = 'Dashboard';
 
 <!-- Chart.js Scripts -->
 <script>
-const red = '#e10700';
-const chartDefaults = {
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
-    y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, color: '#94a3b8',
-      callback: v => '₦'+Number(v).toLocaleString() } }
-  }
-};
+document.addEventListener('DOMContentLoaded', function() {
+  const red = '#e10700';
 
-new Chart(document.getElementById('rev7Chart'), {
-  type: 'line',
-  data: {
-    labels: <?=json_encode($rev7_labels)?>,
-    datasets: [{
-      data: <?=json_encode($rev7_data)?>,
-      borderColor: red, backgroundColor: 'rgba(225,7,0,.08)',
-      fill: true, tension: .4, pointRadius: 4, pointBackgroundColor: red, borderWidth: 2
-    }]
-  },
-  options: chartDefaults
-});
+  // ── 7-Day Revenue Chart ──────────────────────────────────────
+  new Chart(document.getElementById('rev7Chart'), {
+    type: 'line',
+    data: {
+      labels: <?=json_encode($rev7_labels)?>,
+      datasets: [{
+        data: <?=json_encode($rev7_data)?>,
+        borderColor: red,
+        backgroundColor: 'rgba(225,7,0,.08)',
+        fill: true,
+        tension: .4,
+        pointRadius: 5,
+        pointBackgroundColor: red,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        borderWidth: 2.5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 1000, easing: 'easeInOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleColor: '#94a3b8',
+          bodyColor: '#fff',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: { label: ctx => ' ₦' + Number(ctx.raw).toLocaleString() }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#94a3b8' } },
+        y: { grid: { color: '#f1f5f9', drawBorder: false }, ticks: { font: { size: 11 }, color: '#94a3b8', callback: v => '₦' + Number(v).toLocaleString() } }
+      }
+    }
+  });
 
-new Chart(document.getElementById('rev30Chart'), {
-  type: 'bar',
-  data: {
-    labels: <?=json_encode($rev30_labels)?>,
-    datasets: [{
-      data: <?=json_encode($rev30_data)?>,
-      backgroundColor: 'rgba(225,7,0,.7)', borderRadius: 4, borderSkipped: false
-    }]
-  },
-  options: { ...chartDefaults, scales: { ...chartDefaults.scales,
-    x: { ...chartDefaults.scales.x, ticks: { display: false } } } }
+  // ── 30-Day Revenue Chart ─────────────────────────────────────
+  new Chart(document.getElementById('rev30Chart'), {
+    type: 'bar',
+    data: {
+      labels: <?=json_encode($rev30_labels)?>,
+      datasets: [{
+        data: <?=json_encode($rev30_data)?>,
+        backgroundColor: 'rgba(225,7,0,.75)',
+        hoverBackgroundColor: red,
+        borderRadius: 5,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 1000, easing: 'easeInOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleColor: '#94a3b8',
+          bodyColor: '#fff',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: { label: ctx => ' ₦' + Number(ctx.raw).toLocaleString() }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { display: false } },
+        y: { grid: { color: '#f1f5f9', drawBorder: false }, ticks: { font: { size: 11 }, color: '#94a3b8', callback: v => '₦' + Number(v).toLocaleString() } }
+      }
+    }
+  });
+
+  // ── Funnel progress bar animation ────────────────────────────
+  setTimeout(function() {
+    document.querySelectorAll('.funnel-bar').forEach(function(bar) {
+      bar.style.width = bar.dataset.pct + '%';
+    });
+  }, 300);
 });
 </script>
 
