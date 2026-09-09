@@ -86,12 +86,15 @@ html, body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 0 20px;
   border-bottom: 1px solid rgba(255,255,255,.08);
+  height: var(--topbar-h);
   min-height: var(--topbar-h);
+  max-height: var(--topbar-h);
   text-decoration: none;
   background: #ffffff;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .sidebar-brand-icon {
@@ -107,9 +110,9 @@ html, body {
 
 /* Full logo — shown when sidebar is open */
 .sidebar-logo-full {
-  height: 44px;
+  height: 34px;
   width: auto;
-  max-width: 180px;
+  max-width: 160px;
   object-fit: contain;
   display: block;
 }
