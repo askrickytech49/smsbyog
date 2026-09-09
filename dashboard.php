@@ -16,6 +16,13 @@ if ($wallet->balancedata() === false) {
     session_destroy();
     redirect('login');
 }
+
+// Admin accounts should not access user dashboard — redirect to admin panel
+$tk_check = mysqli_real_escape_string($conn, $_SESSION['token']);
+$tk_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT u.type FROM login_token lt JOIN user_data u ON lt.user_id=u.id WHERE lt.token='$tk_check' AND lt.status='1' LIMIT 1"));
+if ($tk_row && in_array($tk_row['type'], ['admin', 'super_admin'])) {
+    redirect('admin/dashboard');
+}
 date_default_timezone_set('Africa/Lagos');
 
 
