@@ -843,3 +843,21 @@ table.dataTable thead th, table.dataTable tbody td { border: none !important; }
 
 /* Chart containers */
 .chart-container { position: relative; }
+
+/* ── API TOGGLE SWITCH — BRAND RED ──────────────────────────────── */
+.form-check-input.api-toggle {
+  background-color: #dee2e6;
+  border-color: #dee2e6;
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+
+.form-check-input.api-toggle:checked {
+  background-color: var(--red) !important;
+  border-color: var(--red) !important;
+}
+
+.form-check-input.api-toggle:focus {
+  box-shadow: 0 0 0 3px rgba(225,7,0,.2) !important;
+  border-color: var(--red) !important;
+}
