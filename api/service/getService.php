@@ -1,5 +1,8 @@
 <?php
 include __DIR__ . '/../../include/config.php';
+include __DIR__ . '/../../include/api_active_check.php';
+require_api_active($conn, 8);
+
 include __DIR__ . '/../../include/service_icons.php';
 function makeCurlRequest($url, $api_key, $action, $country)
 {

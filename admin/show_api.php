@@ -15,7 +15,6 @@ $page_title='API Providers';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-plug me-2 text-red"></i>API Providers</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">API Providers</li></ol></nav>
   </div>
   <a href="add_api" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add API</a>
@@ -64,10 +63,19 @@ while($data=mysqli_fetch_assoc($sql)):
   }
 ?>
 <div class="col-12 col-md-6">
-  <div class="admin-card h-100">
+  <div class="admin-card h-100" id="api-card-<?=$data['id']?>" style="<?=$data['is_active']?'':'opacity:.6;'?>">
     <div class="admin-card-header">
       <h6><i class="bi bi-plug me-2 text-red"></i><?=htmlspecialchars($data['api_name'])?></h6>
-      <div class="d-flex gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Toggle switch -->
+        <div class="form-check form-switch mb-0" title="<?=$data['is_active']?'Disable API':'Enable API'?>">
+          <input class="form-check-input api-toggle"
+                 type="checkbox"
+                 role="switch"
+                 data-id="<?=$data['id']?>"
+                 <?=$data['is_active']?'checked':''?>
+                 style="width:40px;height:22px;cursor:pointer;">
+        </div>
         <a href="edit_api?id=<?=$data['id']?>" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i></a>
         <form method="post" style="display:inline" onsubmit="return confirm('Delete this API?')">
           <input type="hidden" name="id" value="<?=$data['id']?>">
@@ -100,4 +108,42 @@ while($data=mysqli_fetch_assoc($sql)):
 </div>
 <?php endwhile; ?>
 </div>
+<script>
+document.querySelectorAll('.api-toggle').forEach(function(toggle) {
+    toggle.addEventListener('change', function() {
+        const id      = this.dataset.id;
+        const card    = document.getElementById('api-card-' + id);
+        const checked = this.checked;
+        this.disabled = true;
+
+        fetch('ajax/toggle_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'id=' + encodeURIComponent(id)
+        })
+        .then(r => r.json())
+        .then(data => {
+            this.disabled = false;
+            if (data.success) {
+                card.style.opacity = data.is_active ? '1' : '0.6';
+                // Toast notification
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:' + (data.is_active?'#16a34a':'#dc2626') + ';color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;font-family:var(--font,Poppins)';
+                toast.textContent = data.message;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            } else {
+                // Revert toggle on error
+                this.checked = !checked;
+                alert(data.message || 'Toggle failed.');
+            }
+        })
+        .catch(() => {
+            this.disabled = false;
+            this.checked = !checked;
+            alert('Network error. Please try again.');
+        });
+    });
+});
+</script>
 <?php include __DIR__.'/include/layout_end.php'; ?>

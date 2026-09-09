@@ -1,5 +1,8 @@
 <?php
 include __DIR__ . '/../../include/config.php';
+include __DIR__ . '/../../include/api_active_check.php';
+require_api_active($conn, 3);
+
 include __DIR__ . '/../../include/service_icons.php';
 
 function custom_price_usaca($user_id, $service_id, $server_id, $price, $conn) {

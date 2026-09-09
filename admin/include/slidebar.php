@@ -5,6 +5,15 @@ function nav_active($pages, $current) {
     $pages = is_array($pages) ? $pages : [$pages];
     return in_array($current, $pages) ? 'active' : '';
 }
+
+// Check which APIs are active to show/hide nav items
+$api_status = [];
+$_api_rows = mysqli_query($conn, "SELECT id, is_active FROM api_detail");
+while($_ar = mysqli_fetch_assoc($_api_rows)) $api_status[(int)$_ar['id']] = (int)$_ar['is_active'];
+$_server1_on = ($api_status[8] ?? 1) == 1;
+$_server2_on = ($api_status[2] ?? 1) == 1;
+$_usa_on     = ($api_status[1] ?? 1) == 1;
+$_usaca_on   = ($api_status[3] ?? 1) == 1;
 ?>
 <!-- Sidebar Overlay (mobile) -->
 <div id="sidebarOverlay"></div>

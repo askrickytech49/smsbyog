@@ -556,7 +556,7 @@ class radiumsahil {
 
     public function all_server(){
         $final = array(); 
-        $sql = mysqli_query($this->conn, "SELECT * FROM `otp_server` WHERE status='1'");
+        $sql = mysqli_query($this->conn, "SELECT s.* FROM `otp_server` s JOIN `api_detail` a ON s.api_id=a.id WHERE s.status='1' AND a.is_active=1");
         while ($row = $sql->fetch_array()) {
             array_push($final, array(
                 'id' => $row['id'],

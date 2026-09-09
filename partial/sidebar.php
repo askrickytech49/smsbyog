@@ -238,10 +238,20 @@
     <span>Admin Dashboard</span>
   </a>
 </li>
+<?php } // close is_admin check ?>
 
-<?php } ?>
+<?php
+// Check which APIs are active for user-facing nav
+$_api_nav = [];
+$_anq = mysqli_query($conn, "SELECT id, is_active FROM api_detail");
+while($_anr = mysqli_fetch_assoc($_anq)) $_api_nav[(int)$_anr['id']] = (int)$_anr['is_active'];
+$_s1  = ($_api_nav[8] ?? 1) == 1;
+$_s2  = ($_api_nav[2] ?? 1) == 1;
+$_usa = ($_api_nav[1] ?? 1) == 1;
+$_ca  = ($_api_nav[3] ?? 1) == 1;
+?>
 
-
+<?php if($_s1): ?>
           <li class="sidebar-list">
             <a class="sidebar-link sidebar-title link-nav" href="buy-number-1">
               <svg class="stroke-icon">
@@ -250,7 +260,9 @@
               <span>Numbers (Server 1)</span>
             </a>
           </li>
-          
+<?php endif; ?>
+
+<?php if($_s2): ?>
           <li class="sidebar-list">
             <a class="sidebar-link sidebar-title link-nav" href="buy-number-server2">
               <svg class="stroke-icon">
@@ -259,6 +271,9 @@
               <span>Numbers (Server 2)</span>
             </a>
           </li>
+<?php endif; ?>
+
+<?php if($_usa): ?>
            <li class="sidebar-list">
             <a class="sidebar-link sidebar-title link-nav" href="buy-usa-number">
               <svg class="stroke-icon">
@@ -266,7 +281,10 @@
               </svg>
               <span>Buy USA Numbers</span>
             </a>
-          </li> 
+          </li>
+<?php endif; ?>
+
+<?php if($_ca): ?>
            <li class="sidebar-list">
             <a class="sidebar-link sidebar-title link-nav" href="buy-us-ca-number">
               <svg class="stroke-icon">
@@ -274,7 +292,8 @@
               </svg>
               <span>Buy USA & Canada…</span>
             </a>
-          </li> 
+          </li>
+<?php endif; ?>
 
           <!-- WALLET -->
           <li class="sidebar-section">Wallet</li>
