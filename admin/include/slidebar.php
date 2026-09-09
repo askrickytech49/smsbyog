@@ -16,6 +16,7 @@ function nav_active($pages, $current) {
   <a class="sidebar-brand" href="dashboard">
     <!-- Full logo (shown when expanded) -->
     <img src="https://smsbyog.com/SmsByOglogo.png" alt="SmsByOg" class="sidebar-logo-full">
+    <span class="sidebar-admin-badge">ADMIN</span>
     <!-- Favicon (shown when collapsed) -->
     <img src="https://smsbyog.com/favicon.png" alt="SmsByOg" class="sidebar-logo-icon">
   </a>
