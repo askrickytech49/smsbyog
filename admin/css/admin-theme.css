@@ -716,6 +716,16 @@ table.dataTable thead th, table.dataTable tbody td { border: none !important; }
 /* Hide collapse button on mobile */
 @media (max-width: 991.98px) {
   #sidebarCollapseBtn { display: none !important; }
+  /* Never apply collapsed state on mobile */
+  .sidebar-collapsed #adminSidebar { width: var(--sidebar-w) !important; }
+  .sidebar-collapsed #mainContent  { margin-left: 0 !important; }
+  .sidebar-collapsed .link-text,
+  .sidebar-collapsed .sidebar-section-label,
+  .sidebar-collapsed .sidebar-version { display: block !important; }
+  .sidebar-collapsed .sidebar-logo-full { display: block !important; }
+  .sidebar-collapsed .sidebar-logo-icon { display: none !important; }
+  .sidebar-collapsed .sidebar-link { padding: 10px 20px !important; justify-content: flex-start !important; }
+  .sidebar-collapsed .sidebar-brand { padding: 0 20px !important; justify-content: flex-start !important; }
 }
 
 @media (max-width: 991.98px) {

@@ -38,10 +38,16 @@
         wrapper.classList.toggle('sidebar-collapsed');
         localStorage.setItem('sidebarCollapsed', wrapper.classList.contains('sidebar-collapsed'));
     });
-    // Restore state
-    if (wrapper && localStorage.getItem('sidebarCollapsed') === 'true') {
+    // Restore collapse state — ONLY on desktop
+    if (wrapper && window.innerWidth >= 992 && localStorage.getItem('sidebarCollapsed') === 'true') {
         wrapper.classList.add('sidebar-collapsed');
     }
+    // On resize to mobile — always remove collapsed state
+    window.addEventListener('resize', function() {
+        if (window.innerWidth < 992 && wrapper) {
+            wrapper.classList.remove('sidebar-collapsed');
+        }
+    });
   })();
 
   // Initialize DataTables
