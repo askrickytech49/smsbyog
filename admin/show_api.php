@@ -74,7 +74,7 @@ while($data=mysqli_fetch_assoc($sql)):
                  role="switch"
                  data-id="<?=$data['id']?>"
                  <?=$data['is_active']?'checked':''?>
-                 style="width:40px;height:22px;cursor:pointer;">
+                 style="width:40px;height:22px;cursor:pointer;<?=$data['is_active']?'background-color:#e10700!important;border-color:#e10700!important;':''?>">
         </div>
         <a href="edit_api?id=<?=$data['id']?>" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i></a>
         <form method="post" style="display:inline" onsubmit="return confirm('Delete this API?')">
@@ -126,6 +126,14 @@ document.querySelectorAll('.api-toggle').forEach(function(toggle) {
             this.disabled = false;
             if (data.success) {
                 card.style.opacity = data.is_active ? '1' : '0.6';
+                // Apply red color via inline style when checked
+                if (data.is_active) {
+                    this.style.backgroundColor = '#e10700';
+                    this.style.borderColor = '#e10700';
+                } else {
+                    this.style.backgroundColor = '';
+                    this.style.borderColor = '';
+                }
                 // Toast notification
                 const toast = document.createElement('div');
                 toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:' + (data.is_active?'#16a34a':'#dc2626') + ';color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;font-family:var(--font,Poppins)';
