@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<?php
+session_start();
+include __DIR__ . '/include/config.php';
+
+// Check which APIs are active
+$api_status = [];
+$api_q = mysqli_query($conn, "SELECT id, is_active FROM api_detail");
+while($ar = mysqli_fetch_assoc($api_q)) $api_status[(int)$ar['id']] = (int)$ar['is_active'];
+$s1_on   = ($api_status[8] ?? 1) == 1; // TigerSMS
+$s2_on   = ($api_status[2] ?? 1) == 1; // 5sim
+$usa_on  = ($api_status[1] ?? 1) == 1; // VerifySMS
+$ca_on   = ($api_status[3] ?? 1) == 1; // DinoMMO
+?>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -171,6 +184,7 @@
 
     <div class="cards">
 
+      <?php if($s1_on): ?>
       <div class="card">
         <h3>Server 1</h3>
         <p>
@@ -182,8 +196,9 @@
           Buy Numbers (Server 1)
         </a>
       </div>
+      <?php endif; ?>
 
-
+      <?php if($s2_on): ?>
       <div class="card">
         <h3>Server 2</h3>
         <p>
@@ -195,7 +210,9 @@
           Buy Numbers (Server 2)
         </a>
       </div>
+      <?php endif; ?>
 
+      <?php if($usa_on): ?>
       <div class="card">
         <h3>USA Only</h3>
         <p>
@@ -207,7 +224,9 @@
           Buy Numbers (USA Only)
         </a>
       </div>
+      <?php endif; ?>
       
+      <?php if($ca_on): ?>
        <div class="card">
         <h3>USA Only Server 2</h3>
         <p>
@@ -218,6 +237,7 @@
           <i class="bi bi-flag-fill"></i>
           Buy Numbers (USA Only)
         </a>
+      <?php endif; ?>
       </div>
 
     </div>

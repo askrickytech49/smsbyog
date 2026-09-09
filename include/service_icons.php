@@ -16,7 +16,7 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
     // Using official or Wikipedia SVG/PNG sources where possible
     static $icons = [
         // Messaging
-        'whatsapp'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/240px-WhatsApp.svg.png',
+        'whatsapp'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/whatsapp.png',
         'telegram'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/240px-Telegram_logo.svg.png',
         'signal'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Signal-Logo.svg/240px-Signal-Logo.svg.png',
         'viber'       => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Viber_logo.svg/240px-Viber_logo.svg.png',
@@ -27,8 +27,8 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
         'kakaotalk'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/KakaoTalk_logo.svg/240px-KakaoTalk_logo.svg.png',
 
         // Social Media
-        'facebook'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/2023_Facebook_icon.svg/240px-2023_Facebook_icon.svg.png',
-        'instagram'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/240px-Instagram_logo_2016.svg.png',
+        'facebook'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/facebook.png',
+        'instagram'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/instagram.png',
         'twitter'     => 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/X_logo_2023.svg/240px-X_logo_2023.svg.png',
         'tiktok'      => 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/240px-TikTok_logo.svg.png',
         'snapchat'    => 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ad/Snapchat_logo.svg/240px-Snapchat_logo.svg.png',

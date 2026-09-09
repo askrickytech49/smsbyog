@@ -816,7 +816,7 @@ class radiumsahil {
 
     public function top_services(){
         $final = [];
-        $sql = mysqli_query($this->conn, "SELECT * FROM top_services WHERE status = 1 ORDER BY id DESC");
+        $sql = mysqli_query($this->conn, "SELECT ts.* FROM top_services ts JOIN otp_server os ON ts.server_name=os.id JOIN api_detail a ON os.api_id=a.id WHERE ts.status = 1 AND a.is_active=1 ORDER BY ts.id DESC");
 
         if (!$sql) { return $final; }
 
