@@ -1,153 +1,57 @@
 <?php
 include("auth.php");
-if(!isset($_SESSION['token'])){
-	if(isset($_COOKIE['remember_me'])) {
-		$radium_token = $_COOKIE['remember_me'];
-		$_SESSION['token'] = $radium_token;
-	}else{
-	header('Location: login.php'); exit;
-	}
+if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
+$aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
+if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
+$ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
+if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+
+$msg=''; $msg_type='';
+if(isset($_POST['add'])){
+    $name=mysqli_real_escape_string($conn,trim($_POST['server_name']??''));
+    $code=mysqli_real_escape_string($conn,trim($_POST['server_code']??''));
+    $api_id=(int)($_POST['api_id']??0);
+    $status=mysqli_real_escape_string($conn,$_POST['status']??'1');
+    if(!$name||!$code){ $msg='Name and code are required.'; $msg_type='danger'; }
+    else{ mysqli_query($conn,"INSERT INTO otp_server(server_name,server_code,api_id,status) VALUES('$name','$code','$api_id','$status')"); $msg='Server added.'; $msg_type='success'; }
 }
-$admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
-}else{
-$admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
-$final_admin = mysqli_fetch_array($admin_sql2);
-if(in_array($final_admin['type'], ["admin", "super_admin"])){
-
+$apis=mysqli_query($conn,"SELECT id,api_name FROM api_detail ORDER BY id");
+$page_title='Add Server';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <title>Add Service - @getallscripts</title>
-<?php include("include/head.php"); ?>  
-</head>
-<script>
-        $(document).ready(function() {
-            // Remove "active" class from all <a> elements
-            $('#dashboard').removeClass("active");
-            
-            // Add "active" class to the specific element with ID "faq"
-            $("#add_server").addClass("active");
-        });
-    </script>
-<body id="page-top">
-  <div id="wrapper">
-    <!-- Sidebar -->
-<?php include ("include/slidebar.php"); ?>
-    <!-- Sidebar -->
-    <div id="content-wrapper" class="d-flex flex-column">
-      <div id="content">
-        <!-- TopBar -->
-<?php include ("include/topbar.php"); ?>              
-        <!-- Topbar -->
-
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <!-- <h1 class="h3 mb-0 text-gray-800">Dashboard</h1> -->
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Add Service</li>
-            </ol>
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-server me-2 text-red"></i>Add OTP Server</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="show_server">OTP Servers</a></li><li class="breadcrumb-item active">Add</li></ol></nav>
+  </div>
+  <a href="show_server" class="btn btn-light-action"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-7 col-lg-5">
+    <?php if($msg): ?><div class="alert alert-<?=$msg_type?> mb-3"><?=$msg?></div><?php endif; ?>
+    <div class="admin-card">
+      <div class="admin-card-header"><h6>Server Details</h6></div>
+      <div class="admin-card-body">
+        <form method="post">
+          <div class="mb-3"><label class="form-label">Server Name</label><input type="text" name="server_name" class="form-control" placeholder="e.g. Nigeria (Server 1)" required></div>
+          <div class="mb-3"><label class="form-label">Server Code</label><input type="text" name="server_code" class="form-control" placeholder="e.g. 7" required></div>
+          <div class="mb-3">
+            <label class="form-label">API Provider</label>
+            <select name="api_id" class="form-select" required>
+              <option value="">Select API</option>
+              <?php while($a=mysqli_fetch_assoc($apis)): ?>
+              <option value="<?=$a['id']?>"><?=htmlspecialchars($a['api_name'])?></option>
+              <?php endwhile; ?>
+            </select>
           </div>
-
-          <div class="row">
-            <div class="col">
-              <!-- Form Basic -->
-              <div class="card mb-4" id="loading">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                  <h6 class="m-0 font-weight-bold text-primary">Add Service</h6>
-                </div>
-                <div class="card-body">
-                     <div class="form-group">
-                      <label for="exampleInputEmail1">Select Server </label>
-                   <?php
-              $query = "SELECT * FROM api_detail";
-            $statement = mysqli_query($conn,$query);
-                                            ?>  
-                  <select name="server_id" id="api_id" class="form-control mb-3">
-                      <?php
-                                                   while($row=mysqli_fetch_array($statement))
- 
-                                                    {
-                                                        ?>
-                                                            <option value="<?php echo $row['id']; ?>"><?php echo $row['api_name']; ?></option>
-                                                        <?php
-                                                    }
-                                                ?>
-                  </select>
-                    </div>
-                 
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Server Name</label>
-                      <input type="text" class="form-control" id="server_name"  placeholder="Enter Server Name">
-                    </div>
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Country Id</label>
-                      <input type="text" class="form-control" id="server_code"  placeholder="Enter Country Code">
-                    </div>
-                   <button type="submit" id="update" class="btn btn-primary w-100 mb-2">Submit</button><br>
-                </div>
-              
-        <!---Container Fluid-->
+          <div class="mb-4">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select"><option value="1">Active</option><option value="0">Inactive</option></select>
+          </div>
+          <button type="submit" name="add" class="btn btn-primary w-100"><i class="bi bi-plus-lg me-2"></i>Add Server</button>
+        </form>
       </div>
-      <!-- Footer -->
-<?php // include("include/copyright.php");
- ?>
-      <!-- Footer -->
     </div>
   </div>
-
-  <!-- Scroll to top -->
-  <a class="scroll-to-top rounded" href="#page-top">
-    <i class="fas fa-angle-up"></i>
-  </a>
-<?php include("include/script.php"); ?>
-<script>
-$(document).ready(function() {
-    // Attach a click event handler to the button
-
-    $("#update").click(function() {
-        Notiflix.Block.Dots('#loading', 'Please Wait');
-    var server_name = $("#server_name").val();
-    var api_id = $("#api_id").val();
-    var server_code = $("#server_code").val();
-        var params = {
-        server_name: server_name,
-        api_id: api_id,
-        server_code: server_code,
-        };
-
-        $.ajax({
-            type: "POST",
-            url: "ajax/add_category.php",
-            data: params,
-            error: function (e) {
-                console.log(e);
-            },
-            success: function (data) {
-                   Notiflix.Block.Remove('#loading');
-             $('#update').html(data);
-                $('#update').html("Add Category");
-
-            }
-        });
-    });
-});
-</script>
-
-
-
-</body>
-
-</html>
-<?php
-}else{
-    header('Location: login.php'); exit;
-}
-}
-?>
+</div>
+<?php include __DIR__.'/include/layout_end.php'; ?>

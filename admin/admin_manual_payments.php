@@ -1,162 +1,90 @@
 <?php
 include("auth.php");
-if(!isset($_SESSION['token'])){
-    if(isset($_COOKIE['remember_me'])) {
-        $radium_token = $_COOKIE['remember_me'];
-        $_SESSION['token'] = $radium_token;
-    }else{
-        header('Location: login.php'); exit;
+if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
+$aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
+if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
+$ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
+if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+
+$msg=''; $msg_type='';
+if(isset($_POST['approve'])){
+    $pid=(int)$_POST['id'];
+    $pay=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM manual_payments WHERE id='$pid'"));
+    if($pay && $pay['status']==0){
+        mysqli_begin_transaction($conn);
+        try{
+            mysqli_query($conn,"UPDATE manual_payments SET status=1 WHERE id='$pid'");
+            mysqli_query($conn,"UPDATE user_wallet SET balance=balance+{$pay['amount']},total_recharge=total_recharge+{$pay['amount']} WHERE user_id={$pay['user_id']}");
+            $ref='MAN'.time();
+            mysqli_query($conn,"INSERT INTO user_transaction(user_id,txn_id,amount,type,status,date) VALUES('{$pay['user_id']}','$ref','{$pay['amount']}','Manual Payment','1',NOW())");
+            mysqli_commit($conn); $msg='Payment approved.'; $msg_type='success';
+        }catch(Exception $e){ mysqli_rollback($conn); $msg='Error.'; $msg_type='danger'; }
     }
 }
-$admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
+if(isset($_POST['reject'])){
+    $pid=(int)$_POST['id'];
+    mysqli_query($conn,"UPDATE manual_payments SET status=-1 WHERE id='$pid'");
+    $msg='Payment rejected.'; $msg_type='warning';
 }
 
-$admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$admin_data['user_id']."' AND status='1'");
-$final_admin = mysqli_fetch_array($admin_sql2);
-
-if(!in_array($final_admin['type'], ["admin", "super_admin"])){
-    header('Location: login.php'); exit;
-}
-
-$msg = "";
-// Handle Approvals / Rejections Actions
-if (isset($_POST['action']) && isset($_POST['id'])) {
-    $req_id = intval($_POST['id']);
-    $action = $_POST['action'];
-
-    $payment_query = mysqli_query($conn, "SELECT * FROM manual_payments WHERE id = '$req_id' AND status = 'pending'");
-    if (mysqli_num_rows($payment_query) > 0) {
-        $payment = mysqli_fetch_assoc($payment_query);
-        $user_id = $payment['user_id'];
-        $amount = $payment['amount'];
-        $txn_id = $payment['txn_id'];
-        $now = date('Y-m-d H:i:s');
-
-        if ($action == 'approve') {
-            // Start SQL Atomic Transaction block
-            mysqli_begin_transaction($conn);
-            try {
-                // 1. Update verification state tracking
-                mysqli_query($conn, "UPDATE manual_payments SET status='approved', processed_at='$now' WHERE id='$req_id'");
-                
-                // 2. Adjust User Balance Profile directly matching your schemas
-                mysqli_query($conn, "UPDATE user_wallet SET balance = balance + $amount, total_recharge = total_recharge + $amount WHERE user_id='$user_id'");
-                
-                // 3. Register transaction ledger entries matching your table profile structure
-                mysqli_query($conn, "INSERT INTO user_transaction (user_id, txn_id, amount, type, status, date, admin_note) 
-                                     VALUES ('$user_id', '$txn_id', '$amount', 'Manual Recharge', '1', '$now', 'Approved by Admin')");
-                
-                mysqli_commit($conn);
-                $msg = "<div class='alert alert-success'>Transaction #$txn_id approved and wallet updated.</div>";
-            } catch (Exception $e) {
-                mysqli_rollback($conn);
-                $msg = "<div class='alert alert-danger'>Execution error processing adjustments.</div>";
-            }
-        } elseif ($action == 'reject') {
-            mysqli_query($conn, "UPDATE manual_payments SET status='rejected', processed_at='$now' WHERE id='$req_id'");
-            mysqli_query($conn, "INSERT INTO user_transaction (user_id, txn_id, amount, type, status, date, admin_note) 
-                                 VALUES ('$user_id', '$txn_id', '$amount', 'Manual Recharge', '-1', '$now', 'Rejected by Admin')");
-            $msg = "<div class='alert alert-warning'>Transaction #$txn_id marked rejected.</div>";
-        }
-    }
-}
-
-// Read pending requests data context
-$sql = mysqli_query($conn, "SELECT m.*, u.email FROM manual_payments m JOIN user_data u ON m.user_id = u.id ORDER BY m.id DESC");
+$sql=mysqli_query($conn,"SELECT m.*,u.name,u.email FROM manual_payments m LEFT JOIN user_data u ON m.user_id=u.id ORDER BY m.id DESC");
+$page_title='Manual Payments';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Manage Manual Payments - Admin</title>
-  <?php include("include/head.php"); ?>  
-  <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-</head>
-<body id="page-top">
-  <div id="wrapper">
-    <?php include ("include/slidebar.php"); ?>
-    <div id="content-wrapper" class="d-flex flex-column">
-      <div id="content">
-        <?php include ("include/topbar.php"); ?>       
-        
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Verify Manual Payments</h1>
-          </div>
-
-          <?= $msg; ?>
-
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="card mb-4">
-                <div class="table-responsive p-3">
-                  <table class="table align-items-center table-flush" id="dataTable">
-                    <thead class="thead-light">
-                      <tr>
-                        <th>User Email</th>
-                        <th>Txn ID</th>
-                        <th>Amount</th>
-                        <th>Receipt</th>
-                        <th>Status</th>
-                        <th>Submitted At</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    <?php while($data = mysqli_fetch_assoc($sql)){ ?>
-                      <tr>
-                        <td><strong><?php echo htmlspecialchars($data['email']); ?></strong></td>
-                        <td><?php echo htmlspecialchars($data['txn_id']); ?></td>
-                        <td>₦<?php echo number_format($data['amount'], 2); ?></td>
-                        <td>
-                          <a href="../<?php echo htmlspecialchars($data['receipt_image']); ?>" target="_blank" class="btn btn-sm btn-info">
-                            <i class="fas fa-eye"></i> View Receipt
-                          </a>
-                        </td>
-                        <td>
-                          <?php if($data['status'] == 'pending') { ?>
-                            <span class="badge badge-warning">Pending</span>
-                          <?php } elseif($data['status'] == 'approved') { ?>
-                            <span class="badge badge-success">Approved</span>
-                          <?php } else { ?>
-                            <span class="badge badge-danger">Rejected</span>
-                          <?php } ?>
-                        </td>
-                        <td><?php echo $data['created_at']; ?></td>
-                        <td>
-                          <?php if($data['status'] == 'pending') { ?>
-                            <form action="" method="POST" style="display:inline-block;">
-                              <input type="hidden" name="id" value="<?php echo $data['id']; ?>">
-                              <button type="submit" name="action" value="approve" class="btn btn-sm btn-success" onclick="return confirm('Approve this transaction and credit user wallet?')">Approve</button>
-                              <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger" onclick="return confirm('Reject this proof of payment?')">Reject</button>
-                            </form>
-                          <?php } else { echo '-'; } ?>
-                        </td>
-                      </tr>
-                    <?php } ?>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-cash-stack me-2 text-red"></i>Manual Payments</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Manual Payments</li></ol></nav>
+  </div>
+</div>
+<?php if($msg): ?><div class="alert alert-<?=$msg_type?> mb-3"><?=$msg?></div><?php endif; ?>
+<div class="admin-card">
+  <div class="admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="admin-table admin-datatable" style="width:100%">
+        <thead><tr><th>User</th><th>Amount</th><th>Receipt</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+        <?php while($r=mysqli_fetch_assoc($sql)):
+          if($r['status']==1){ $bs='badge-approved'; $bl='Approved'; }
+          elseif($r['status']==-1){ $bs='badge-rejected'; $bl='Rejected'; }
+          else{ $bs='badge-pending'; $bl='Pending'; }
+        ?>
+        <tr>
+          <td>
+            <div style="font-weight:600;font-size:13px"><?=htmlspecialchars($r['name']??'-')?></div>
+            <div style="font-size:11px;color:var(--text-muted)"><?=htmlspecialchars($r['email']??'')?></div>
+          </td>
+          <td><strong>₦<?=number_format($r['amount']??0)?></strong></td>
+          <td>
+            <?php if(!empty($r['receipt_url'])): ?>
+              <a href="<?=htmlspecialchars($r['receipt_url'])?>" target="_blank" class="btn btn-sm btn-light-action"><i class="bi bi-image me-1"></i>View</a>
+            <?php else: ?>
+              <span style="color:var(--text-muted);font-size:12px">None</span>
+            <?php endif; ?>
+          </td>
+          <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['date']??'')?></td>
+          <td><span class="status-badge <?=$bs?>"><?=$bl?></span></td>
+          <td>
+            <?php if($r['status']==0): ?>
+            <div class="d-flex gap-1">
+              <form method="post" style="display:inline">
+                <input type="hidden" name="id" value="<?=$r['id']?>">
+                <button class="btn btn-sm btn-success" name="approve" onclick="return confirm('Approve this payment?')"><i class="bi bi-check-lg"></i></button>
+              </form>
+              <form method="post" style="display:inline">
+                <input type="hidden" name="id" value="<?=$r['id']?>">
+                <button class="btn btn-sm btn-outline-danger" name="reject" onclick="return confirm('Reject this payment?')"><i class="bi bi-x-lg"></i></button>
+              </form>
             </div>
-          </div>
-        </div>
-
-      </div>
-      <?php include("include/copyright.php"); ?>
+            <?php else: ?>
+              <span style="font-size:12px;color:var(--text-muted)">Processed</span>
+            <?php endif; ?>
+          </td>
+        </tr>
+        <?php endwhile; ?>
+        </tbody>
+      </table>
     </div>
   </div>
-  <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
-  <?php include("include/script.php"); ?>
-  <script src="vendor/datatables/jquery.dataTables.min.js"></script>
-  <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
-  <script>
-    $(document).ready(function () {
-        $('#dataTable').DataTable({ pageLength: 10, order: [[5, "desc"]] });
-    });
-  </script>
-</body>
-</html>
-<?php mysqli_close($conn); ?>
+</div>
+<?php include __DIR__.'/include/layout_end.php'; ?>

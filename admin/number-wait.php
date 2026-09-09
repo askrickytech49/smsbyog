@@ -1,159 +1,39 @@
 <?php
 include("auth.php");
-if(!isset($_SESSION['token'])){
-	if(isset($_COOKIE['remember_me'])) {
-		$radium_token = $_COOKIE['remember_me'];
-		$_SESSION['token'] = $radium_token;
-	}else{
-	header('Location: login.php'); exit;
-	}
-}
-$admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
-}else{
-$admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
-$final_admin = mysqli_fetch_array($admin_sql2);
-if(in_array($final_admin['type'], ["admin", "super_admin"])){
-$sql = mysqli_query($conn,"
-SELECT 
-active_number.*, 
-user_data.email, 
-api_detail.display_name AS api_name
-FROM active_number
-LEFT JOIN user_data ON user_data.id = active_number.user_id
-LEFT JOIN api_detail ON api_detail.id = active_number.api_id
-WHERE active_number.status='3'
-ORDER BY active_number.id DESC
-");
+if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
+$aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
+if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
+$ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
+if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
 
+$sql=mysqli_query($conn,"SELECT a.*,u.email FROM active_number a LEFT JOIN user_data u ON a.user_id=u.id WHERE a.status='3' ORDER BY a.id DESC");
+$page_title='Cancelled Numbers';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <title>Number History- MyOGSMS</title>
-<?php include("include/head.php"); ?>  
-  <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-  
-</head>
-<script>
-        $(document).ready(function() {
-            // Remove "active" class from all <a> elements
-            $('#dashboard').removeClass("active");
-            
-            // Add "active" class to the specific element with ID "faq"
-            $("#today_otp").addClass("active");
-        });
-    </script>
-<body id="page-top">
-  <div id="wrapper">
-    <!-- Sidebar -->
-<?php include ("include/slidebar.php"); ?>
-    <!-- Sidebar -->
-    <div id="content-wrapper" class="d-flex flex-column">
-      <div id="content">
-        <!-- TopBar -->
-<?php include ("include/topbar.php"); ?>              
-        <!-- Topbar -->
-
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Number History</li>
-            </ol>
-          </div>
-
-        <!---Container Fluid-->
-                  <!-- Row -->
-          <div class="row">
-            <!-- Datatables -->
-            <div class="col">
-              <div class="card mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                  <h6 class="m-0 font-weight-bold text-primary">Number History</h6>
-                </div>
-                <div class="table-responsive p-3">
-                  <table class="table align-items-center table-flush" id="dataTable">
-                    <thead class="thead-light">
-                      <tr>
-                          <th>Email</th>
-                                                <th>Number</th>
-                                                <th>API</th>
-                                                <th>Buy Time</th>
-                                                <th>Service name</th>
-                                                <th>Server id</th>
-                                                <th>Sms</th>
-                       </tr>
-                    </thead>
-                     <tbody>
-                                                                   <?php
-while($data = mysqli_fetch_assoc($sql)){
-?>
-<tr>
-
-<td><?php echo $data['email']; ?></td>
-
-<td><?php echo $data['number']; ?></td>
-
-<td>
-<span class="badge badge-primary"><?php echo $data['api_name']; ?></span>
-</td>
-
-<td><?php echo $data['buy_time']; ?></td>
-
-<td><?php echo $data['service_name']; ?></td>
-
-<td><?php echo $data['server_id']; ?></td>
-<td><?php echo $data['sms_text']; ?></td>
-
-</tr>
-
-<?php } ?>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            
-      </div>
-      <!-- Footer -->
-<?php include("include/copyright.php"); ?>
-      <!-- Footer -->
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-x-circle me-2 text-red"></i>Cancelled Numbers</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Cancelled Numbers</li></ol></nav>
+  </div>
+</div>
+<div class="admin-card">
+  <div class="admin-card-body p-0">
+    <div class="table-responsive">
+      <table class="admin-table admin-datatable" style="width:100%">
+        <thead><tr><th>User</th><th>Number</th><th>Service</th><th>Price</th><th>Time</th></tr></thead>
+        <tbody>
+        <?php while($r=mysqli_fetch_assoc($sql)): ?>
+        <tr>
+          <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['email']??$r['user_id'])?></td>
+          <td><strong>+<?=htmlspecialchars($r['number'])?></strong></td>
+          <td><?=htmlspecialchars($r['service_name']??$r['service_id'])?></td>
+          <td>₦<?=number_format($r['service_price']??0)?></td>
+          <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['buy_time']??'')?></td>
+        </tr>
+        <?php endwhile; ?>
+        </tbody>
+      </table>
     </div>
   </div>
-
-  <!-- Scroll to top -->
-  <a class="scroll-to-top rounded" href="#page-top">
-    <i class="fas fa-angle-up"></i>
-  </a>
-<?php include("include/script.php"); ?>
-  <!-- Page level plugins -->
-  <script src="vendor/datatables/jquery.dataTables.min.js"></script>
-  <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
-  <script>
-$(document).ready(function () {
-
-    $('#dataTable').DataTable({
-        pageLength: 10,
-        lengthMenu: [10,25,50,100],
-        order: [[3, "desc"]]
-    });
-
-    $('#dataTableHover').DataTable();
-
-});
-</script>
-</body>
-
-</html>
-<?php
-}else{
-    header('Location: login.php'); exit;
-}
-}
-mysqli_close($conn);
-?>
+</div>
+<?php include __DIR__.'/include/layout_end.php'; ?>

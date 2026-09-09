@@ -1,162 +1,54 @@
 <?php
 include("auth.php");
-if(!isset($_SESSION['token'])){
-	if(isset($_COOKIE['remember_me'])) {
-		$radium_token = $_COOKIE['remember_me'];
-		$_SESSION['token'] = $radium_token;
-	}else{
-	header('Location: login.php'); exit;
-	}
-}
-$admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
-}else{
-$admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
-$final_admin = mysqli_fetch_array($admin_sql2);
-if(in_array($final_admin['type'], ["admin", "super_admin"])){
-if($_GET['id']==""){
-echo"invalid id";
-return;
-}else{
-$id = $_GET['id'];
-}
-$sql=mysqli_query($conn,"SELECT * FROM api_detail WHERE id='".$id."'");
-if(mysqli_num_rows($sql)==0){
-echo"invalid id";
-return;
-}
-//$server_data = mysqli_fetch_assoc($sql);
-$api_data = mysqli_fetch_assoc($sql);
+if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
+$aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
+if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
+$ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
+if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
 
+$id=(int)($_GET['id']??0);
+$api=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM api_detail WHERE id='$id'"));
+if(!$api){ header('Location: show_api'); exit; }
 
+$msg=''; $msg_type='';
+if(isset($_POST['update'])){
+    $name=mysqli_real_escape_string($conn,trim($_POST['api_name']??''));
+    $url =mysqli_real_escape_string($conn,trim($_POST['api_url']??''));
+    $key =mysqli_real_escape_string($conn,trim($_POST['api_key']??''));
+    $rate=(float)($_POST['rate']??1500);
+    $profit=(float)($_POST['profit_amount']??0);
+    mysqli_query($conn,"UPDATE api_detail SET api_name='$name',api_url='$url',api_key='$key',rate='$rate',profit_amount='$profit' WHERE id='$id'");
+    $api=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM api_detail WHERE id='$id'"));
+    $msg='API updated.'; $msg_type='success';
+}
+$page_title='Edit API';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <title>Edit Api - @getallscripts</title>
-<?php include("include/head.php"); ?>  
-</head>
-
-<body id="page-top">
-  <div id="wrapper">
-    <!-- Sidebar -->
-<?php include ("include/slidebar.php"); ?>
-    <!-- Sidebar -->
-    <div id="content-wrapper" class="d-flex flex-column">
-      <div id="content">
-        <!-- TopBar -->
-<?php include ("include/topbar.php"); ?>              
-        <!-- Topbar -->
-
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <!-- <h1 class="h3 mb-0 text-gray-800">Dashboard</h1> -->
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Edit Api </li>
-            </ol>
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-plug me-2 text-red"></i>Edit API: <?=htmlspecialchars($api['api_name'])?></h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="show_api">API Providers</a></li><li class="breadcrumb-item active">Edit</li></ol></nav>
+  </div>
+  <a href="show_api" class="btn btn-light-action"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <?php if($msg): ?><div class="alert alert-<?=$msg_type?> mb-3"><?=$msg?></div><?php endif; ?>
+    <div class="admin-card">
+      <div class="admin-card-header"><h6>Edit API Details</h6></div>
+      <div class="admin-card-body">
+        <form method="post">
+          <div class="mb-3"><label class="form-label">API Name</label><input type="text" name="api_name" class="form-control" value="<?=htmlspecialchars($api['api_name'])?>" required></div>
+          <div class="mb-3"><label class="form-label">API URL</label><input type="url" name="api_url" class="form-control" value="<?=htmlspecialchars($api['api_url'])?>" required></div>
+          <div class="mb-3"><label class="form-label">API Key</label><textarea name="api_key" class="form-control" rows="3" required><?=htmlspecialchars($api['api_key'])?></textarea></div>
+          <div class="row g-3 mb-4">
+            <div class="col-6"><label class="form-label">Rate (₦ per $1)</label><input type="number" name="rate" class="form-control" value="<?=htmlspecialchars($api['rate']??1500)?>" step="0.01"></div>
+            <div class="col-6"><label class="form-label">Profit (₦)</label><input type="number" name="profit_amount" class="form-control" value="<?=htmlspecialchars($api['profit_amount']??0)?>" step="0.01"></div>
           </div>
-
-          <div class="row">
-            <div class="col">
-              <!-- Form Basic -->
-              <div class="card mb-4" id="loading">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                  <h6 class="m-0 font-weight-bold text-primary">Api Details </h6>
-                </div>
-                <div class="card-body">
-            
-                     <div class="form-group">
-                      <label for="exampleInputEmail1">Api Name</label>
-                      <input type="text" class="form-control" id="api_name" value="<?php echo $api_data['api_name'];?>" placeholder="">
-                    <input type="hidden" id="id" value="<?php echo $id;?>">
-                    </div>
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Api Url</label>
-                      <input type="text" class="form-control" id="api_url" value="<?php echo $api_data['api_url'];?>" placeholder="Enter Api Url">
-                    </div>
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Api Key</label>
-                      <input type="text" class="form-control" id="api_key" value="<?php echo $api_data['api_key'];?>" placeholder="Enter Api Key">
-                    </div>
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Rate</label>
-                      <input type="text" class="form-control" id="rate" value="<?php echo $api_data['rate'];?>" placeholder="Enter Rate">
-                    </div>
-                    <div class="form-group">
-                        <label for="exampleInputPassword1">Fixed Profit (₦)</label>
-<input type="text" class="form-control" id="profit_amount" value="<?php echo $api_data['profit_amount'];?>" placeholder="Enter fixed profit">
-                      <!--<label for="exampleInputPassword1">Percentage</label>-->
-                      <!--<input type="text" class="form-control" id="percentage" value="<?php echo $api_data['percentage'];?>" placeholder="Enter percentage">-->
-                    </div>
-                   <button type="submit" id="update" class="btn btn-primary w-100 mb-2">Submit</button><br>
-                </div>
-              
-        <!---Container Fluid-->
+          <button type="submit" name="update" class="btn btn-primary w-100"><i class="bi bi-floppy me-2"></i>Save Changes</button>
+        </form>
       </div>
-      <!-- Footer -->
-<?php include("include/copyright.php"); ?>
-      <!-- Footer -->
     </div>
   </div>
-
-  <!-- Scroll to top -->
-  <a class="scroll-to-top rounded" href="#page-top">
-    <i class="fas fa-angle-up"></i>
-  </a>
-<?php include("include/script.php"); ?>
-<script>
-$(document).ready(function() {
-    // Attach a click event handler to the button
-
-    $("#update").click(function() {
-        Notiflix.Block.Dots('#loading', 'Please Wait');
-    var api_name = $("#api_name").val();
-    var api_url = $("#api_url").val();
-    var api_key = $("#api_key").val();
-    var rate = $("#rate").val();
-    var profit_amount = $("#profit_amount").val();
-    // var percentage = $("#percentage").val();
-    var description = $("#description").val();
-      var id = $("#id").val();
-        var params = {
-        api_name: api_name,
-        api_url: api_url,
-        api_key: api_key,
-        rate: rate,
-        profit_amount: profit_amount,
-        // percentage: percentage,
-        id: id,
-        };
-
-        $.ajax({
-            type: "POST",
-            url: "ajax/edit_api.php",
-            data: params,
-            error: function (e) {
-                console.log(e);
-            },
-            success: function (data) {
-                   Notiflix.Block.Remove('#loading');
-             $('#update').html(data);
-                $('#update').html("Add Api");
-
-            }
-        });
-    });
-});
-</script>
-
-</body>
-
-</html>
-<?php
-}else{
-    header('Location: login.php'); exit;
-}
-}
-?>
+</div>
+<?php include __DIR__.'/include/layout_end.php'; ?>

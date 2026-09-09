@@ -1,139 +1,52 @@
 <?php
 include("auth.php");
-if(!isset($_SESSION['token'])){
-	if(isset($_COOKIE['remember_me'])) {
-		$radium_token = $_COOKIE['remember_me'];
-		$_SESSION['token'] = $radium_token;
-	}else{
-	header('Location: login.php'); exit;
-	}
+if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
+$aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
+if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
+$ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
+if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+
+$msg=''; $msg_type='';
+if(isset($_POST['add'])){
+    $name=mysqli_real_escape_string($conn,trim($_POST['api_name']??''));
+    $url =mysqli_real_escape_string($conn,trim($_POST['api_url']??''));
+    $key =mysqli_real_escape_string($conn,trim($_POST['api_key']??''));
+    $rate=(float)($_POST['rate']??1500);
+    $profit=(float)($_POST['profit_amount']??0);
+    if(!$name||!$url||!$key){ $msg='All fields are required.'; $msg_type='danger'; }
+    else{
+        mysqli_query($conn,"INSERT INTO api_detail(api_name,api_url,api_key,rate,profit_amount) VALUES('$name','$url','$key','$rate','$profit')");
+        $msg='API added successfully.'; $msg_type='success';
+    }
 }
-$admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
-}else{
-$admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
-$final_admin = mysqli_fetch_array($admin_sql2);
-if(in_array($final_admin['type'], ["admin", "super_admin"])){
-
+$page_title='Add API';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <title>Add Api - @getallscripts</title>
-<?php include("include/head.php"); ?>  
-</head>
-<script>
-        $(document).ready(function() {
-            // Remove "active" class from all <a> elements
-            $('#dashboard').removeClass("active");
-            
-            // Add "active" class to the specific element with ID "faq"
-            $("#add_api").addClass("active");
-        });
-    </script>
-<body id="page-top">
-  <div id="wrapper">
-    <!-- Sidebar -->
-<?php include ("include/slidebar.php"); ?>
-    <!-- Sidebar -->
-    <div id="content-wrapper" class="d-flex flex-column">
-      <div id="content">
-        <!-- TopBar -->
-<?php include ("include/topbar.php"); ?>              
-        <!-- Topbar -->
-
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <!-- <h1 class="h3 mb-0 text-gray-800">Dashboard</h1> -->
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Add Api</li>
-            </ol>
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-plug me-2 text-red"></i>Add API Provider</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="show_api">API Providers</a></li><li class="breadcrumb-item active">Add</li></ol></nav>
+  </div>
+  <a href="show_api" class="btn btn-light-action"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <?php if($msg): ?><div class="alert alert-<?=$msg_type?> mb-3"><?=$msg?></div><?php endif; ?>
+    <div class="admin-card">
+      <div class="admin-card-header"><h6>API Details</h6></div>
+      <div class="admin-card-body">
+        <form method="post">
+          <div class="mb-3"><label class="form-label">API Name</label><input type="text" name="api_name" class="form-control" placeholder="e.g. TigerSMS" required></div>
+          <div class="mb-3"><label class="form-label">API URL</label><input type="url" name="api_url" class="form-control" placeholder="https://api.example.com" required></div>
+          <div class="mb-3"><label class="form-label">API Key</label><textarea name="api_key" class="form-control" rows="3" placeholder="Enter API key..." required></textarea></div>
+          <div class="row g-3 mb-4">
+            <div class="col-6"><label class="form-label">Exchange Rate (₦ per $1)</label><input type="number" name="rate" class="form-control" value="1500" step="0.01"></div>
+            <div class="col-6"><label class="form-label">Profit Amount (₦)</label><input type="number" name="profit_amount" class="form-control" value="0" step="0.01"></div>
           </div>
-
-          <div class="row">
-            <div class="col">
-              <!-- Form Basic -->
-              <div class="card mb-4" id="loading">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                  <h6 class="m-0 font-weight-bold text-primary">Add Service</h6>
-                </div>
-                <div class="card-body">
-                     <div class="form-group">
-                      <label for="exampleInputPassword1">Api Name</label>
-                      <input type="text" class="form-control" id="api_name"  placeholder="Enter Api Name">
-                    </div>
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Api Url</label>
-                      <input type="text" class="form-control" id="api_url"  placeholder="Enter Api Url">
-                    </div>
-                     <div class="form-group">
-                      <label for="exampleInputPassword1">Api Key</label>
-                      <input type="text" class="form-control" id="api_key"  placeholder="Enter Api Key">
-                    </div>
-                   <button type="submit" id="update" class="btn btn-primary w-100 mb-2">Submit</button><br>
-                </div>
-              
-        <!---Container Fluid-->
+          <button type="submit" name="add" class="btn btn-primary w-100"><i class="bi bi-plus-lg me-2"></i>Add API</button>
+        </form>
       </div>
-      <!-- Footer -->
-<?php // include("include/copyright.php");
- ?>
-      <!-- Footer -->
     </div>
   </div>
-
-  <!-- Scroll to top -->
-  <a class="scroll-to-top rounded" href="#page-top">
-    <i class="fas fa-angle-up"></i>
-  </a>
-<?php include("include/script.php"); ?>
-<script>
-$(document).ready(function() {
-    // Attach a click event handler to the button
-
-    $("#update").click(function() {
-        Notiflix.Block.Dots('#loading', 'Please Wait');
-    var api_name = $("#api_name").val();
-    var api_url = $("#api_url").val();
-    var api_key = $("#api_key").val();
-        var params = {
-        api_name: api_name,
-        api_url: api_url,
-        api_key: api_key,
-        };
-
-        $.ajax({
-            type: "POST",
-            url: "ajax/add_api.php",
-            data: params,
-            error: function (e) {
-                console.log(e);
-            },
-            success: function (data) {
-                   Notiflix.Block.Remove('#loading');
-             $('#update').html(data);
-                $('#update').html("Add Api");
-
-            }
-        });
-    });
-});
-</script>
-
-
-
-
-</body>
-
-</html>
-<?php
-}else{
-    header('Location: login.php'); exit;
-}
-}
-?>
+</div>
+<?php include __DIR__.'/include/layout_end.php'; ?>

@@ -1,292 +1,169 @@
-<style>
-  @import url(https://fonts.googleapis.com/css?family=Signika:700,300,600);
+<?php
+// Detect current page for active state
+$current = basename($_SERVER['PHP_SELF'], '.php');
+function nav_active($pages, $current) {
+    $pages = is_array($pages) ? $pages : [$pages];
+    return in_array($current, $pages) ? 'active' : '';
+}
+?>
+<!-- Sidebar Overlay (mobile) -->
+<div id="sidebarOverlay"></div>
 
-  .radium {
-    font-size: 18px;
-    font: bold 18px/1.6 'Signika', sans-serif;
-    user-select: none;
-  }
+<!-- Sidebar -->
+<nav id="adminSidebar">
 
-  .radium span {
-    display: inline-block;
-    animation: float .2s ease-in-out infinite;
-  }
-
-  @keyframes float {
-
-    0%,
-    100% {
-      transform: none;
-    }
-
-    33% {
-      transform: translateY(-1px) rotate(-2deg);
-    }
-
-    66% {
-      transform: translateY(1px) rotate(2deg);
-    }
-  }
-
-  .radium:hover span {
-    animation: bounce .6s;
-  }
-
-  @keyframes bounce {
-
-    0%,
-    100% {
-      transform: translate(0);
-    }
-
-    25% {
-      transform: rotateX(20deg) translateY(2px) rotate(-3deg);
-    }
-
-    50% {
-      transform: translateY(-20px) rotate(3deg) scale(1.1);
-    }
-  }
-
-  .radiumspan:nth-child(4n) {
-    color: hsl(50, 75%, 55%);
-    text-shadow: 1px 1px hsl(50, 75%, 45%), 2px 2px hsl(50, 45%, 45%), 3px 3px hsl(50, 45%, 45%), 4px 4px hsl(50, 75%, 45%);
-  }
-
-  .radium span:nth-child(4n-1) {
-    color: hsl(135, 35%, 55%);
-    text-shadow: 1px 1px hsl(135, 35%, 45%), 2px 2px hsl(135, 35%, 45%), 3px 3px hsl(135, 35%, 45%), 4px 4px hsl(135, 35%, 45%);
-  }
-
-  .radium span:nth-child(4n-2) {
-    color: hsl(155, 35%, 60%);
-    text-shadow: 1px 1px hsl(155, 25%, 50%), 2px 2px hsl(155, 25%, 50%), 3px 3px hsl(155, 25%, 50%), 4px 4px hsl(140, 25%, 50%);
-  }
-
-  .radium span:nth-child(4n-3) {
-    color: hsl(30, 65%, 60%);
-    text-shadow: 1px 1px hsl(30, 45%, 50%), 2px 2px hsl(30, 45%, 50%), 3px 3px hsl(30, 45%, 50%), 4px 4px hsl(30, 45%, 50%);
-  }
-
-  .radium span:nth-child(4n) {
-    color: hsl(50, 75%, 55%);
-    text-shadow: 1px 1px hsl(50, 75%, 45%), 2px 2px hsl(50, 45%, 45%), 3px 3px hsl(50, 45%, 45%), 4px 4px hsl(50, 75%, 45%);
-  }
-
-  .radium span:nth-child(4n-1) {
-    color: hsl(135, 35%, 55%);
-    text-shadow: 1px 1px hsl(135, 35%, 45%), 2px 2px hsl(135, 35%, 45%), 3px 3px hsl(135, 35%, 45%), 4px 4px hsl(135, 35%, 45%);
-  }
-
-  .radium span:nth-child(4n-2) {
-    color: hsl(155, 35%, 60%);
-    text-shadow: 1px 1px hsl(155, 25%, 50%), 2px 2px hsl(155, 25%, 50%), 3px 3px hsl(155, 25%, 50%), 4px 4px hsl(140, 25%, 50%);
-  }
-
-  .radium span:nth-child(4n-3) {
-    color: hsl(30, 65%, 60%);
-    text-shadow: 1px 1px hsl(30, 45%, 50%), 2px 2px hsl(30, 45%, 50%), 3px 3px hsl(30, 45%, 50%), 4px 4px hsl(30, 45%, 50%);
-  }
-
-  .radium span:nth-child(2) {
-    animation-delay: .05s;
-  }
-
-  .radium span:nth-child(3) {
-    animation-delay: .1s;
-  }
-
-  .radium span:nth-child(4) {
-    animation-delay: .15s;
-  }
-
-  .radium span:nth-child(5) {
-    animation-delay: .2s;
-  }
-
-  .radium span:nth-child(6) {
-    animation-delay: .25s;
-  }
-
-  .radium span:nth-child(7) {
-    animation-delay: .3s;
-  }
-
-  .radium span:nth-child(8) {
-    animation-delay: .35s;
-  }
-
-  .radium span:nth-child(9) {
-    animation-delay: .4s;
-  }
-
-  .radium span:nth-child(10) {
-    animation-delay: .45s;
-  }
-
-  .radium span:nth-child(11) {
-    animation-delay: .5s;
-  }
-
-  .radium span:nth-child(12) {
-    animation-delay: .55s;
-  }
-
-  .radium span:nth-child(13) {
-    animation-delay: .6s;
-  }
-
-  .radium span:nth-child(14) {
-    animation-delay: .65s;
-  }
-</style>
-<ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
-  <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
-    <div class="sidebar-brand-icon rounded-circle">
-      <img src="https://smsbyog.com/favicon.png"
-           style="width:50px; height:50px; object-fit:cover; border-radius:50%;">
+  <!-- Brand -->
+  <a class="sidebar-brand" href="dashboard">
+    <div class="sidebar-brand-icon">
+      <img src="https://smsbyog.com/favicon.png" alt="SmsByOg">
     </div>
+    <div class="sidebar-brand-name">Sms<span>ByOg</span></div>
   </a>
-  <hr class="sidebar-divider my-0">
-  <li class="nav-item active" id="dashboard">
-    <a class="nav-link " href="dashboard">
-      <i class="fas fa-fw fa-tachometer-alt"></i>
-      <span>Dashboard</span></a>
-  </li>
-  <li class="nav-item" id="all_user">
-    <a class="nav-link " href="all_user">
-      <i class="fas fa-fw fa-users"></i>
-      <span>All User</span></a>
-  </li>
-  <li class="nav-item" id="all_user">
-    <a class="nav-link " href="transactions">
-      <i class="fas fa-fw fa-money-check"></i>
-      <span>All Transactions</span></a>
-  </li>
-  <li class="nav-item" id="block_user">
-    <a class="nav-link " href="block_user">
-      <i class="fas fa-fw fa-user-alt-slash"></i>
-      <span>Blocked User</span></a>
-  </li>
-  <li class="nav-item" id="admins">
-    <a class="nav-link " href="admins">
-      <i class="fas fa-fw fa-user-tie"></i>
-      <span>View Admins</span></a>
-  </li>
-  
-   <li class="nav-item" id="admins">
-    <a class="nav-link " href="admin_manual_payments">
-      <i class="fas fa-fw fa-user-tie"></i>
-      <span>Manual Payments</span></a>
-  </li>
-  
-  <li class="nav-item" id="admins">
-    <a class="nav-link " href="admin_bank_settings">
-      <i class="fas fa-fw fa-user-tie"></i>
-      <span>Change Bank Details</span></a>
-  </li>
-  
-  
-  <li class="nav-item" id="top">
-    <a class="nav-link " href="top">
-      <i class="fas fa-fw fa-chart-bar"></i>
-       <span>Sell History</span></a>
-  </li>
-  <li class="nav-item" id="find_user">
-    <a class="nav-link " href="find_user">
-      <i class="fas fa-fw fa-user-cog"></i>
-      <span>Find User</span></a>
-  </li>
-  <!--<li class="nav-item" id="show_service">-->
-  <!--  <a class="nav-link " href="show_service">-->
-  <!--    <i class="fas fa-fw fa-server"></i>-->
-  <!--    <span>Show Service</span></a>-->
-  <!--</li>-->
-  <!--<li class="nav-item" id="add_service">-->
-  <!--  <a class="nav-link" href="add_service">-->
-  <!--    <i class="fas fa-fw fa-folder-plus"></i>-->
-  <!--    <span>Add Service</span>-->
-  <!--  </a>-->
-  <!--</li>-->
-  <!--<li class="nav-item" id="show_server">-->
-  <!--  <a class="nav-link " href="show_server">-->
-  <!--    <i class="fas fa-fw fa-server"></i>-->
-  <!--    <span>Show Server</span></a>-->
-  <!--</li>-->
-  <!--<li class="nav-item" id="add_server">-->
-  <!--  <a class="nav-link" href="add_server">-->
-  <!--    <i class="fas fa-fw fa-folder-plus"></i>-->
-  <!--    <span>Add Server</span>-->
-  <!--  </a>-->
-  <!--</li>-->
 
-  <li class="nav-item" id="add_api">
-    <a class="nav-link" href="add_api">
-      <i class="fas fa-fw fa-code-branch"></i>
-      <span>Add APIs</span>
-    </a>
-  </li>
-  <li class="nav-item" id="show_api">
-    <a class="nav-link " href="show_api">
-      <i class="fas fa-fw fa-server"></i>
-      <span>Show Api</span></a>
-  </li>
-  <!--<li class="nav-item" id="upi_transaction">-->
-  <!--  <a class="nav-link " href="upi_transaction">-->
-  <!--    <i class="fas fa-fw fa-compress-arrows-alt"></i>-->
-  <!--    <span>Upi Transactions</span></a>-->
-  <!--</li>-->
-  <!--<li class="nav-item" id="crypto_transaction">-->
-  <!--  <a class="nav-link " href="crypto_transaction">-->
-  <!--    <i class="fas fa-fw fa-ticket-alt"></i>-->
-  <!--    <span>Crypto Transactions</span></a>-->
-  <!--</li>-->
-  <!--<li class="nav-item" id="refer_transaction">-->
-  <!--  <a class="nav-link" href="refer_transaction">-->
-  <!--    <i class="fas fa-fw fa-money-check"></i>-->
-  <!--    <span>Refer Transaction</span>-->
-  <!--  </a>-->
-  <!--</li>-->
-  <!--<li class="nav-item" id="bharatpe">-->
-  <!--  <a class="nav-link " href="bharatpe">-->
-  <!--    <i class="fas fa-fw fa-file-code"></i>-->
-  <!--    <span>Bharatpe Settings</span></a>-->
-  <!--</li>-->
-  <li class="nav-item" id="number-wait">
-    <a class="nav-link " href="number-wait">
-      <i class="fas fa-fw fa-wrench"></i>
-      <span>Cancelled Numbers</span></a>
-  </li>
-  <!--<li class="nav-item" id="promocode">-->
-  <!--  <a class="nav-link" href="promocode">-->
-  <!--    <i class="fas fa-fw fa-gift"></i>-->
-  <!--    <span>Promocode Settings</span>-->
-  <!--  </a>-->
-  <!--</li>-->
-  <li class="nav-item" id="today_otp">
-    <a class="nav-link" href="today_otp">
-      <i class="fas fa-fw fa-portrait"></i>
-      <span>Number History</span>
-    </a>
-  </li>
-  <!--<li class="nav-item" id="custom_price">-->
-  <!--  <a class="nav-link" href="custom_price">-->
-  <!--    <i class="fas fa-fw fa-pen"></i>-->
-  <!--    <span>Set Custom Price</span>-->
-  <!--  </a>-->
-  <!--</li>-->
-  <!--<li class="nav-item" id="image_data">-->
-  <!--  <a class="nav-link" href="image_data">-->
-  <!--    <i class="fas fa-fw fa-palette"></i>-->
-  <!--    <span>Service Image</span>-->
-  <!--  </a>-->
-  <!--</li>-->
-  <li class="nav-item" id="top_service">
-    <a class="nav-link" href="top_service">
-      <i class="fas fa-fw fa-award"></i>
-      <span>Top Services</span>
-    </a>
-  </li>
-  <hr class="sidebar-divider">
-  <div class="version" style="color:red; font-size:15px; font-weight: bold;">v2.0</div>
-</ul>
+  <!-- Navigation -->
+  <div class="sidebar-nav">
+    <ul class="sidebar-item">
+
+      <!-- MAIN -->
+      <li><span class="sidebar-section-label">Main</span></li>
+
+      <li>
+        <a href="dashboard" class="sidebar-link <?= nav_active('dashboard', $current) ?>">
+          <i class="bi bi-speedometer2"></i>
+          <span class="link-text">Dashboard</span>
+        </a>
+      </li>
+
+      <!-- USERS -->
+      <li><span class="sidebar-section-label">Users</span></li>
+
+      <li>
+        <a href="all_user" class="sidebar-link <?= nav_active('all_user', $current) ?>">
+          <i class="bi bi-people"></i>
+          <span class="link-text">All Users</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="find_user" class="sidebar-link <?= nav_active('find_user', $current) ?>">
+          <i class="bi bi-search"></i>
+          <span class="link-text">Find User</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="block_user" class="sidebar-link <?= nav_active('block_user', $current) ?>">
+          <i class="bi bi-person-slash"></i>
+          <span class="link-text">Blocked Users</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="admins" class="sidebar-link <?= nav_active('admins', $current) ?>">
+          <i class="bi bi-shield-check"></i>
+          <span class="link-text">Admins</span>
+        </a>
+      </li>
+
+      <!-- FINANCES -->
+      <li><span class="sidebar-section-label">Finances</span></li>
+
+      <li>
+        <a href="transactions" class="sidebar-link <?= nav_active('transactions', $current) ?>">
+          <i class="bi bi-credit-card"></i>
+          <span class="link-text">Transactions</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="admin_manual_payments" class="sidebar-link <?= nav_active('admin_manual_payments', $current) ?>">
+          <i class="bi bi-cash-stack"></i>
+          <span class="link-text">Manual Payments</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="admin_bank_settings" class="sidebar-link <?= nav_active('admin_bank_settings', $current) ?>">
+          <i class="bi bi-bank"></i>
+          <span class="link-text">Bank Settings</span>
+        </a>
+      </li>
+
+      <!-- NUMBERS -->
+      <li><span class="sidebar-section-label">Numbers</span></li>
+
+      <li>
+        <a href="today_otp" class="sidebar-link <?= nav_active('today_otp', $current) ?>">
+          <i class="bi bi-clock-history"></i>
+          <span class="link-text">Number History</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="number-wait" class="sidebar-link <?= nav_active('number-wait', $current) ?>">
+          <i class="bi bi-x-circle"></i>
+          <span class="link-text">Cancelled Numbers</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="top" class="sidebar-link <?= nav_active('top', $current) ?>">
+          <i class="bi bi-bar-chart-line"></i>
+          <span class="link-text">Sell History</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="top_service" class="sidebar-link <?= nav_active(['top_service','add_top_service'], $current) ?>">
+          <i class="bi bi-star"></i>
+          <span class="link-text">Top Services</span>
+        </a>
+      </li>
+
+      <!-- CONFIGURATION -->
+      <li><span class="sidebar-section-label">Config</span></li>
+
+      <li>
+        <a href="show_api" class="sidebar-link <?= nav_active(['show_api','add_api','edit_api'], $current) ?>">
+          <i class="bi bi-plug"></i>
+          <span class="link-text">API Providers</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="show_server" class="sidebar-link <?= nav_active(['show_server','add_server','edit_server'], $current) ?>">
+          <i class="bi bi-server"></i>
+          <span class="link-text">OTP Servers</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="show_service" class="sidebar-link <?= nav_active(['show_service','view_service','add_service','edit_service'], $current) ?>">
+          <i class="bi bi-grid"></i>
+          <span class="link-text">Services</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="promocode" class="sidebar-link <?= nav_active(['promocode','add_promocode'], $current) ?>">
+          <i class="bi bi-tags"></i>
+          <span class="link-text">Promo Codes</span>
+        </a>
+      </li>
+
+      <li>
+        <a href="custom_price" class="sidebar-link <?= nav_active(['custom_price','add_custom_price'], $current) ?>">
+          <i class="bi bi-percent"></i>
+          <span class="link-text">Custom Prices</span>
+        </a>
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- Version -->
+  <div class="sidebar-version">
+    <span class="link-text">v3.0 — SmsByOg Admin</span>
+  </div>
+
+</nav>

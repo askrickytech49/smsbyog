@@ -1,2 +1,1 @@
-<?php
-header('location: dashboard');
+<?php header('Location: dashboard'); exit; ?>

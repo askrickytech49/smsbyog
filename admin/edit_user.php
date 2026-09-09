@@ -1,369 +1,234 @@
 <?php
 include("auth.php");
-if(!isset($_SESSION['token'])){
-	if(isset($_COOKIE['remember_me'])) {
-		$radium_token = $_COOKIE['remember_me'];
-		$_SESSION['token'] = $radium_token;
-	}else{
-	header('Location: login.php'); exit;
-	}
-}
+if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
+$aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
+if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
+$ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
+if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
 
-$admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
-}else{
-$admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
-$final_admin = mysqli_fetch_array($admin_sql2);
+$uid=(int)($_GET['user_id']??0);
+if(!$uid){ header('Location: all_user'); exit; }
 
-if(in_array($final_admin['type'], ["admin", "super_admin"])){
+$user=mysqli_fetch_assoc(mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE u.id='$uid'"));
+if(!$user){ header('Location: all_user'); exit; }
 
-if($_GET['user_id']==""){
-echo"invalid id";
-return;
+$msg=''; $msg_type='';
 
-}else{
-$user_id = $_GET['user_id'];
-}
-
-/* LOAD WALLET FIRST */
-$sql2=mysqli_query($conn,"SELECT * FROM user_wallet WHERE user_id='".$user_id."'");
-$user_wallet = mysqli_fetch_assoc($sql2);
-
-/* =========================
-DIRECT UPDATE HANDLER
-========================= */
-
-if(isset($_POST['submit_update']) && isset($_POST['balance'])){
-
-$balance     = isset($_POST['balance']) ? $_POST['balance'] : $user_wallet['balance'];
-$recharge    = isset($_POST['recharge']) ? $_POST['recharge'] : $user_wallet['total_recharge'];
-$total_otp   = isset($_POST['total_otp']) ? $_POST['total_otp'] : $user_wallet['total_otp'];
-$total_sms   = isset($_POST['total_sms']) ? $_POST['total_sms'] : $user_wallet['total_sms'];
-
-    // OPTIONAL PASSWORD UPDATE
-    if(!empty($_POST['new_password']) && !empty($_POST['confirm_password'])){
-        if($_POST['new_password'] === $_POST['confirm_password']){
-            $hashed_password = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-            mysqli_query($conn,"UPDATE user_data SET password='$hashed_password' WHERE id='$user_id'");
-        }
-    }
-
-    mysqli_query($conn,"
-        UPDATE user_wallet 
-        SET 
-            balance = '$balance',
-            total_recharge = '$recharge',
-            total_otp = '$total_otp',
-            total_sms = '$total_sms'
-        WHERE user_id = '$user_id'
-    ");
-}
-
-$sql=mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$user_id."'");
-if(mysqli_num_rows($sql)==0){
-echo"invalid id";
-return;
-}
-$user_data = mysqli_fetch_assoc($sql);
-
-$sql000 = mysqli_query($conn, "SELECT *, SUM(service_price) AS total_amount FROM active_number WHERE user_id = '".$user_id."' AND status = '1'");
-$final_admin0 = mysqli_fetch_assoc($sql000);
-
-if(isset($_GET['update_status'])){
-if($user_data['status'] ==1){
-  mysqli_query($conn,"UPDATE user_data SET status='2' WHERE id='".$user_id."'");
-}else{
-  mysqli_query($conn,"UPDATE user_data SET status='1' WHERE id='".$user_id."'");
-}
-}
-/* MAKE ADMIN */
-if(isset($_GET['make_admin'])){
-    mysqli_query($conn,"UPDATE user_data SET type='admin' WHERE id='".$user_id."'");
-    header("Location: edit_user.php?user_id=".$user_id."&admin=1");
-    exit;
-}
-
-// $sql2=mysqli_query($conn,"SELECT * FROM user_wallet WHERE user_id='".$user_id."'");
-// $user_wallet = mysqli_fetch_assoc($sql2);
-if(isset($_GET['funded'])){
-    $show_success = true;
-}
-if(isset($_GET['admin'])){
-    $show_admin = true;
-}
-if(isset($_GET['deducted'])){
-    $show_deduct = true;
-}
-
-if(isset($_GET['deduct_error'])){
-    $show_deduct_error = true;
-}
-
-
-function generateTxnId($length = 12) {
-    $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $txn = '';
-    for ($i = 0; $i < $length; $i++) {
-        $txn .= $characters[rand(0, strlen($characters) - 1)];
-    }
-    return $txn;
-}
-
-/* MANUAL FUNDING */
+// Fund wallet
 if(isset($_POST['fund_wallet'])){
-
-    $amount = floatval($_POST['fund_amount']);
-    $note   = mysqli_real_escape_string($conn,$_POST['fund_note']);
-
-    if($amount > 0){
-
-        $txn_id = generateTxnId();
-
-        mysqli_query($conn,"
-            UPDATE user_wallet 
-            SET balance = balance + '$amount',
-                total_recharge = total_recharge + '$amount'
-            WHERE user_id = '$user_id'
-        ");
-
-        mysqli_query($conn,"
-            INSERT INTO user_transaction
-            (user_id, txn_id, amount, type, status, date, admin_note)
-            VALUES
-            ('$user_id','$txn_id','$amount','AdminFund','1',NOW(),'$note')
-        ");
-
-        header("Location: edit_user.php?user_id=".$user_id."&funded=1");
-        exit;
+    $amt=(float)($_POST['fund_amount']??0);
+    if($amt>0){
+        mysqli_query($conn,"UPDATE user_wallet SET balance=balance+$amt,total_recharge=total_recharge+$amt WHERE user_id='$uid'");
+        $ref='ADM'.time();
+        mysqli_query($conn,"INSERT INTO user_transaction(user_id,txn_id,amount,type,status,date) VALUES('$uid','$ref','$amt','Admin Fund','1',NOW())");
+        $msg="₦".number_format($amt)." credited successfully."; $msg_type='success';
     }
 }
-/* DEDUCT WALLET */
+
+// Deduct wallet
 if(isset($_POST['deduct_wallet'])){
-
-    $amount = floatval($_POST['deduct_amount']);
-    $note   = mysqli_real_escape_string($conn,$_POST['deduct_note']);
-
-    if($amount > 0){
-
-        // prevent negative balance
-        if($user_wallet['balance'] < $amount){
-            header("Location: edit_user.php?user_id=".$user_id."&deduct_error=1");
-            exit;
-        }
-
-        $txn_id = generateTxnId();
-
-       mysqli_query($conn,"
-UPDATE user_wallet 
-SET 
-balance = balance - '$amount',
-total_recharge = total_recharge,
-total_otp = total_otp,
-total_sms = total_sms
-WHERE user_id = '$user_id'
-");
-
-        mysqli_query($conn,"
-            INSERT INTO user_transaction
-            (user_id, txn_id, amount, type, status, date, admin_note)
-            VALUES
-            ('$user_id','$txn_id','$amount','AdminDebit','1',NOW(),'$note')
-        ");
-
-        header("Location: edit_user.php?user_id=".$user_id."&deducted=1");
-        exit;
+    $amt=(float)($_POST['deduct_amount']??0);
+    if($amt>0){
+        mysqli_query($conn,"UPDATE user_wallet SET balance=balance-$amt WHERE user_id='$uid'");
+        $msg="₦".number_format($amt)." deducted."; $msg_type='warning';
     }
 }
 
-if($user_data['status'] ==1){
-$ban_status = "Block User";
-$ban_class2 = "btn-success";
-}else{
-$ban_status = "Unblock User";
-$ban_class2 = "btn-danger";
+// Update password
+if(isset($_POST['update_password'])){
+    $pw=trim($_POST['new_password']??'');
+    if(strlen($pw)>=6){
+        $hash=password_hash($pw,PASSWORD_BCRYPT);
+        mysqli_query($conn,"UPDATE user_data SET password='$hash' WHERE id='$uid'");
+        $msg='Password updated.'; $msg_type='success';
+    } else { $msg='Password must be at least 6 characters.'; $msg_type='danger'; }
 }
+
+// Block/unblock
+if(isset($_POST['toggle_block'])){
+    $new_status=$user['status']=='1'?'2':'1';
+    mysqli_query($conn,"UPDATE user_data SET status='$new_status' WHERE id='$uid'");
+    header("Location: edit_user?user_id=$uid"); exit;
+}
+
+// Make/remove admin
+if(isset($_POST['toggle_admin'])){
+    $new_type=$user['type']=='admin'?'user':'admin';
+    mysqli_query($conn,"UPDATE user_data SET type='$new_type' WHERE id='$uid'");
+    header("Location: edit_user?user_id=$uid"); exit;
+}
+
+// Refresh user data
+$user=mysqli_fetch_assoc(mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE u.id='$uid'"));
+
+// Recent transactions
+$txns=mysqli_query($conn,"SELECT * FROM user_transaction WHERE user_id='$uid' ORDER BY id DESC LIMIT 10");
+// Recent numbers
+$nums=mysqli_query($conn,"SELECT * FROM active_number WHERE user_id='$uid' ORDER BY id DESC LIMIT 10");
+
+$page_title='Edit User — '.htmlspecialchars($user['name']??'');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<title>Edit User - @getallscripts</title>
-<?php include("include/head.php"); ?>  
-</head>
-
-<body id="page-top">
-<div id="wrapper">
-<?php include ("include/slidebar.php"); ?>
-<div id="content-wrapper" class="d-flex flex-column">
-<div id="content">
-<?php include ("include/topbar.php"); ?>              
-
-<div class="container-fluid" id="container-wrapper">
-<div class="row">
-<div class="col">
-<div class="card mb-4" id="loading">
-<div class="card-header py-3">
-<h6 class="m-0 font-weight-bold text-primary">User Details</h6>
-</div>
-<div class="card-body">
-
-    <form method="POST">
-        <input type="hidden" name="submit_update" value="1">
-
-        <div class="form-group">
-            <label>User Email (Not Editable)</label>
-            <input type="email" class="form-control" value="<?php echo $user_data['email'];?>" readonly>
-        </div>
-
-        <div class="form-group">
-            <label>Total Purchase Amount</label>
-            <input type="text" class="form-control" value="₦<?php echo $final_admin0['total_amount'];?>" readonly>
-        </div>
-
-        <div class="form-group">
-            <label>Balance</label>
-            <input type="number" step="0.01" class="form-control" name="balance" value="<?php echo $user_wallet['balance'];?>">
-        </div>
-
-        <div class="form-group">
-            <label>Total Recharge</label>
-            <input type="number" step="0.01" class="form-control" name="recharge" value="<?php echo $user_wallet['total_recharge'];?>">
-        </div>
-
-        <div class="form-group">
-            <label>Total OTP Buy</label>
-            <input type="number" class="form-control" name="total_otp" value="<?php echo $user_wallet['total_otp'];?>">
-        </div>
-
-        <div class="form-group">
-            <label>Total SMS Count</label>
-            <input type="number" class="form-control" name="total_sms" value="<?php echo $user_wallet['total_sms'];?>">
-        </div>
-
-        <hr>
-
-        <div class="form-group">
-            <label>New Password (Optional)</label>
-            <input type="password" class="form-control" name="new_password" placeholder="Leave empty to keep current password">
-        </div>
-
-        <div class="form-group">
-            <label>Confirm New Password</label>
-            <input type="password" class="form-control" name="confirm_password">
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100 mb-4">Update User Details</button>
-    </form>
-
-    <hr>
-
-    <h6 class="font-weight-bold">Manual Wallet Funding</h6>
-    <form method="POST">
-        <input type="hidden" name="fund_wallet" value="1">
-
-        <div class="form-group">
-            <label>Amount to Add</label>
-            <input type="number" step="0.01" class="form-control" name="fund_amount" required>
-        </div>
-
-        <div class="form-group">
-            <label>Description</label>
-            <input type="text" class="form-control" name="fund_note" placeholder="Manual Admin Funding">
-        </div>
-
-        <button type="submit" class="btn btn-success w-100 mb-4" onclick="this.disabled=true;this.form.submit();">
-            Fund User Wallet
-        </button>
-    </form>
-
-    <hr>
-
-    <h6 class="font-weight-bold text-danger">Deduct Wallet Balance</h6>
-    <form method="POST">
-        <input type="hidden" name="deduct_wallet" value="1">
-
-        <div class="form-group">
-            <label>Amount to Deduct</label>
-            <input type="number" step="0.01" class="form-control" name="deduct_amount" required>
-        </div>
-
-        <div class="form-group">
-            <label>Reason</label>
-            <input type="text" class="form-control" name="deduct_note" placeholder="Admin deduction">
-        </div>
-
-        <button type="submit" class="btn btn-danger w-100 mb-4" onclick="this.disabled=true;this.form.submit();">
-            Deduct From Wallet
-        </button>
-    </form>
-
-    <hr>
-
-    <a href="login_user?user_id=<?php echo $user_id;?>" target="_blank">
-        <button type="button" class="btn btn-success w-100 mb-2">Login As User</button>
-    </a>
-
-    <form method="get">
-        <input type="hidden" name="user_id" value="<?php echo $user_id;?>">
-        <button type="submit" name="update_status" value="update" class="btn <?php echo $ban_class2; ?> w-100 mb-2">
-            <?php echo $ban_status;?>
-        </button>
-    </form>
-
-    <form method="get">
-        <input type="hidden" name="user_id" value="<?php echo $user_id;?>">
-        <button type="submit" name="make_admin" value="1" class="btn btn-warning w-100 mb-2">
-            Make Admin
-        </button>
-    </form>
-
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-person-gear me-2 text-red"></i>Edit User</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="all_user">All Users</a></li><li class="breadcrumb-item active"><?=htmlspecialchars($user['name']??$uid)?></li></ol></nav>
+  </div>
+  <a href="all_user" class="btn btn-light-action"><i class="bi bi-arrow-left me-1"></i>Back</a>
 </div>
 
+<?php if($msg): ?><div class="alert alert-<?=$msg_type?> mb-3"><?=$msg?></div><?php endif; ?>
+
+<div class="row g-4">
+  <!-- Left: User info + quick stats -->
+  <div class="col-12 col-lg-4">
+
+    <!-- Profile card -->
+    <div class="admin-card mb-4">
+      <div class="admin-card-body text-center py-4">
+        <div class="user-avatar mx-auto mb-3" style="width:64px;height:64px;font-size:24px"><?=strtoupper(substr($user['name']??'U',0,1))?></div>
+        <div style="font-size:16px;font-weight:700"><?=htmlspecialchars($user['name']??'-')?></div>
+        <div style="font-size:13px;color:var(--text-muted)"><?=htmlspecialchars($user['email'])?></div>
+        <div class="mt-2">
+          <span class="status-badge <?=$user['status']=='1'?'badge-active':'badge-blocked'?>"><?=$user['status']=='1'?'Active':'Blocked'?></span>
+          <?php $type_class = ($user['type']=='admin'||$user['type']=='super_admin')?'badge-pending':''; ?>
+          <span class="status-badge ms-1 <?=$type_class?>" style="background:rgba(2,132,199,.1);color:var(--info)"><?=htmlspecialchars($user['type'])?></span>
+        </div>
+      </div>
+      <div class="row g-0 text-center border-top">
+        <div class="col-4 py-3 border-end">
+          <div style="font-size:16px;font-weight:800">₦<?=number_format($user['balance']??0)?></div>
+          <div style="font-size:11px;color:var(--text-muted)">Balance</div>
+        </div>
+        <div class="col-4 py-3 border-end">
+          <div style="font-size:16px;font-weight:800">₦<?=number_format($user['total_recharge']??0)?></div>
+          <div style="font-size:11px;color:var(--text-muted)">Recharged</div>
+        </div>
+        <div class="col-4 py-3">
+          <div style="font-size:16px;font-weight:800"><?=number_format($user['total_otp']??0)?></div>
+          <div style="font-size:11px;color:var(--text-muted)">OTP</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="admin-card mb-4">
+      <div class="admin-card-header"><h6>Quick Actions</h6></div>
+      <div class="admin-card-body d-flex flex-column gap-2">
+        <form method="post">
+          <button name="toggle_block" class="btn w-100 <?=$user['status']=='1'?'btn-outline-danger':'btn-success'?>" onclick="return confirm('Are you sure?')">
+            <i class="bi <?=$user['status']=='1'?'bi-person-slash':'bi-person-check'?> me-2"></i>
+            <?=$user['status']=='1'?'Block User':'Unblock User'?>
+          </button>
+        </form>
+        <?php if($user['type']!='super_admin'): ?>
+        <form method="post">
+          <button name="toggle_admin" class="btn w-100 btn-outline-primary" onclick="return confirm('Are you sure?')">
+            <i class="bi <?=$user['type']=='admin'?'bi-person-dash':'bi-shield-plus'?> me-2"></i>
+            <?=$user['type']=='admin'?'Remove Admin':'Make Admin'?>
+          </button>
+        </form>
+        <?php endif; ?>
+        <a href="login_user?user_id=<?=$uid?>" class="btn btn-outline-secondary" onclick="return confirm('Login as this user?')">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Login As User
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Edit forms -->
+  <div class="col-12 col-lg-8">
+
+    <!-- Fund / Deduct wallet -->
+    <div class="admin-card mb-4">
+      <div class="admin-card-header"><h6><i class="bi bi-wallet2 me-2 text-red"></i>Wallet Management</h6></div>
+      <div class="admin-card-body">
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <form method="post">
+              <label class="form-label">Fund Wallet (₦)</label>
+              <div class="input-group">
+                <input type="number" name="fund_amount" class="form-control" placeholder="0.00" min="1" step="0.01" required>
+                <button class="btn btn-success" name="fund_wallet" type="submit"><i class="bi bi-plus-lg"></i></button>
+              </div>
+            </form>
+          </div>
+          <div class="col-12 col-sm-6">
+            <form method="post">
+              <label class="form-label">Deduct Wallet (₦)</label>
+              <div class="input-group">
+                <input type="number" name="deduct_amount" class="form-control" placeholder="0.00" min="1" step="0.01" required>
+                <button class="btn btn-outline-danger" name="deduct_wallet" type="submit" onclick="return confirm('Deduct this amount?')"><i class="bi bi-dash-lg"></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change password -->
+    <div class="admin-card mb-4">
+      <div class="admin-card-header"><h6><i class="bi bi-key me-2 text-red"></i>Change Password</h6></div>
+      <div class="admin-card-body">
+        <form method="post" class="d-flex gap-2">
+          <input type="password" name="new_password" class="form-control" placeholder="New password (min 6 chars)" required>
+          <button class="btn btn-primary flex-shrink-0" name="update_password"><i class="bi bi-floppy me-1"></i>Save</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Recent transactions -->
+    <div class="admin-card mb-4">
+      <div class="admin-card-header"><h6><i class="bi bi-clock-history me-2 text-red"></i>Recent Transactions</h6></div>
+      <div class="admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Amount</th><th>Type</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+            <?php while($t=mysqli_fetch_assoc($txns)):
+              $ts=$t['status']==1?'badge-approved':($t['status']==-1?'badge-rejected':'badge-pending');
+              $tl=$t['status']==1?'Approved':($t['status']==-1?'Rejected':'Pending'); ?>
+            <tr>
+              <td><strong>₦<?=number_format($t['amount']??0)?></strong></td>
+              <td style="font-size:12px"><?=htmlspecialchars($t['type']??'')?></td>
+              <td><span class="status-badge <?=$ts?>"><?=$tl?></span></td>
+              <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($t['date']??'')?></td>
+            </tr>
+            <?php endwhile; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent numbers -->
+    <div class="admin-card">
+      <div class="admin-card-header"><h6><i class="bi bi-phone me-2 text-red"></i>Recent Numbers</h6></div>
+      <div class="admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Number</th><th>Service</th><th>Price</th><th>OTP</th><th>Time</th></tr></thead>
+            <tbody>
+            <?php while($n=mysqli_fetch_assoc($nums)): ?>
+            <tr>
+              <td><strong>+<?=htmlspecialchars($n['number'])?></strong></td>
+              <td style="font-size:12px"><?=htmlspecialchars($n['service_name']??$n['service_id'])?></td>
+              <td>₦<?=number_format($n['service_price']??0)?></td>
+              <td>
+                <?php if($n['sms_text']): ?>
+                  <code style="background:rgba(22,163,74,.1);color:var(--success);padding:2px 6px;border-radius:4px;font-size:12px"><?=htmlspecialchars($n['sms_text'])?></code>
+                <?php else: ?><span style="color:var(--text-muted);font-size:12px">—</span><?php endif; ?>
+              </td>
+              <td style="font-size:11px;color:var(--text-muted)"><?=htmlspecialchars($n['buy_time']??'')?></td>
+            </tr>
+            <?php endwhile; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
-</div>
-</div>
-
-<?php include("include/copyright.php"); ?>
-</div>
-</div>
-
-<?php include("include/script.php"); ?>
-
-<script>
-$(document).ready(function() {
-    $("#update").click(function() {
-        Notiflix.Block.Dots('#loading', 'Please Wait');
-    });
-});
-</script>
-<script>
-<?php if(isset($show_success)){ ?>
-Notiflix.Notify.Success('Wallet funded successfully');
-<?php } ?>
-</script>
-<script>
-<?php if(isset($show_admin)){ ?>
-Notiflix.Notify.Success('User promoted to Admin');
-<?php } ?>
-</script>
-
-<script>
-<?php if(isset($show_deduct)){ ?>
-Notiflix.Notify.Success('Balance deducted successfully');
-<?php } ?>
-
-<?php if(isset($show_deduct_error)){ ?>
-Notiflix.Notify.Failure('User balance is too low');
-<?php } ?>
-</script>
-
-</body>
-</html>
-<?php
-}else{
-header('Location: login.php'); exit;
-}
-}
-mysqli_close($conn);
-?>
+<?php include __DIR__.'/include/layout_end.php'; ?>

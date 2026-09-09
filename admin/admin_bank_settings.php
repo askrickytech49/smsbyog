@@ -1,95 +1,57 @@
 <?php
 include("auth.php");
-if(!isset($_SESSION['token'])){
-    if(isset($_COOKIE['remember_me'])) {
-        $radium_token = $_COOKIE['remember_me'];
-        $_SESSION['token'] = $radium_token;
-    }else{
-        header('Location: login.php'); exit;
+if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
+$aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
+if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
+$ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
+if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+
+$msg=''; $msg_type='';
+if(isset($_POST['update_bank'])){
+    $bank_name    = mysqli_real_escape_string($conn,trim($_POST['bank_name']??''));
+    $account_name = mysqli_real_escape_string($conn,trim($_POST['account_name']??''));
+    $account_num  = mysqli_real_escape_string($conn,trim($_POST['account_number']??''));
+    if(!$bank_name||!$account_name||!$account_num){ $msg='All fields are required.'; $msg_type='danger'; }
+    else{
+        $exists=mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM system_bank_details"))[0];
+        if($exists){ mysqli_query($conn,"UPDATE system_bank_details SET bank_name='$bank_name',account_name='$account_name',account_number='$account_num'"); }
+        else{ mysqli_query($conn,"INSERT INTO system_bank_details(bank_name,account_name,account_number) VALUES('$bank_name','$account_name','$account_num')"); }
+        $msg='Bank details updated.'; $msg_type='success';
     }
 }
-$admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
-}
-
-$admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$admin_data['user_id']."' AND status='1'");
-$final_admin = mysqli_fetch_array($admin_sql2);
-
-if(!in_array($final_admin['type'], ["admin", "super_admin"])){
-    header('Location: login.php'); exit;
-}
-
-$msg = "";
-if (isset($_POST['update_bank'])) {
-    $bank_name = mysqli_real_escape_string($conn, trim($_POST['bank_name']));
-    $account_name = mysqli_real_escape_string($conn, trim($_POST['account_name']));
-    $account_number = mysqli_real_escape_string($conn, trim($_POST['account_number']));
-
-    if (empty($bank_name) || empty($account_name) || empty($account_number)) {
-        $msg = "<div class='alert alert-danger'>All fields are required.</div>";
-    } else {
-        $update = mysqli_query($conn, "UPDATE system_bank_details SET bank_name='$bank_name', account_name='$account_name', account_number='$account_number' WHERE id=1");
-        if ($update) {
-            $msg = "<div class='alert alert-success'>Bank Details updated successfully!</div>";
-        } else {
-            $msg = "<div class='alert alert-danger'>Error updating details in database.</div>";
-        }
-    }
-}
-
-// Fetch current details
-$bank_query = mysqli_query($conn, "SELECT * FROM system_bank_details WHERE id = 1");
-$bank = mysqli_fetch_assoc($bank_query);
+$bank=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM system_bank_details LIMIT 1"))??[];
+$page_title='Bank Settings';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>System Bank Configuration - Admin</title>
-  <?php include("include/head.php"); ?>  
-</head>
-<body id="page-top">
-  <div id="wrapper">
-    <?php include ("include/slidebar.php"); ?>
-    <div id="content-wrapper" class="d-flex flex-column">
-      <div id="content">
-        <?php include ("include/topbar.php"); ?>
-
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">System Gateway Bank Config</h1>
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <h1><i class="bi bi-bank me-2 text-red"></i>Bank Settings</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Bank Settings</li></ol></nav>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-7 col-lg-5">
+    <?php if($msg): ?><div class="alert alert-<?=$msg_type?> mb-3"><?=$msg?></div><?php endif; ?>
+    <div class="admin-card">
+      <div class="admin-card-header"><h6>Manual Payment Bank Account</h6></div>
+      <div class="admin-card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Bank Name</label>
+            <input type="text" name="bank_name" class="form-control" required value="<?=htmlspecialchars($bank['bank_name']??'')?>">
           </div>
-
-          <div class="row">
-            <div class="col-lg-6">
-              <div class="card p-4 mb-4">
-                <?= $msg; ?>
-                <form action="" method="POST">
-                  <div class="form-group mb-3">
-                    <label class="font-weight-bold">Bank Name</label>
-                    <input type="text" name="bank_name" class="form-control" value="<?php echo htmlspecialchars($bank['bank_name'] ?? ''); ?>" required>
-                  </div>
-                  <div class="form-group mb-3">
-                    <label class="font-weight-bold">Account Name</label>
-                    <input type="text" name="account_name" class="form-control" value="<?php echo htmlspecialchars($bank['account_name'] ?? ''); ?>" required>
-                  </div>
-                  <div class="form-group mb-4">
-                    <label class="font-weight-bold">Account Number</label>
-                    <input type="text" name="account_number" class="form-control" value="<?php echo htmlspecialchars($bank['account_number'] ?? ''); ?>" required>
-                  </div>
-                  <button type="submit" name="update_bank" class="btn btn-primary btn-block">Save Configuration Settings</button>
-                </form>
-              </div>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">Account Name</label>
+            <input type="text" name="account_name" class="form-control" required value="<?=htmlspecialchars($bank['account_name']??'')?>">
           </div>
-        </div>
-
+          <div class="mb-4">
+            <label class="form-label">Account Number</label>
+            <input type="text" name="account_number" class="form-control" required value="<?=htmlspecialchars($bank['account_number']??'')?>">
+          </div>
+          <button type="submit" name="update_bank" class="btn btn-primary w-100"><i class="bi bi-floppy me-2"></i>Save Bank Details</button>
+        </form>
       </div>
-      <?php include("include/copyright.php"); ?>
     </div>
   </div>
-  <?php include("include/script.php"); ?>
-</body>
-</html>
-<?php mysqli_close($conn); ?>
+</div>
+<?php include __DIR__.'/include/layout_end.php'; ?>
