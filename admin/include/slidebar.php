@@ -14,10 +14,10 @@ function nav_active($pages, $current) {
 
   <!-- Brand -->
   <a class="sidebar-brand" href="dashboard">
-    <div class="sidebar-brand-icon">
-      <img src="https://smsbyog.com/favicon.png" alt="SmsByOg">
-    </div>
-    <div class="sidebar-brand-name">Sms<span>ByOg</span></div>
+    <!-- Full logo (shown when expanded) -->
+    <img src="https://smsbyog.com/SmsByOglogo.png" alt="SmsByOg" class="sidebar-logo-full">
+    <!-- Favicon (shown when collapsed) -->
+    <img src="https://smsbyog.com/favicon.png" alt="SmsByOg" class="sidebar-logo-icon">
   </a>
 
   <!-- Navigation -->
