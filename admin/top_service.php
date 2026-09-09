@@ -13,7 +13,6 @@ $page_title='Top Services';
 <?php include __DIR__.'/include/layout_start.php'; ?>
 <div class="page-header">
   <div>
-    <h1><i class="bi bi-star me-2 text-red"></i>Top Services</h1>
     <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item active">Top Services</li></ol></nav>
   </div>
   <a href="add_top_service" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Top Service</a>
@@ -26,7 +25,7 @@ $page_title='Top Services';
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)): ?>
         <tr>
-          <td><strong><?=htmlspecialchars($r['service_name']??'-')?></strong></td>
+          <td><strong><?=htmlspecialchars(strip_tags($r['service_name']??'-'))?></strong></td>
           <td><code style="background:var(--bg);padding:3px 8px;border-radius:6px;font-size:12px"><?=htmlspecialchars($r['service_id']??$r['service_id'])?></code></td>
           <td><?=htmlspecialchars($r['server_name']??$r['server_name']??'-')?></td>
           <td>
