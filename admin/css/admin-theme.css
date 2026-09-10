@@ -866,3 +866,13 @@ input[type="checkbox"].api-toggle.form-check-input:focus {
 input[type="checkbox"].api-toggle.form-check-input:checked:focus {
   box-shadow: 0 0 0 3px rgba(225,7,0,.25) !important;
 }
+
+/* ── iOS AUTO-ZOOM FIX ──────────────────────────────────────────
+   iOS Safari zooms in on inputs with font-size < 16px.
+   ──────────────────────────────────────────────────────────── */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select,
+  .form-control, .form-select {
+    font-size: 16px !important;
+  }
+}

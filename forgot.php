@@ -12,7 +12,7 @@ if (isset($_SESSION['token'])) {
 <head>
     <title>Forgot Password – MyOgSms</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     <link rel="shortcut icon" href="https://myogsms.com/favicon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -75,6 +75,7 @@ if (isset($_SESSION['token'])) {
             font-size: 15px;
             color: #333;
         }
+    @supports (-webkit-touch-callout: none) { input, textarea, select { font-size: 16px !important; } }
     </style>
 </head>
 

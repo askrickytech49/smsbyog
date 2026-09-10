@@ -49,7 +49,7 @@ if (isset($_GET['msg'])) {
 <head>
     <title>Login – SmsByOg</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     <link rel="shortcut icon" href="https://smsbyog.com/favicon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -151,6 +151,7 @@ if (isset($_GET['msg'])) {
             color: #e10700;
             text-decoration: none;
         }
+    @supports (-webkit-touch-callout: none) { input, textarea, select { font-size: 16px !important; } }
     </style>
 </head>
 

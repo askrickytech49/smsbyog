@@ -17,3 +17,13 @@ button:focus-visible {
 a {
   text-decoration: none;
 }
+
+/* ── iOS AUTO-ZOOM FIX ──────────────────────────────────────────
+   iOS Safari zooms in on inputs with font-size < 16px.
+   This forces 16px on iOS only, then resets to normal after focus.
+   ──────────────────────────────────────────────────────────── */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
