@@ -27,3 +27,45 @@ a {
     font-size: 16px !important;
   }
 }
+
+/* ── USER SIDEBAR MOBILE FIXES ──────────────────────────────────
+   1. Make sidebar scrollable on mobile
+   2. Hide scrollbar
+   3. Fix overlay staying after close
+   ──────────────────────────────────────────────────────────── */
+
+/* Sidebar scrollable + scrollbar hidden */
+.page-wrapper .sidebar-wrapper,
+.sidebar-wrapper {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  max-height: 100vh !important;
+  height: 100vh !important;
+}
+
+.page-wrapper .sidebar-wrapper::-webkit-scrollbar,
+.sidebar-wrapper::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Overlay fix — ensure it properly hides */
+.bg-overlay {
+  transition: opacity .3s ease, visibility .3s ease !important;
+}
+
+.bg-overlay:not(.active) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* On mobile — body scroll prevention when sidebar open */
+@media (max-width: 991.98px) {
+  body.sidebar-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+  }
+}

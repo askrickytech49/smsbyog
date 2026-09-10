@@ -1,3 +1,74 @@
+<!-- Sidebar overlay fix + scroll fix -->
+<script>
+(function() {
+  // Wait for DOM + sidebar-menu.js to initialize
+  window.addEventListener('load', function() {
+
+    // Find the overlay element (theme uses .bg-overlay or similar)
+    function findOverlay() {
+      return document.querySelector('.bg-overlay') ||
+             document.querySelector('.sidebar-overlay') ||
+             document.querySelector('[class*="overlay"]');
+    }
+
+    // Force close sidebar and overlay
+    function forceCloseSidebar() {
+      const overlay = findOverlay();
+      const wrapper = document.querySelector('.page-wrapper');
+      const sidebar  = document.querySelector('.sidebar-wrapper');
+
+      if (overlay) {
+        overlay.classList.remove('active');
+        overlay.style.opacity = '0';
+        overlay.style.visibility = 'hidden';
+        overlay.style.pointerEvents = 'none';
+      }
+      if (wrapper) {
+        wrapper.classList.remove('sidebar-open');
+      }
+      document.body.classList.remove('sidebar-open');
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+    }
+
+    // Click on overlay to close
+    document.addEventListener('click', function(e) {
+      const overlay = findOverlay();
+      if (overlay && (e.target === overlay || overlay.contains(e.target))) {
+        forceCloseSidebar();
+      }
+    });
+
+    // Also watch for any overlay becoming visible and add click handler
+    const observer = new MutationObserver(function() {
+      const overlay = findOverlay();
+      if (overlay && !overlay._fixApplied) {
+        overlay._fixApplied = true;
+        overlay.addEventListener('click', forceCloseSidebar);
+        overlay.style.transition = 'opacity .3s ease, visibility .3s ease';
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
+    // Touch swipe to close sidebar (swipe left)
+    let touchStartX = 0;
+    document.addEventListener('touchstart', function(e) {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(e) {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (dx < -50) { // Swipe left
+        forceCloseSidebar();
+      }
+    }, { passive: true });
+
+  });
+})();
+</script>
+<!-- End Sidebar overlay fix -->
+
 <!-- Telegram Chat Widget - Add before </body> -->
 <style>
   .telegram-widget-container {
