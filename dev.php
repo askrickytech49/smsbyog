@@ -186,14 +186,13 @@ $paydev_on      = (int)($site_data['dev_payment_mode'] ?? 0);
   <?php endif; ?>
 
   <div class="warning">
-    <strong>⚠ Developer Access Only</strong>
+    <strong>Developer Access Only</strong>
     Changes made here affect all users immediately. Use with caution.
   </div>
 
   <!-- MAINTENANCE MODE -->
   <div class="toggle-card <?= $maintenance_on ? 'active' : '' ?>">
     <div class="card-top">
-      <div class="card-icon maintenance">🔧</div>
       <div class="card-info">
         <h3>User Maintenance Mode</h3>
         <p>When enabled, all user-facing pages show a "Scheduled Maintenance" screen. Admins are unaffected.</p>
@@ -203,7 +202,7 @@ $paydev_on      = (int)($site_data['dev_payment_mode'] ?? 0);
     <form method="post">
       <button type="submit" name="toggle_maintenance"
         class="toggle-btn <?= $maintenance_on ? 'disable' : 'enable' ?>">
-        <?= $maintenance_on ? '✕ Disable Maintenance Mode' : '✓ Enable Maintenance Mode' ?>
+        Toggle on and off
       </button>
     </form>
   </div>
@@ -211,7 +210,6 @@ $paydev_on      = (int)($site_data['dev_payment_mode'] ?? 0);
   <!-- PAYMENT GATE -->
   <div class="toggle-card <?= $paydev_on ? 'active' : '' ?>">
     <div class="card-top">
-      <div class="card-icon paydev">💳</div>
       <div class="card-info">
         <h3>Admin Payment Gate</h3>
         <p>When enabled, all admin panel pages show a "Complete Developer Payment" screen. Locks admin access until disabled.</p>
@@ -221,14 +219,14 @@ $paydev_on      = (int)($site_data['dev_payment_mode'] ?? 0);
     <form method="post">
       <button type="submit" name="toggle_paydev"
         class="toggle-btn <?= $paydev_on ? 'disable' : 'enable' ?>">
-        <?= $paydev_on ? '✕ Disable Payment Gate' : '✓ Enable Payment Gate' ?>
+        Toggle on and off
       </button>
     </form>
   </div>
 
   <!-- LOGOUT -->
   <form method="post">
-    <button type="submit" name="logout_dev" class="logout-btn">← Exit Dev Panel</button>
+    <button type="submit" name="logout_dev" class="logout-btn">Exit Dev Panel</button>
   </form>
 
 </div>

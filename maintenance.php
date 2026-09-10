@@ -69,7 +69,6 @@
 <body>
   <div class="card">
     <div class="logo">Sms<span>ByOg</span></div>
-    <span class="icon">🔧</span>
     <h1>Scheduled Maintenance</h1>
     <div class="divider"></div>
     <p>

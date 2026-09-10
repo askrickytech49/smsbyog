@@ -1,7 +1,7 @@
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
+    RewriteBase /smsbyog/
 
     # Remove .php extension
     RewriteCond %{REQUEST_FILENAME} !-d

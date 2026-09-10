@@ -1,0 +1,17 @@
+{
+    "response_keys": [
+        "number",
+        "cost",
+        "code",
+        "service",
+        "transaction_id"
+    ],
+    "response": {
+        "number": "6163531620",
+        "cost": 0.5,
+        "code": "bx",
+        "service": "OpenAI \/ ChatGPT",
+        "transaction_id": "fc658c12-406f-4744-ba51-c1fa6698c936"
+    },
+    "time": "2026-09-10 16:39:43"
+}

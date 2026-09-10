@@ -90,7 +90,6 @@
 <body>
   <div class="card">
     <div class="logo">Sms<span>ByOg</span></div>
-    <div class="icon-wrap">💳</div>
     <h1>Complete Developer Payment<br>to Restore Access</h1>
     <div class="divider"></div>
     <p>
@@ -102,7 +101,7 @@
       full access to your platform.
     </p>
     <a href="https://wa.me/2349129403787" class="contact-btn" target="_blank">
-      💬 Contact Askricky.Tech
+      Contact Askricky.Tech
     </a>
     <p class="footer-note">
       Developed by Askricky.Tech · +234 912 940 3787

@@ -2,6 +2,7 @@
 session_start();
 
 include 'include/config.php';
+include __DIR__ . '/include/mode_check.php';
 require __DIR__ . '/class/class.control.php';
 require_once __DIR__ . '/include/tiger_sms_health.php';
 

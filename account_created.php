@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'include/config.php';
+include __DIR__ . '/include/mode_check.php';
 require_once __DIR__ . '/class/class.control.php';
 
 if (isset($_SESSION['token'])) {

@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'include/config.php';
+include __DIR__ . '/include/mode_check.php';
 
 if (isset($_SESSION['token'])) {
     redirect('dashboard');
