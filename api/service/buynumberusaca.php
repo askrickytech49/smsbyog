@@ -103,8 +103,9 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         $response = purchaser($server, $service, $rent_url, $api_key);
         
         // --- Handle API Errors based on HTTP Status Codes ---
-        if (!isset($response->transaction_id) && !isset($response->phone_number)) {
-            $msg = 'No Number available';
+        if (!isset($response->transaction_id) || !isset($response->phone_number) || empty($response->transaction_id) || empty($response->phone_number)) {
+            $api_resp_debug = json_encode($response);
+            $msg = isset($response->message) ? $response->message : (isset($response->error) ? $response->error : 'No number available from provider');
             echo json_encode(["status" => "500", "message" => "Provider Error: $msg"]);
             exit;
         }
