@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'include/config.php';
+include __DIR__ . '/include/api_status.php';
 require __DIR__ . '/class/class.control.php';
 
 if (!isset($_SESSION['token'])) {
@@ -34,6 +35,10 @@ if ($userdata === false) {
 $userwallet = $wallet->userwallet();
 $servers    = $wallet->all_server();  // from otp_server WHERE status=1
 $wallet->closeConnection();
+// Check if this API is active — redirect if disabled
+$_api_st = get_api_status($conn);
+if (!$_api_st['server1']) { redirect('buy-number'); }
+
 
 $page_title = "Buy Numbers — " . $site_data['web_name'];
 
@@ -74,10 +79,11 @@ function getServerIso(string $name, int $id, array $map): string {
 
             <!-- SERVER SWITCHER -->
             <div class="server-switcher">
-              <span class="server-switch-btn current"><i class="bi bi-flag-fill"></i> Server 1</span>
-              <a href="buy-number-server2" class="server-switch-btn"><i class="bi bi-globe"></i> Server 2</a>
-              <a href="buy-usa-number"     class="server-switch-btn"><i class="bi bi-flag"></i> USA Only</a>
-              <a href="buy-us-ca-number"   class="server-switch-btn"><i class="bi bi-globe2"></i> USA + Canada</a>
+              <?php $_as = get_api_status($conn); ?>
+              <?php if($_as['server1']): ?><span class="server-switch-btn current"><i class="bi bi-flag-fill"></i> Server 1</span><?php endif; ?>
+              <?php if($_as['server2']): ?><a href="buy-number-server2" class="server-switch-btn"><i class="bi bi-globe"></i> Server 2</a><?php endif; ?>
+              <?php if($_as['usa']): ?><a href="buy-usa-number" class="server-switch-btn"><i class="bi bi-flag"></i> USA Only</a><?php endif; ?>
+              <?php if($_as['usaca']): ?><a href="buy-us-ca-number" class="server-switch-btn"><i class="bi bi-globe2"></i> USA + Canada</a><?php endif; ?>
             </div>
 
             <!-- MAIN CARD -->

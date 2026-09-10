@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'include/config.php';
+include __DIR__ . '/include/api_status.php';
 require __DIR__ . '/class/class.control.php';
 
 if (!isset($_SESSION['token'])) {
@@ -32,6 +33,10 @@ if ($userdata === false) {
 
 $userwallet = $wallet->userwallet();
 $wallet->closeConnection();
+// Check if this API is active — redirect if disabled
+$_api_st = get_api_status($conn);
+if (!$_api_st['server2']) { redirect('buy-number'); }
+
 
 // Fetch 5sim countries and sort alphabetically
 $raw = @file_get_contents('https://5sim.net/v1/guest/countries');
@@ -137,12 +142,13 @@ $page_title = "Buy Numbers (Server 2) — " . $site_data['web_name'];
         <div class="row justify-content-center">
           <div class="col-xl-7 col-lg-8 col-md-10 col-12">
 
-            <!-- SERVER SWITCHER -->
+            <!-- SERVER SWITCHER — dynamic -->
             <div class="server-switcher">
-              <a href="buy-number-1"       class="server-switch-btn"><i class="bi bi-flag-fill"></i> Server 1</a>
-              <span                         class="server-switch-btn current"><i class="bi bi-globe"></i> Server 2</span>
-              <a href="buy-usa-number"     class="server-switch-btn"><i class="bi bi-flag"></i> USA Only</a>
-              <a href="buy-us-ca-number"   class="server-switch-btn"><i class="bi bi-globe2"></i> USA + Canada</a>
+              <?php $_as = get_api_status($conn); ?>
+              <?php if($_as['server1']): ?><a href="buy-number-1" class="server-switch-btn"><i class="bi bi-flag-fill"></i> Server 1</a><?php endif; ?>
+              <?php if($_as['server2']): ?><span class="server-switch-btn current"><i class="bi bi-globe"></i> Server 2</span><?php endif; ?>
+              <?php if($_as['usa']): ?><a href="buy-usa-number" class="server-switch-btn"><i class="bi bi-flag"></i> USA Only</a><?php endif; ?>
+              <?php if($_as['usaca']): ?><a href="buy-us-ca-number" class="server-switch-btn"><i class="bi bi-globe2"></i> USA + Canada</a><?php endif; ?>
             </div>
 
             <!-- MAIN CARD -->
