@@ -76,6 +76,7 @@ if (isset($_SESSION['token'])) {
             color: #333;
         }
     @supports (-webkit-touch-callout: none) { input, textarea, select { font-size: 16px !important; } }
+    * { scrollbar-width: none !important; } *::-webkit-scrollbar { display: none !important; }
     </style>
 </head>
 

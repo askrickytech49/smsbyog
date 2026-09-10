@@ -98,6 +98,7 @@ if (isset($_SESSION['token'])) {
 
         #errorBox { display: none; }
     @supports (-webkit-touch-callout: none) { input, textarea, select { font-size: 16px !important; } }
+    * { scrollbar-width: none !important; } *::-webkit-scrollbar { display: none !important; }
     </style>
 </head>
 <body class="d-flex align-items-center justify-content-center">

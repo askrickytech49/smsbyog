@@ -152,6 +152,7 @@ if (isset($_GET['msg'])) {
             text-decoration: none;
         }
     @supports (-webkit-touch-callout: none) { input, textarea, select { font-size: 16px !important; } }
+    * { scrollbar-width: none !important; } *::-webkit-scrollbar { display: none !important; }
     </style>
 </head>
 

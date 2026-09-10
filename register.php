@@ -120,6 +120,7 @@ if (isset($_SESSION['token'])) {
             text-decoration: underline;
         }
     @supports (-webkit-touch-callout: none) { input, textarea, select { font-size: 16px !important; } }
+    * { scrollbar-width: none !important; } *::-webkit-scrollbar { display: none !important; }
     </style>
 </head>
 
