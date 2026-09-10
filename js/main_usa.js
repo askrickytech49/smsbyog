@@ -266,7 +266,7 @@ function buyAnother() { goStep(1); document.getElementById('card-container').inn
 
 function user_balance(token) {
     $.ajax({ type:'POST', url:'api/auth/session', data:{token},
-        success: function(res) { try { const d=JSON.parse(res); const el=document.getElementById('current_balance'); if(el) el.textContent='₦'+d.balance; } catch(e){} }
+        success: function(res) { try { const d=JSON.parse(res); const el=document.getElementById('current_balance'); if(el && d.balance !== undefined) { el.textContent=Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2,maximumFractionDigits:2}); } } catch(e){} }
     });
 }
 

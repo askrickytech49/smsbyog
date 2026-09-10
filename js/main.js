@@ -380,7 +380,7 @@ function user_balance(token) {
             try {
                 const d  = JSON.parse(res);
                 const el = document.getElementById('current_balance');
-                if (el) el.textContent = '₦' + d.balance;
+                if (el) el.textContent = '₦' + Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2, maximumFractionDigits:2});
             } catch(e) {}
         }
     });

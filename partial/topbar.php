@@ -235,7 +235,7 @@ if ($userdata['image_url'] == "") {
 
     <!-- WALLET -->
 <div class="wallet-pill">
-  Balance: ₦<?= number_format((float)$userwallet['balance'], 2) ?>
+  Balance: ₦<span id="current_balance"><?= number_format((float)$userwallet['balance'], 2) ?></span>
 </div>
 
 
