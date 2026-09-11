@@ -18,10 +18,24 @@
 
 <?php if (isset($_SESSION['ghost_admin_token'])): ?>
 <style>
-  /* Push the fixed elements down by the height of the banner (40px) */
-  .page-header { top: 40px !important; }
-  .sidebar-wrapper { top: 40px !important; height: calc(100vh - 40px) !important; }
-  .page-body { margin-top: 40px !important; }
+  /* Ghost Mode – push all fixed layout elements down by 40px */
+  .page-wrapper.compact-wrapper .page-header,
+  .page-wrapper .page-header {
+    top: 40px !important;
+  }
+  .page-wrapper.compact-wrapper .page-body-wrapper div.sidebar-wrapper,
+  .page-body-wrapper .sidebar-wrapper,
+  div.sidebar-wrapper {
+    top: 40px !important;
+    height: calc(100vh - 40px) !important;
+  }
+  .page-body-wrapper .page-body,
+  .page-body {
+    margin-top: 40px !important;
+  }
+  .page-wrapper {
+    padding-top: 0 !important;
+  }
 </style>
 <div style="
     position: fixed;
