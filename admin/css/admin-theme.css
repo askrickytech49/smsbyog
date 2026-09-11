@@ -83,6 +83,9 @@ html, body {
 
 /* Brand */
 .sidebar-brand {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -229,7 +232,8 @@ html, body {
   transition: margin-left .25s ease;
   min-width: 0;
   max-width: 100%;
-  overflow-x: hidden;
+  /* Removed overflow-x: hidden to allow position: sticky to work properly */
+  overflow: clip;
 }
 
 /* ── TOPBAR ────────────────────────────────────────────────────── */
