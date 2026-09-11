@@ -290,7 +290,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { display: false } },
+        x: {
+          grid: { display: false },
+          ticks: {
+            display: true,
+            maxRotation: 45,
+            minRotation: 45,
+            font: { size: 9 },
+            color: '#94a3b8',
+            autoSkip: true,
+            maxTicksLimit: 10
+          }
+        },
         y: { grid: { color: '#f1f5f9', drawBorder: false }, ticks: { font: { size: 11 }, color: '#94a3b8', callback: v => '₦' + Number(v).toLocaleString() } }
       }
     }
