@@ -128,7 +128,7 @@ $page_title='Edit User — '.htmlspecialchars($user['name']??'');
           </button>
         </form>
         <?php endif; ?>
-        <a href="login_user?user_id=<?=$uid?>" class="btn btn-outline-secondary" onclick="return confirm('Login as this user?')">
+        <a href="login_user?user_id=<?=$uid?>" class="btn btn-outline-secondary">
           <i class="bi bi-box-arrow-in-right me-2"></i>Login As User
         </a>
       </div>
