@@ -1,163 +1,105 @@
 <?php
 include("auth.php");
 if(!isset($_SESSION['token'])){
-	if(isset($_COOKIE['remember_me'])) {
-		$radium_token = $_COOKIE['remember_me'];
-		$_SESSION['token'] = $radium_token;
-	}else{
-	header('Location: login.php'); exit;
-	}
+    if(isset($_COOKIE['remember_me'])){
+        $_SESSION['token'] = $_COOKIE['remember_me'];
+    } else {
+        header('Location: login.php'); exit;
+    }
 }
 $admin_sql = mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
-if(mysqli_num_rows($admin_sql) == 0) {
-    header('Location: login.php'); exit;
-}else{
+if(mysqli_num_rows($admin_sql) == 0) { header('Location: login.php'); exit; }
 $admin_data = mysqli_fetch_array($admin_sql);
-$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE  id='".$admin_data['user_id']."' AND status='1'");
+$admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$admin_data['user_id']."' AND status='1'");
 $final_admin = mysqli_fetch_array($admin_sql2);
-if(in_array($final_admin['type'], ["admin", "super_admin"])){
-if($_GET['id']==""){
-echo"invalid id";
-return;
-}else{
-$id = $_GET['id'];
+if(!in_array($final_admin['type'], ["admin", "super_admin"])){ header('Location: login.php'); exit; }
+
+if(!isset($_GET['id']) || $_GET['id']==""){
+    echo "invalid id"; return;
 }
-$sql=mysqli_query($conn,"SELECT * FROM otp_server WHERE id='".$id."'");
-if(mysqli_num_rows($sql)==0){
-echo"invalid id";
-return;
-}
+
+$id = (int)$_GET['id'];
+$sql = mysqli_query($conn,"SELECT * FROM otp_server WHERE id='$id'");
+if(mysqli_num_rows($sql)==0){ echo "invalid id"; return; }
 $server_data = mysqli_fetch_assoc($sql);
-$sql2=mysqli_query($conn,"SELECT * FROM api_detail WHERE id='".$server_data['api_id']."'");
+
+$sql2 = mysqli_query($conn,"SELECT * FROM api_detail WHERE id='".$server_data['api_id']."'");
 $api_data = mysqli_fetch_assoc($sql2);
 
+// Handle form submission
+if(isset($_POST['submit'])){
+    $server_name = mysqli_real_escape_string($conn, $_POST['server_name']);
+    $server_code = mysqli_real_escape_string($conn, $_POST['server_code']);
+    $api_id      = (int)$_POST['api_id'];
+    $status      = $_POST['status'] == '1' ? '1' : '0';
+    
+    mysqli_query($conn, "UPDATE otp_server SET server_name='$server_name', server_code='$server_code', api_id='$api_id', status='$status' WHERE id='$id'");
+    
+    // Refresh data after update
+    $sql = mysqli_query($conn,"SELECT * FROM otp_server WHERE id='$id'");
+    $server_data = mysqli_fetch_assoc($sql);
+    $sql2 = mysqli_query($conn,"SELECT * FROM api_detail WHERE id='".$server_data['api_id']."'");
+    $api_data = mysqli_fetch_assoc($sql2);
+    $success = true;
+}
 
+$apis = mysqli_query($conn,"SELECT id, api_name FROM api_detail ORDER BY id");
+
+$page_title = 'Edit Server';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <title>Edit Server - @getallscripts</title>
-<?php include("include/head.php"); ?>  
-</head>
-
-<body id="page-top">
-  <div id="wrapper">
-    <!-- Sidebar -->
-<?php include ("include/slidebar.php"); ?>
-    <!-- Sidebar -->
-    <div id="content-wrapper" class="d-flex flex-column">
-      <div id="content">
-        <!-- TopBar -->
-<?php include ("include/topbar.php"); ?>              
-        <!-- Topbar -->
-
-        <!-- Container Fluid-->
-        <div class="container-fluid" id="container-wrapper">
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <!-- -->
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Edit Server </li>
-            </ol>
-          </div>
-
-          <div class="row">
-            <div class="col">
-              <!-- Form Basic -->
-              <div class="card mb-4" id="loading">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                  <h6 class="m-0 font-weight-bold text-primary">Server Details </h6>
-                </div>
-                <div class="card-body">
-                <div class="form-group">
-                      <label for="exampleInputPassword1">Select Api</label>
-                   <?php
-              $query = "SELECT * FROM api_detail";
-            $statement = mysqli_query($conn,$query);
-                                            ?>  
-                  <select name="server_id" id="api_id" class="form-control mb-3">
-                      <?php
-                                                   while($row=mysqli_fetch_array($statement))
- 
-                                                    {
-                                                        ?>
-                                                            <option value="<?php echo $row['id']; ?>"><?php echo $row['api_name']; ?></option>
-                                                        <?php
-                                                    }
-                                                ?>
-                  </select>
-                     </div>
-                     <div class="form-group">
-                      <label for="exampleInputEmail1">Current Api Name</label>
-                      <input type="text" class="form-control" id="api_name" value="<?php echo $api_data['api_name'];?>" placeholder=""readonly>
-                    <input type="hidden" id="id" value="<?php echo $id;?>">
-                    </div>
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Server Name</label>
-                      <input type="text" class="form-control" id="server_name" value="<?php echo $server_data['server_name'];?>" placeholder="Enter Service Price">
-                    </div>
-                    <div class="form-group">
-                      <label for="exampleInputPassword1">Country Id</label>
-                      <input type="text" class="form-control" id="country_name" value="<?php echo $server_data['server_code'];?>" placeholder="Enter Service Name">
-                    </div>
-                   <button type="submit" id="update" class="btn btn-primary w-100 mb-2">Submit</button><br>
-                </div>
-              
-        <!---Container Fluid-->
-      </div>
-      <!-- Footer -->
-<?php include("include/copyright.php"); ?>
-      <!-- Footer -->
-    </div>
+<?php include __DIR__.'/include/layout_start.php'; ?>
+<div class="page-header">
+  <div>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard">Dashboard</a></li><li class="breadcrumb-item"><a href="show_server">OTP Servers</a></li><li class="breadcrumb-item active">Edit Server</li></ol></nav>
   </div>
+</div>
 
-  <!-- Scroll to top -->
-  <a class="scroll-to-top rounded" href="#page-top">
-    <i class="fas fa-angle-up"></i>
-  </a>
-<?php include("include/script.php"); ?>
-<script>
-$(document).ready(function() {
-    // Attach a click event handler to the button
+<?php if(!empty($success)): ?>
+<div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius:12px;">
+  <i class="bi bi-check-circle me-2"></i> Server updated successfully!
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
 
-    $("#update").click(function() {
-        Notiflix.Block.Dots('#loading', 'Please Wait');
-    var name = $("#server_name").val();
-    var slug = $("#country_name").val();
-    var description = $("#api_id").val();
-      var id = $("#id").val(); 
-        var params = {
-        name: name,
-        slug: slug,
-        description: description,
-         id: id,
-        };
+<div class="admin-card" style="max-width:700px;">
+  <div class="admin-card-header">
+    <h6 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Server Details</h6>
+  </div>
+  <div class="admin-card-body">
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label fw-600">API Provider</label>
+        <select name="api_id" class="form-select" style="border-radius:10px; height:46px;">
+          <?php while($row = mysqli_fetch_assoc($apis)): ?>
+            <option value="<?= $row['id'] ?>" <?= $row['id'] == $server_data['api_id'] ? 'selected' : '' ?>><?= htmlspecialchars($row['api_name']) ?></option>
+          <?php endwhile; ?>
+        </select>
+        <small class="text-muted">Current: <strong><?= htmlspecialchars($api_data['api_name'] ?? 'N/A') ?></strong></small>
+      </div>
 
-        $.ajax({
-            type: "POST",
-            url: "ajax/edit_category.php",
-            data: params,
-            error: function (e) {
-                console.log(e);
-            },
-            success: function (data) {
-                   Notiflix.Block.Remove('#loading');
-             $('#update').html(data);
-                $('#update').html("Update");
+      <div class="mb-3">
+        <label class="form-label fw-600">Server Name</label>
+        <input type="text" class="form-control" name="server_name" value="<?= htmlspecialchars($server_data['server_name']) ?>" style="border-radius:10px; height:46px;" required>
+      </div>
 
-            }
-        });
-    });
-});
-</script>
+      <div class="mb-3">
+        <label class="form-label fw-600">Country Code</label>
+        <input type="text" class="form-control" name="server_code" value="<?= htmlspecialchars($server_data['server_code']) ?>" style="border-radius:10px; height:46px;" required>
+        <small class="text-muted">e.g. <code>nigeria</code>, <code>england</code>, <code>usa</code> for 5SIM</small>
+      </div>
 
-</body>
+      <div class="mb-3">
+        <label class="form-label fw-600">Status</label>
+        <select name="status" class="form-select" style="border-radius:10px; height:46px;">
+          <option value="1" <?= $server_data['status'] == '1' ? 'selected' : '' ?>>Active</option>
+          <option value="0" <?= $server_data['status'] != '1' ? 'selected' : '' ?>>Inactive</option>
+        </select>
+      </div>
 
-</html>
-<?php
-}else{
-    header('Location: login.php'); exit;
-}
-}
-?>
+      <button type="submit" name="submit" class="btn btn-primary w-100" style="height:48px; border-radius:12px; font-weight:600;">
+        <i class="bi bi-check-lg me-1"></i> Update Server
+      </button>
+    </form>
+  </div>
+</div>
+<?php include __DIR__.'/include/layout_end.php'; ?>
