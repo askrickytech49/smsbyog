@@ -17,13 +17,23 @@
 <body>
 
 <?php if (isset($_SESSION['ghost_admin_token'])): ?>
+<style>
+  /* Push the fixed elements down by the height of the banner (40px) */
+  .page-header { top: 40px !important; }
+  .sidebar-wrapper { top: 40px !important; height: calc(100vh - 40px) !important; }
+  .page-body { margin-top: 40px !important; }
+</style>
 <div style="
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 999999;
+    height: 40px;
     background: #e10700;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 20px;
+    padding: 0 20px;
     font-size: 13px;
     font-weight: 600;
     font-family: inherit;
@@ -40,7 +50,7 @@
         background: #fff;
         color: #e10700;
         text-decoration: none;
-        padding: 5px 14px;
+        padding: 3px 14px;
         border-radius: 6px;
         font-size: 12px;
         font-weight: 700;
