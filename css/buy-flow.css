@@ -106,11 +106,13 @@
   text-align: center;
 }
 
-.country-card:hover {
-  border-color: #e10700;
-  background: #fff5f5;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(225,7,0,.12);
+@media (hover: hover) {
+  .country-card:hover {
+    border-color: #e10700;
+    background: #fff5f5;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(225,7,0,.12);
+  }
 }
 
 .country-card.selected {
@@ -189,10 +191,12 @@
   position: relative;
 }
 
-.service-row:hover {
-  border-color: #e10700;
-  background: #fff5f5;
-  transform: translateX(2px);
+@media (hover: hover) {
+  .service-row:hover {
+    border-color: #e10700;
+    background: #fff5f5;
+    transform: translateX(2px);
+  }
 }
 
 .service-row.selected {

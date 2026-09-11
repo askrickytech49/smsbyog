@@ -19,33 +19,44 @@ if (!isset($_POST['amount']) || empty($_POST['amount'])) {
         if ($amount < 0) {
             echo '{"status": "500", "msg": "Amount cannot be less than 0"}';
         } else {
-            $sql = $conn->query("SELECT * FROM refer_data WHERE user_id='$check_token'");
-            $refer_data = $sql->fetch_assoc();
-            $refer_balance = (float) $refer_data['balance']; // Convert balance to a float
-            $refer_transfer = (float) $refer_data['transfer']; // Convert transfer to a float
-            if ($site_data['min_redeem'] <= $amount) {
-                if ($refer_balance >= $amount) {
-                    $sql5 = mysqli_query($conn, "SELECT * FROM user_wallet WHERE user_id='$check_token'");
-                    $user_data = mysqli_fetch_assoc($sql5);
-                    $user_balance = (float) $user_data['balance']; // Convert balance to a float
-                    $user_total_recharge = (float) $user_data['total_recharge']; // Convert total_recharge to a float
+            mysqli_begin_transaction($conn);
+            try {
+                $sql = $conn->query("SELECT * FROM refer_data WHERE user_id='$check_token' FOR UPDATE");
+                $refer_data = $sql->fetch_assoc();
+                $refer_balance = (float) $refer_data['balance']; // Convert balance to a float
+                $refer_transfer = (float) $refer_data['transfer']; // Convert transfer to a float
+                
+                if ($site_data['min_redeem'] <= $amount) {
+                    if ($refer_balance >= $amount) {
+                        $sql5 = mysqli_query($conn, "SELECT * FROM user_wallet WHERE user_id='$check_token' FOR UPDATE");
+                        $user_data = mysqli_fetch_assoc($sql5);
+                        $user_balance = (float) $user_data['balance']; // Convert balance to a float
+                        $user_total_recharge = (float) $user_data['total_recharge']; // Convert total_recharge to a float
 
-                    $add_balance = $amount + $user_balance;
-                    $add_rc = $amount + $user_total_recharge;
-                    $sql6 = mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_recharge='$add_rc' WHERE user_id='$check_token'");
-                    $sqladd2 = "INSERT INTO user_transaction (user_id, amount, date, type, txn_id, status) VALUES ('$check_token', '$amount', '$current_time_in_ist', 'Refer Reward', 'reward', '1')";
-                    mysqli_query($conn, $sqladd2);
-                    $sqladd3 = "INSERT INTO refer_history (user_id, type, date, status, amount) VALUES ('$check_token', 'debit', '$current_time_in_ist', '1', '$amount')";
-                    mysqli_query($conn, $sqladd3);
-                    $cut_balance = $refer_balance - $amount;
-                    $add_transfer = $refer_transfer + $amount;
-                    mysqli_query($conn, "UPDATE refer_data SET balance='$cut_balance', transfer='$add_transfer' WHERE user_id='$check_token'");
-                    echo '{"status": "200","msg": "Transfer Successful"}';
+                        $add_balance = $amount + $user_balance;
+                        $add_rc = $amount + $user_total_recharge;
+                        $sql6 = mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_recharge='$add_rc' WHERE user_id='$check_token'");
+                        $sqladd2 = "INSERT INTO user_transaction (user_id, amount, date, type, txn_id, status) VALUES ('$check_token', '$amount', '$current_time_in_ist', 'Refer Reward', 'reward', '1')";
+                        mysqli_query($conn, $sqladd2);
+                        $sqladd3 = "INSERT INTO refer_history (user_id, type, date, status, amount) VALUES ('$check_token', 'debit', '$current_time_in_ist', '1', '$amount')";
+                        mysqli_query($conn, $sqladd3);
+                        $cut_balance = $refer_balance - $amount;
+                        $add_transfer = $refer_transfer + $amount;
+                        mysqli_query($conn, "UPDATE refer_data SET balance='$cut_balance', transfer='$add_transfer' WHERE user_id='$check_token'");
+                        
+                        mysqli_commit($conn);
+                        echo '{"status": "200","msg": "Transfer Successful"}';
+                    } else {
+                        mysqli_rollback($conn);
+                        echo '{"status": "500","msg": "Not Enough Refer Balance"}';
+                    }
                 } else {
-                    echo '{"status": "500","msg": "Not Enough Refer Balance"}';
+                    mysqli_rollback($conn);
+                    echo '{"status": "500","msg": "Minimum Transfer Amount is ₦' . $site_data['min_redeem'] . '"}';
                 }
-            } else {
-                echo '{"status": "500","msg": "Minimum Transfer Amount is ₦' . $site_data['min_redeem'] . '"}';
+            } catch (Exception $e) {
+                mysqli_rollback($conn);
+                echo '{"status": "500","msg": "Database Error"}';
             }
         }
     }

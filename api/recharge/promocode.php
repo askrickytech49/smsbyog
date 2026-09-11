@@ -25,21 +25,30 @@ if (!isset($_POST['code']) || empty($_POST['code'])) {
             $promo_amount = $promo_data['amount'];
             $sql20 = mysqli_query($conn, "SELECT * FROM promocode_history WHERE code_id='$promo_id' and user_id='$user_id'");
             if (mysqli_num_rows($sql20) == 0) {
-                $sql2 = mysqli_query($conn, "SELECT * FROM promocode_history WHERE code_id='$promo_id'");
-                if ($for_user > mysqli_num_rows($sql2)) {
-                    $sql5 = mysqli_query($conn, "SELECT * FROM user_wallet WHERE user_id='" . $user_id . "'");
-                    $user_data = mysqli_fetch_assoc($sql5);
-                    $add_balance = $user_data['balance'] + $promo_amount;
-                    $add_total_rc = $user_data['total_recharge'] + $promo_amount;
+                mysqli_begin_transaction($conn);
+                try {
+                    $sql2 = mysqli_query($conn, "SELECT * FROM promocode_history WHERE code_id='$promo_id'");
+                    if ($for_user > mysqli_num_rows($sql2)) {
+                        $sql5 = mysqli_query($conn, "SELECT * FROM user_wallet WHERE user_id='" . $user_id . "' FOR UPDATE");
+                        $user_data = mysqli_fetch_assoc($sql5);
+                        $add_balance = $user_data['balance'] + $promo_amount;
+                        $add_total_rc = $user_data['total_recharge'] + $promo_amount;
 
-                    $sqladd = "INSERT INTO promocode_history (user_id, promocode, code_id, amount, date, status) VALUES ('$user_id', '$promocode', '$promo_id', '$promo_amount', '$current_time_in_ist', '1')";
-                    mysqli_query($conn, $sqladd);
-                    $sql6 = mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_recharge='$add_total_rc' WHERE user_id='" . $user_id . "'");
-                    $sqladd2 = "INSERT INTO user_transaction (user_id, amount, date, type, txn_id, status) VALUES ('$user_id', '$promo_amount', '$current_time_in_ist', 'Promocode Redeem', '$promocode', '1')";
-                    mysqli_query($conn, $sqladd2);
-                    echo '{"status": "200","message": "₦' . $promo_amount . ' Credit In Your Account"}';
-                } else {
-                    echo '{"status":"500","message": "Promocode Expired"}';
+                        $sqladd = "INSERT INTO promocode_history (user_id, promocode, code_id, amount, date, status) VALUES ('$user_id', '$promocode', '$promo_id', '$promo_amount', '$current_time_in_ist', '1')";
+                        mysqli_query($conn, $sqladd);
+                        $sql6 = mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_recharge='$add_total_rc' WHERE user_id='" . $user_id . "'");
+                        $sqladd2 = "INSERT INTO user_transaction (user_id, amount, date, type, txn_id, status) VALUES ('$user_id', '$promo_amount', '$current_time_in_ist', 'Promocode Redeem', '$promocode', '1')";
+                        mysqli_query($conn, $sqladd2);
+                        
+                        mysqli_commit($conn);
+                        echo '{"status": "200","message": "₦' . $promo_amount . ' Credit In Your Account"}';
+                    } else {
+                        mysqli_rollback($conn);
+                        echo '{"status":"500","message": "Promocode Expired"}';
+                    }
+                } catch (Exception $e) {
+                    mysqli_rollback($conn);
+                    echo '{"status":"500","message": "Database Error"}';
                 }
             } else {
                 echo '{"status":"500","message": "You Have Already Redeem Promocode"}';

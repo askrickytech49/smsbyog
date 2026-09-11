@@ -95,3 +95,12 @@ html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none !important;
 }
+
+/* Hide Simplebar Scrollbars completely */
+.simplebar-track,
+.simplebar-scrollbar,
+.simplebar-scrollbar::before {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}

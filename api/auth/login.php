@@ -1,6 +1,9 @@
 <?php
+ob_start();
 session_start();
+header('Content-Type: application/json');
 require_once __DIR__ . '/../../include/config.php';
+ob_clean();
 
 function generateRandomString($length = 30) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

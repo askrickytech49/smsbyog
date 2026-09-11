@@ -131,7 +131,7 @@ if (isset($_SESSION['token'])) {
         <i class="bi bi-check-circle-fill"></i>
     </div>
 
-    <h4 class="title mb-2">Account Created Successfully 🎉</h4>
+    <h4 class="title mb-2">Account Created Successfully</h4>
 
     <p class="lead-text mb-3">
         Welcome to <strong>smsbyog</strong> — your all-in-one platform for
@@ -145,7 +145,7 @@ if (isset($_SESSION['token'])) {
     </p>
 
     <div class="next-steps mb-4 text-start">
-        <strong class="d-block mb-2">🚀 What to do next:</strong>
+        <strong class="d-block mb-2">What to do next:</strong>
         <div class="mb-1"><i class="bi bi-arrow-right-circle"></i> Log in to your dashboard</div>
         <div class="mb-1"><i class="bi bi-wallet2"></i> Fund your wallet to add balance</div>
         <div class="mb-1"><i class="bi bi-sim"></i> Get a virtual number instantly</div>
@@ -158,7 +158,7 @@ if (isset($_SESSION['token'])) {
     </a>
 
     <p class="text-muted mt-4" style="font-size:13px;">
-        You’re officially ready to get started 🚀 and we are happy to have you onboard.
+        You’re officially ready to get started and we are happy to have you onboard.
     </p>
 </div>
 

@@ -362,8 +362,6 @@ $(document).ready(function () {
 
                 if (json.status === "1" || json.status === 1) {
 
-                    alert(json.msg);
-
                     setTimeout(function () {
                         window.location.href = "account_created";
                     }, 1000);

@@ -47,10 +47,13 @@ if (isset($_POST['submit_deposit'])) {
             $file_ext = pathinfo($_FILES["receipt"]["name"], PATHINFO_EXTENSION);
             $new_filename = "REC_" . time() . "_" . rand(1000, 9999) . "." . $file_ext;
             $target_file = $target_dir . $new_filename;
-            $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
+            
+            $tmp_name = $_FILES["receipt"]["tmp_tmp_name"] ?? $_FILES["receipt"]["tmp_name"];
+            $image_info = getimagesize($tmp_name);
+            $valid_mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
-            if (in_array(strtolower($file_ext), $allowed_types)) {
-                if (move_uploaded_file($_FILES["receipt"]["tmp_tmp_name"] ?? $_FILES["receipt"]["tmp_name"], $target_file)) {
+            if ($image_info !== false && in_array($image_info['mime'], $valid_mime_types)) {
+                if (move_uploaded_file($tmp_name, $target_file)) {
                     $insert = mysqli_query($conn, "INSERT INTO manual_payments (user_id, txn_id, amount, receipt_image, status) VALUES ('$user_id', '$txn_id', '$amount', '$target_file', 'pending')");
                     if ($insert) {
                         $msg = "<div class='alert alert-success'>Payment submitted successfully! Awaiting validation.</div>";
@@ -61,7 +64,7 @@ if (isset($_POST['submit_deposit'])) {
                     $msg = "<div class='alert alert-danger'>Error uploading payment receipt.</div>";
                 }
             } else {
-                $msg = "<div class='alert alert-danger'>Invalid image format. Allowed: JPG, PNG, GIF</div>";
+                $msg = "<div class='alert alert-danger'>Invalid image file or format. Only valid JPG, PNG, and GIF images are allowed.</div>";
             }
         }
     }

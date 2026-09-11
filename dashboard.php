@@ -772,10 +772,10 @@ new Chart(document.getElementById('walletChart'),{
     <p class="popup-subtitle">Safety Tips:</p>
 
     <ul>
-      <li>Delete and reinstall your WhatsApp 📱 before getting a number.</li>
+      <li>Delete and reinstall your WhatsApp before getting a number.</li>
       <li>Avoid WhatsApp Business — they ban faster. Use normal WhatsApp.</li>
       <li>Always enable 2FA immediately after creating WhatsApp or Telegram to stay protected if the number is later reassigned.</li>
-      <li>Ensure your ⏰ Time Zone & 🌍 VPN match the country of the number.</li>
+      <li>Ensure your Time Zone & VPN match the country of the number.</li>
     </ul>
 
     <a href="https://t.me/+GYjImzLVwnYxMTY0" target="_blank" class="authpadi-btn">
