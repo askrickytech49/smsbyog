@@ -224,7 +224,7 @@ include ('partial/header.php');
     ?>
       <tr>
         <td><?= htmlspecialchars($row['service_name']) ?></td>
-        <td class="number">+<?= htmlspecialchars($row['number']) ?></td>
+        <td class="number">+<?= htmlspecialchars(ltrim($row['number'], '+')) ?></td>
         <td class="amount">₦<?= number_format($row['service_price']) ?></td>
         <td><span class="sms-badge"><?= $row['sms'] ? htmlspecialchars($row['sms']) : '—' ?></span></td>
         <td><?= $statusBadge ?></td>
@@ -254,7 +254,7 @@ include ('partial/header.php');
 
     <div class="num-row">
       <span class="num-label">Number</span>
-      <span class="num-number">+<?= htmlspecialchars($row['number']) ?></span>
+      <span class="num-number">+<?= htmlspecialchars(ltrim($row['number'], '+')) ?></span>
     </div>
 
     <div class="num-row">
