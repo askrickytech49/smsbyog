@@ -102,8 +102,9 @@ function loadAllServices() {
             document.getElementById('service-search').value = '';
             attachServiceSearch();
         },
-        error: function() {
-            list.innerHTML = '<div class="empty-state"><p>Failed to load services. Please try again.</p></div>';
+        error: function(xhr) {
+            console.error("AJAX Error:", xhr);
+            list.innerHTML = `<div class="empty-state"><p style="color:red; font-size:12px;">HTTP ${xhr.status}: ${xhr.responseText}</p></div>`;
         }
     });
 }

@@ -34,12 +34,14 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 $raw = curl_exec($ch);
+$curl_error = curl_error($ch);
 curl_close($ch);
 
 $allPrices = $raw ? json_decode($raw, true) : [];
 
 if (!$allPrices || !is_array($allPrices)) {
-    echo json_encode(['service' => [], 'error' => 'Failed to fetch services']);
+    $debug_msg = 'Failed to fetch services. cURL Error: ' . ($curl_error ?: 'Unknown') . ' | Raw: ' . substr($raw, 0, 100);
+    echo json_encode(['service' => [], 'error' => $debug_msg]);
     exit;
 }
 
