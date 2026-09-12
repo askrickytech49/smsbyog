@@ -1,4 +1,9 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('memory_limit', '256M');
+set_time_limit(60);
+
 /**
  * getCountriesForService.php — Server 1 (TigerSMS)
  * Given a service code, returns all countries that have this service in stock,
@@ -60,7 +65,7 @@ if (!$allPrices) {
     $url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices";
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $raw = curl_exec($ch);
     curl_close($ch);
