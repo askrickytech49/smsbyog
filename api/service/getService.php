@@ -68,11 +68,28 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
 
         $url = $api_data['api_url'] . '/stubs/handler_api.php';
         
-        $price_response = makeCurlRequest($url, $api_data['api_key'], 'getPrices', $country_code);
-        $api_prices = json_decode($price_response, true);
+        // Cache API responses (2-minute TTL)
+        include_once __DIR__ . '/../../include/api_cache.php';
         
-        $stock_response = makeCurlRequest($url, $api_data['api_key'], 'getNumbersStatus', $country_code);
-        $stock_data = json_decode($stock_response, true);
+        $cache_key_prices = 'tiger_prices_' . $country_code;
+        $api_prices = api_cache_get($cache_key_prices, 120);
+        if (!$api_prices) {
+            $price_response = makeCurlRequest($url, $api_data['api_key'], 'getPrices', $country_code);
+            $api_prices = json_decode($price_response, true);
+            if ($api_prices && is_array($api_prices)) {
+                api_cache_set($cache_key_prices, $api_prices);
+            }
+        }
+        
+        $cache_key_stock = 'tiger_stock_' . $country_code;
+        $stock_data = api_cache_get($cache_key_stock, 120);
+        if (!$stock_data) {
+            $stock_response = makeCurlRequest($url, $api_data['api_key'], 'getNumbersStatus', $country_code);
+            $stock_data = json_decode($stock_response, true);
+            if ($stock_data && is_array($stock_data)) {
+                api_cache_set($cache_key_stock, $stock_data);
+            }
+        }
 
         // $sql = "SELECT * FROM service WHERE server_id = '" . $server . "'";
         $sql = "SELECT * FROM service";

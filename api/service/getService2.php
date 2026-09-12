@@ -66,9 +66,18 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     $url = $api_url . '/v1/guest/prices';
     $country_code = $server;
     
-    // Fetch the combined Price/Name/Stock list from 5SIM
-    $price_response = makeCurlRequest($url, $api_key, $country_code);
-    $api_prices = json_decode($price_response, true);
+    // Fetch with caching (2-minute TTL)
+    include_once __DIR__ . '/../../include/api_cache.php';
+    $cache_key = '5sim_country_prices_' . $country_code;
+    $api_prices = api_cache_get($cache_key, 120);
+    
+    if (!$api_prices) {
+        $price_response = makeCurlRequest($url, $api_key, $country_code);
+        $api_prices = json_decode($price_response, true);
+        if ($api_prices && is_array($api_prices)) {
+            api_cache_set($cache_key, $api_prices);
+        }
+    }
 
     $final = array();
 

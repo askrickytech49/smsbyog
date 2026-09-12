@@ -56,16 +56,26 @@ $conversion_rate = $api_data ? (float)$api_data['rate'] : 1500;
 $fixed_profit    = $api_data ? (float)$api_data['profit_amount'] : 200;
 
 
-// Fetch prices filtered by product
-$url = "https://5sim.net/v1/guest/prices?product=" . urlencode($service);
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-$raw = curl_exec($ch);
-curl_close($ch);
+// Fetch prices filtered by product with caching (2-minute TTL)
+include_once __DIR__ . '/../../include/api_cache.php';
+$cache_key = '5sim_prices_' . $service;
+$pricesData = api_cache_get($cache_key, 120);
 
-$pricesData = $raw ? json_decode($raw, true) : [];
+if (!$pricesData) {
+    $url = "https://5sim.net/v1/guest/prices?product=" . urlencode($service);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $raw = curl_exec($ch);
+    curl_close($ch);
+    
+    $pricesData = $raw ? json_decode($raw, true) : [];
+    
+    if ($pricesData && is_array($pricesData)) {
+        api_cache_set($cache_key, $pricesData);
+    }
+}
 
 // When requesting a specific product, 5SIM returns {"productName": {"countryName": {"operator": {...}}}}
 $serviceData = $pricesData[$service] ?? [];

@@ -51,26 +51,42 @@ $api_key = $api_data['api_key'];
 $conversion_rate = (float)$api_data['rate'];
 $fixed_profit    = (float)$api_data['profit_amount'];
 
-// Fetch ALL prices
-$url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices";
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-$raw = curl_exec($ch);
-curl_close($ch);
+// Fetch ALL prices with caching (2-minute TTL)
+include_once __DIR__ . '/../../include/api_cache.php';
+$cache_key_prices = 'tigersms_getPrices';
+$allPrices = api_cache_get($cache_key_prices, 120);
 
-$allPrices = $raw ? json_decode($raw, true) : [];
+if (!$allPrices) {
+    $url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $raw = curl_exec($ch);
+    curl_close($ch);
+    $allPrices = $raw ? json_decode($raw, true) : [];
+    if ($allPrices && is_array($allPrices)) {
+        api_cache_set($cache_key_prices, $allPrices);
+    }
+}
 
-// Fetch countries list for name mapping
-$countries_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getCountries";
-$ch2 = curl_init($countries_url);
-curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch2, CURLOPT_TIMEOUT, 10);
-curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
-$rawCountries = curl_exec($ch2);
-curl_close($ch2);
-$countriesList = $rawCountries ? json_decode($rawCountries, true) : [];
+// Fetch countries list for name mapping with caching
+$cache_key_countries = 'tigersms_getCountries';
+$countriesList = api_cache_get($cache_key_countries, 300);
+
+if (!$countriesList) {
+    $countries_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getCountries";
+    $ch2 = curl_init($countries_url);
+    curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch2, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+    $rawCountries = curl_exec($ch2);
+    curl_close($ch2);
+    $countriesList = $rawCountries ? json_decode($rawCountries, true) : [];
+    if ($countriesList && is_array($countriesList)) {
+        api_cache_set($cache_key_countries, $countriesList);
+    }
+}
 
 // Build countries that have this service
 $final = [];

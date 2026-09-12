@@ -28,16 +28,26 @@ $api_data = mysqli_fetch_assoc($api_sql);
 $api_url = $api_data['api_url'];
 $api_key = $api_data['api_key'];
 
-// Fetch ALL prices (no country filter) — returns {country_code: {service_code: {cost, count}}}
-$url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices";
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-$raw = curl_exec($ch);
-curl_close($ch);
+// Fetch ALL prices with caching (2-minute TTL)
+include_once __DIR__ . '/../../include/api_cache.php';
+$cache_key = 'tigersms_getPrices';
+$allPrices = api_cache_get($cache_key, 120);
 
-$allPrices = $raw ? json_decode($raw, true) : [];
+if (!$allPrices) {
+    $url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $raw = curl_exec($ch);
+    curl_close($ch);
+    
+    $allPrices = $raw ? json_decode($raw, true) : [];
+    
+    if ($allPrices && is_array($allPrices)) {
+        api_cache_set($cache_key, $allPrices);
+    }
+}
 
 if (!$allPrices || !is_array($allPrices)) {
     echo json_encode(['service' => [], 'error' => 'Failed to fetch services from API']);
