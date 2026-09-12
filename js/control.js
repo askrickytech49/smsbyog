@@ -51,6 +51,7 @@ $(document).ready(function () {
           toast.error(json.msg);
         }
       }
+    });
   });
 
   // Allow hitting Enter to login
