@@ -40,7 +40,7 @@ curl_close($ch);
 $allPrices = $raw ? json_decode($raw, true) : [];
 
 if (!$allPrices || !is_array($allPrices)) {
-    $debug_msg = 'Failed to fetch services. cURL Error: ' . ($curl_error ?: 'Unknown') . ' | Raw: ' . substr($raw, 0, 100);
+    $debug_msg = 'Failed to fetch services. cURL Error: ' . ($curl_error ?: 'Unknown') . ' | Raw: ' . substr((string)$raw, 0, 100);
     echo json_encode(['service' => [], 'error' => $debug_msg]);
     exit;
 }
