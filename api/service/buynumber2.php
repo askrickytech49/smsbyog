@@ -141,7 +141,10 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
     $last_error = '';
 
     foreach ($operators_to_try as $try_operator) {
-        $buy_url = "{$api_url}/v1/user/buy/activation/{$server}/{$try_operator}/{$service}";
+        $encoded_server = urlencode($server);
+        $encoded_op = urlencode($try_operator);
+        $encoded_svc = urlencode($service);
+        $buy_url = "{$api_url}/v1/user/buy/activation/{$encoded_server}/{$encoded_op}/{$encoded_svc}";
         
         $ch = curl_init($buy_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -169,9 +172,10 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
 
     // If ALL operators failed
     if (!$response || !isset($response['id'])) {
+        $debug_info = $last_error ? " (Error: " . strip_tags($last_error) . ")" : "";
         echo json_encode([
             "status" => "500",
-            "message" => "All operators are currently busy for " . ucfirst($service) . " in " . ucfirst($server) . ". Please try another country or try again shortly."
+            "message" => "All operators are currently busy for " . ucfirst($service) . " in " . ucfirst($server) . "{$debug_info}. Please try another country or try again shortly."
         ]);
         exit;
     } else {
