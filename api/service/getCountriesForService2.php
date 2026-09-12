@@ -1,4 +1,10 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+ini_set('memory_limit', '256M');
+set_time_limit(60);
+
 /**
  * getCountriesForService2.php — Server 2 (5SIM)
  * Given a service/product code, returns all countries that have it in stock,
@@ -43,10 +49,12 @@ if ($check_token === false) {
 $service = mysqli_real_escape_string($conn, $_GET['service']);
 $user_id = $check_token;
 
-// Fetch 5SIM API details
+// Fetch 5SIM API details - get rate and profit from DB
 $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
-$conversion_rate = (float)$api_data['rate'];
-$fixed_profit    = (float)$api_data['profit_amount'];
+$api_data = $api_sql ? mysqli_fetch_assoc($api_sql) : null;
+$conversion_rate = $api_data ? (float)$api_data['rate'] : 1500;
+$fixed_profit    = $api_data ? (float)$api_data['profit_amount'] : 200;
+
 
 // Fetch prices filtered by product
 $url = "https://5sim.net/v1/guest/prices?product=" . urlencode($service);
