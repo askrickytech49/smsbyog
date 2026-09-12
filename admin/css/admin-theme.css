@@ -233,7 +233,7 @@ html, body {
   min-width: 0;
   max-width: 100%;
   /* Removed overflow-x: hidden to allow position: sticky to work properly */
-  overflow: clip;
+  overflow: visible;
 }
 
 /* ── TOPBAR ────────────────────────────────────────────────────── */
