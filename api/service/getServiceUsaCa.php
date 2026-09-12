@@ -78,7 +78,7 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
     }
 
     // Sort alphabetically
-    usort($final, fn($a, $b) => strcmp($a['service_name'], $b['service_name']));
+    usort($final, function($a, $b) { return strcmp($a['service_name'], $b['service_name']); });
 
     echo json_encode(['status' => '200', 'service' => $final]);
 }

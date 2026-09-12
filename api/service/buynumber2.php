@@ -99,7 +99,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         }
     }
     // Sort by stock count descending (try the operator with most stock first)
-    usort($available_operators, fn($a, $b) => $b['count'] - $a['count']);
+    usort($available_operators, function($a, $b) { return $b['count'] - $a['count']; });
 
     // 4. Handle errors if no operators found at all
     if ($raw_api_price <= 0 || empty($available_operators)) {

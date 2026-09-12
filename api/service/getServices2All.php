@@ -92,7 +92,9 @@ foreach ($serviceMap as $code => $info) {
 usort($final, function($a, $b) {
     $pA = getServicePriority($a['service_name']);
     $pB = getServicePriority($b['service_name']);
-    if ($pA !== $pB) return $pA <=> $pB;
+    if ($pA !== $pB) {
+        return ($pA < $pB) ? -1 : 1;
+    }
     return strcasecmp($a['service_name'], $b['service_name']);
 });
 

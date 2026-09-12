@@ -124,7 +124,7 @@ foreach ($serviceData as $country => $operators) {
 }
 
 // Sort by country name
-usort($final, fn($a, $b) => strcasecmp($a['country_name'], $b['country_name']));
+usort($final, function($a, $b) { return strcasecmp($a['country_name'], $b['country_name']); });
 
 if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
