@@ -41,7 +41,7 @@ if (!$_api_st['server2']) { redirect('buy-number'); }
 $page_title = "Buy Numbers — " . $site_data['web_name'];
 ?>
 <?php include 'partial/header.php'; ?>
-<link rel="stylesheet" href="css/buy-flow.css">
+<link rel="stylesheet" href="css/buy-flow.css?v=<?= time() ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css">
 <?php include 'partial/loader.php'; ?>
 
@@ -157,5 +157,5 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
 <?php include 'partial/scripts.php'; ?>
 <script>window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.7.1.min.js"><\/script>')</script>
 <script src="assets/js/notiflix-aio-3.2.7.min.js"></script>
-<script src="js/main_server2.js"></script>
+<script src="js/main_server2.js?v=<?= time() ?>"></script>
 <?php include 'partial/footer-end.php'; ?>
