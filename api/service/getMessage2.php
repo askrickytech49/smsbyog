@@ -29,6 +29,7 @@ $api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI
         // api_key is hardcoded above
 
         // 3. 5sim API Call to Check Order
+        $number_id = $active_data['number_id'];
         $url = "{$api_url}/v1/user/check/{$number_id}";
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
