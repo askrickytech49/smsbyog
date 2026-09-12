@@ -109,7 +109,7 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
 
     // Try partial keyword match in service name
     foreach ($icons as $keyword => $url) {
-        if (str_contains($name, $keyword) || str_contains($keyword, $name)) {
+        if (strpos($name, $keyword) !== false || strpos($keyword, $name) !== false) {
             return $url;
         }
     }
