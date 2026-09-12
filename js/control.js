@@ -51,7 +51,13 @@ $(document).ready(function () {
           toast.error(json.msg);
         }
       }
-    });
+  });
+
+  // Allow hitting Enter to login
+  $('#email, #password').keypress(function (e) {
+    if (e.which === 13) {
+      $('#login').click();
+    }
   });
 
   /* ===================== FORGOT PASSWORD ===================== */
