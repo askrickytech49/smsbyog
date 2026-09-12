@@ -72,11 +72,11 @@ $page_title = "Buy USA + Canada Numbers — " . $site_data['web_name'];
                 <div class="step-indicator">
                   <div class="step-item active" id="si-1">
                     <div class="step-circle">1</div>
-                    <span class="step-label">Country</span>
+                    <span class="step-label">Service</span>
                   </div>
                   <div class="step-item" id="si-2">
                     <div class="step-circle">2</div>
-                    <span class="step-label">Service</span>
+                    <span class="step-label">Country</span>
                   </div>
                   <div class="step-item" id="si-3">
                     <div class="step-circle">3</div>
@@ -89,34 +89,32 @@ $page_title = "Buy USA + Canada Numbers — " . $site_data['web_name'];
                 <input type="hidden" id="server_no"  value="">
                 <input type="hidden" id="service_id" value="">
 
-                <!-- ── STEP 1: COUNTRY ── -->
+                <!-- ── STEP 1: SERVICE ── -->
                 <div class="step-panel active" id="step1">
-                  <h6 class="fw-bold mb-3 text-center" style="color:#111;">Select a Country</h6>
-                  <div class="country-grid" id="country-grid">
+                  <h6 class="fw-bold mb-3 text-center" style="color:#111;">Select a Service</h6>
 
-                    <div class="country-card" data-server="us" onclick="selectCountry(this)">
-                      <span class="fi fi-us country-flag-img"></span>
-                      <div class="country-name">United States</div>
-                    </div>
+                  <div class="service-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="service-search" placeholder="Search services (e.g. WhatsApp, Telegram)...">
+                  </div>
 
-                    <div class="country-card" data-server="ca" onclick="selectCountry(this)">
-                      <span class="fi fi-ca country-flag-img"></span>
-                      <div class="country-name">Canada</div>
-                    </div>
-
+                  <div class="service-list" id="service-list">
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
                   </div>
                 </div>
 
-                <!-- ── STEP 2: SERVICE ── -->
+                <!-- ── STEP 2: COUNTRY ── -->
                 <div class="step-panel" id="step2">
                   <button class="step-back-btn" onclick="goStep(1)">
                     <i class="bi bi-arrow-left"></i> Back
                   </button>
-                  <h6 class="fw-bold mb-3" id="step2-title" style="color:#111;">Select a Service</h6>
+                  <h6 class="fw-bold mb-3" id="step2-title" style="color:#111;">Select a Country</h6>
 
                   <div class="buy-bar">
                     <div class="buy-bar-info">
-                      <span class="buy-bar-label">Selected service</span>
+                      <span class="buy-bar-label">Selected</span>
                       <span class="buy-bar-name"  id="selected-name">—</span>
                       <span class="buy-bar-price" id="selected-price">₦0</span>
                     </div>
@@ -125,15 +123,8 @@ $page_title = "Buy USA + Canada Numbers — " . $site_data['web_name'];
                     </button>
                   </div>
 
-                  <div class="service-search-wrap">
-                    <i class="bi bi-search"></i>
-                    <input type="text" id="service-search" placeholder="Search service...">
-                  </div>
-
-                  <div class="service-list" id="service-list">
-                    <div class="skeleton-row"></div>
-                    <div class="skeleton-row"></div>
-                    <div class="skeleton-row"></div>
+                  <div class="service-list" id="country-list">
+                    <!-- countries loaded via AJAX -->
                   </div>
                 </div>
 

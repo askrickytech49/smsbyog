@@ -1,6 +1,6 @@
 /**
  * main_usa.js — USA Server (VerifySMS)
- * 3-step buy flow: Country → Service → OTP
+ * 2-step buy flow: Service → OTP (Country is implicitly USA)
  */
 
 function copyToClipboard(text) {
@@ -33,21 +33,11 @@ function goStep(n) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function selectCountry(card) {
-    document.querySelectorAll('.country-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    const server = card.dataset.server;
-    const name   = card.querySelector('.country-name').textContent;
-    document.getElementById('server_no').value = server;
-    document.getElementById('step2-title').textContent = 'Services — ' + name;
-    loadServices(server);
-    goStep(2);
-}
-
 let selectedServiceId = '', selectedServiceName = '', selectedServicePrice = 0;
 
-function loadServices(server) {
+function loadServices() {
     const token = document.getElementById('token').value;
+    const server = document.getElementById('server_no').value; // 187 (USA)
     const list  = document.getElementById('service-list');
     list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>';
     document.getElementById('buy-btn').disabled = true;
@@ -71,9 +61,12 @@ function loadServices(server) {
                 row.dataset.name  = svc.service_name;
                 row.dataset.price = svc.service_price;
                 row.innerHTML = `
-                    <div class="service-info">
-                        <div class="service-name">${svc.service_name}</div>
-                        <span class="service-stock" style="color:#10b981">In stock</span>
+                    <div class="service-info" style="display:flex; align-items:center; gap:12px;">
+                        <img src="${svc.logo_url}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23cbd5e1%22%3E%3Cpath d=%22M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z%22/%3E%3C/svg%3E';" style="width:30px; height:30px; border-radius:6px; object-fit:contain;" alt="${svc.service_name}">
+                        <div>
+                            <div class="service-name">${svc.service_name}</div>
+                            <span class="service-stock" style="color:#10b981">In stock</span>
+                        </div>
                     </div>
                     <div class="service-price">₦${Number(svc.service_price).toLocaleString()}</div>`;
                 row.addEventListener('click', () => selectService(row));
@@ -129,12 +122,11 @@ function doBuy() {
             btn.disabled = false; btn.innerHTML = '<i class="bi bi-cart-plus-fill"></i> Buy Number';
             if (res.status == 200 || res.status === '200') {
                 Notiflix.Notify.success(res.message || 'Number purchased!');
-                // Update header for fresh purchase
                 const h = document.getElementById('step3-title-text');
                 const p = document.getElementById('step3-subtitle');
                 if (h) h.textContent = 'Number Purchased!';
                 if (p) p.textContent = 'Waiting for your OTP code…';
-                goStep(3); checkOrder(); user_balance(token);
+                goStep(2); checkOrder(); user_balance(token);
             } else { Notiflix.Notify.failure(res.message || 'Purchase failed.'); }
         },
         error: function() {
@@ -155,8 +147,8 @@ function renderOtpCard(item) {
                 <div class="sms-timer-pill" id="t_${item.id}"><i class="bi bi-clock"></i> --:--</div>
             </div>
             <div class="sms-number-row">
-                <span class="sms-number-text">+${item.number}</span>
-                <button class="sms-copy-btn" onclick="copyToClipboard('+${item.number}')"><i class="bi bi-copy"></i> Copy</button>
+                <span class="sms-number-text">+${String(item.number).replace(/^\+/, '')}</span>
+                <button class="sms-copy-btn" onclick="copyToClipboard('+${String(item.number).replace(/^\+/, '')}')"><i class="bi bi-copy"></i> Copy</button>
             </div>
             <div class="sms-divider"></div>
             <div class="sms-body-label"><i class="bi bi-chat-text"></i> OTP / SMS Code</div>
@@ -225,8 +217,9 @@ function checkOrder() {
         success: function(res) {
             user_balance(token); container.innerHTML = '';
             const items = res.data || [];
+
             if (!items.length) {
-                if (document.getElementById('step3').classList.contains('active')) {
+                if (document.getElementById('step2').classList.contains('active')) {
                     container.innerHTML = '<div class="no-active-numbers"><i class="bi bi-phone"></i><p>No active numbers. Buy a new one below.</p></div>';
                     setTimeout(() => goStep(1), 2000);
                 }
@@ -237,14 +230,14 @@ function checkOrder() {
                 countdownTimer(item.left_time, 't_' + item.id);
                 setSMSInterval('sms_' + item.id, item.id, token, item.number);
             });
-            // Always go to step 3 when active numbers exist (handles page refresh)
-            goStep(3);
+            // Always go to step 2 when active numbers exist
+            goStep(2);
         }
     });
 }
 
 function cancelNumber(orderId, btnId, number) {
-    Notiflix.Confirm.show('Confirm Cancel', 'Cancel number +' + number + '? You will be refunded.', 'Yes, Cancel', 'No',
+    Notiflix.Confirm.show('Confirm Cancel', 'Cancel number +' + String(number).replace(/^\+/, '') + '?', 'Yes, Cancel', 'No',
         function() {
             const token = document.getElementById('token').value;
             const btn = document.getElementById(btnId);
@@ -266,8 +259,13 @@ function buyAnother() { goStep(1); document.getElementById('card-container').inn
 
 function user_balance(token) {
     $.ajax({ type:'POST', url:'api/auth/session', data:{token},
-        success: function(res) { try { const d=JSON.parse(res); const el=document.getElementById('current_balance'); if(el && d.balance !== undefined) { el.textContent=Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2,maximumFractionDigits:2}); } } catch(e){} }
+        success: function(res) { try { const d=JSON.parse(res); const el=document.getElementById('current_balance'); if(el && d.balance !== undefined) { el.textContent='₦' + Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2,maximumFractionDigits:2}); } } catch(e){} }
     });
 }
 
-$(function() { checkOrder(); });
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function initPage() {
+    loadServices();
+    checkOrder();
+}
+if (typeof $ === 'function') { $(initPage); } else { document.addEventListener('DOMContentLoaded', initPage); }

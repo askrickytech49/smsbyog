@@ -70,7 +70,8 @@ if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
         curl_close($ch);
 
         // Note: 5sim returns status 'CANCELED' or 'BANNED' on success
-        if (isset($response['status']) || $result == "Order not found") {
+        $raw_result = strtolower(trim($result));
+        if (isset($response['status']) || $raw_result == "order not found" || $raw_result == "already canceled") {
             
             mysqli_begin_transaction($conn);
             try {
@@ -109,8 +110,9 @@ if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
                 echo '{"status":"500","message":"Database Error During Cancellation"}';
             }
         } else {
-            $err_msg = $response['errors'] ?? 'API Cancellation Failed';
-            echo '{"status":"500","message":"API Error: ' . $err_msg . '"}';
+            // It failed. Either we got JSON with errors, or a plain text error string
+            $err_msg = $response['errors'] ?? $response['message'] ?? ($result ? trim($result) : 'API Cancellation Failed');
+            echo '{"status":"500","message":"API Error: ' . htmlspecialchars($err_msg) . '"}';
         }
 
     } else {

@@ -34,35 +34,12 @@ if ($userdata === false) {
 }
 
 $userwallet = $wallet->userwallet();
-$servers    = $wallet->all_server();  // from otp_server WHERE status=1
 $wallet->closeConnection();
 // Check if this API is active — redirect if disabled
 $_api_st = get_api_status($conn);
 if (!$_api_st['server1']) { redirect('buy-number'); }
 
-
 $page_title = "Buy Numbers — " . $site_data['web_name'];
-
-// Map otp_server IDs to ISO 3166-1 alpha-2 codes for flag-icons library
-$serverFlags = [
-    187 => 'us',   // USA (VerifySMS)
-    286 => 'ng',   // Nigeria (Server 1)
-    999 => 'us',   // USA + Canada (show US flag, CA noted in name)
-];
-
-function getServerIso(string $name, int $id, array $map): string {
-    if (isset($map[$id])) return $map[$id];
-    $n = strtolower($name);
-    if (str_contains($n, 'nigeria'))                                 return 'ng';
-    if (str_contains($n, 'usa') || str_contains($n, 'united states')) return 'us';
-    if (str_contains($n, 'canada'))                                  return 'ca';
-    if (str_contains($n, 'uk') || str_contains($n, 'united kingdom')) return 'gb';
-    if (str_contains($n, 'india'))                                   return 'in';
-    if (str_contains($n, 'russia'))                                  return 'ru';
-    if (str_contains($n, 'ghana'))                                   return 'gh';
-    if (str_contains($n, 'kenya'))                                   return 'ke';
-    return 'un'; // UN flag as fallback
-}
 ?>
 <?php include 'partial/header.php'; ?>
 <link rel="stylesheet" href="css/buy-flow.css">
@@ -95,11 +72,11 @@ function getServerIso(string $name, int $id, array $map): string {
                 <div class="step-indicator">
                   <div class="step-item active" id="si-1">
                     <div class="step-circle">1</div>
-                    <span class="step-label">Country</span>
+                    <span class="step-label">Service</span>
                   </div>
                   <div class="step-item" id="si-2">
                     <div class="step-circle">2</div>
-                    <span class="step-label">Service</span>
+                    <span class="step-label">Country</span>
                   </div>
                   <div class="step-item" id="si-3">
                     <div class="step-circle">3</div>
@@ -112,31 +89,33 @@ function getServerIso(string $name, int $id, array $map): string {
                 <input type="hidden" id="server_no"  value="">
                 <input type="hidden" id="service_id" value="">
 
-                <!-- ── STEP 1: COUNTRY ── -->
+                <!-- ── STEP 1: SERVICE ── -->
                 <div class="step-panel active" id="step1">
-                  <h6 class="fw-bold mb-3 text-center" style="color:#111;">Select a Country</h6>
-                  <div class="country-grid" id="country-grid">
-                    <?php foreach ($servers as $s):
-                        $iso = getServerIso($s['server_name'], (int)$s['id'], $serverFlags);
-                    ?>
-                    <div class="country-card" data-server="<?= $s['id'] ?>" onclick="selectCountry(this)">
-                      <span class="fi fi-<?= $iso ?> country-flag-img"></span>
-                      <div class="country-name"><?= htmlspecialchars($s['server_name']) ?></div>
-                    </div>
-                    <?php endforeach; ?>
+                  <h6 class="fw-bold mb-3 text-center" style="color:#111;">Select a Service</h6>
+
+                  <div class="service-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="service-search" placeholder="Search services (e.g. WhatsApp, Telegram)...">
+                  </div>
+
+                  <div class="service-list" id="service-list">
+                    <!-- skeleton shown while loading -->
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
                   </div>
                 </div>
 
-                <!-- ── STEP 2: SERVICE ── -->
+                <!-- ── STEP 2: COUNTRY ── -->
                 <div class="step-panel" id="step2">
                   <button class="step-back-btn" onclick="goStep(1)">
                     <i class="bi bi-arrow-left"></i> Back
                   </button>
-                  <h6 class="fw-bold mb-3" id="step2-title" style="color:#111;">Select a Service</h6>
+                  <h6 class="fw-bold mb-3" id="step2-title" style="color:#111;">Select a Country</h6>
 
                   <div class="buy-bar">
                     <div class="buy-bar-info">
-                      <span class="buy-bar-label">Selected service</span>
+                      <span class="buy-bar-label">Selected</span>
                       <span class="buy-bar-name"  id="selected-name">—</span>
                       <span class="buy-bar-price" id="selected-price">₦0</span>
                     </div>
@@ -145,16 +124,13 @@ function getServerIso(string $name, int $id, array $map): string {
                     </button>
                   </div>
 
-                  <div class="service-search-wrap">
+                  <div class="service-search-wrap mb-3">
                     <i class="bi bi-search"></i>
-                    <input type="text" id="service-search" placeholder="Search service...">
+                    <input type="text" id="country-search" placeholder="Search countries..." onkeyup="filterCountryRows()">
                   </div>
 
-                  <div class="service-list" id="service-list">
-                    <!-- skeleton shown while loading -->
-                    <div class="skeleton-row"></div>
-                    <div class="skeleton-row"></div>
-                    <div class="skeleton-row"></div>
+                  <div class="service-list" id="country-list">
+                    <!-- countries loaded via AJAX -->
                   </div>
                 </div>
 

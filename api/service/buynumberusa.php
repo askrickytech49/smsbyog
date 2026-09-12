@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Africa/Lagos');
 include __DIR__ . '/../../include/config.php';
 function generateRandomString($length = 20)
 {

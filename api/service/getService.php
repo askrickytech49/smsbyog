@@ -56,21 +56,17 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         echo 'Token Expired Please Logout And Login Again';
     } else {
         
-        $server = mysqli_real_escape_string($conn, $_GET['server']);
+        $country_code = mysqli_real_escape_string($conn, $_GET['server']);
+        $server = $country_code; // Keeping $server variable name for compatibility with custom_price
         
-        // Fetch server and API details
-        $server_sql = mysqli_query($conn, "SELECT * FROM otp_server WHERE id='" . $server . "'");
-        $server_data = mysqli_fetch_assoc($server_sql);
-        
-        $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='" . $server_data['api_id'] . "'");
+        // Fetch API details for TigerSMS (Server 1 is API ID 8)
+        $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='8'");
         $api_data = mysqli_fetch_assoc($api_sql);
         
         $conversion_rate = $api_data['rate'];
         $fixed_profit = $api_data['profit_amount'];
-        // $markup_percent = $api_data['percentage'];
 
         $url = $api_data['api_url'] . '/stubs/handler_api.php';
-        $country_code = $server_data['server_code'];
         
         $price_response = makeCurlRequest($url, $api_data['api_key'], 'getPrices', $country_code);
         $api_prices = json_decode($price_response, true);
@@ -94,6 +90,10 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
                 $raw_api_price = $api_prices[$country_code][$service_id]['cost'] ?? current($api_prices[$country_code][$service_id]);
             }
         
+            // Skip services that don't exist on the upstream API
+            // (fixed_profit alone would make them appear valid)
+            if ($raw_api_price <= 0) continue;
+
             // 2. Perform Calculations
             // Convert USD price to Naira
 $base_price_naira = $raw_api_price * $conversion_rate;

@@ -16,22 +16,22 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
     // Using official or Wikipedia SVG/PNG sources where possible
     static $icons = [
         // Messaging
-        'whatsapp'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/whatsapp.png',
-        'telegram'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/240px-Telegram_logo.svg.png',
-        'signal'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Signal-Logo.svg/240px-Signal-Logo.svg.png',
+        'whatsapp'    => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/whatsapp.png',
+        'telegram'    => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/telegram.png',
+        'signal'      => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/signal.png',
         'viber'       => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Viber_logo.svg/240px-Viber_logo.svg.png',
-        'wechat'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/WeChat_logo.svg/240px-WeChat_logo.svg.png',
+        'wechat'      => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/wechat.png',
         'line'        => 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LINE_logo.svg/240px-LINE_logo.svg.png',
         'discord'     => 'https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6918e57475a843f59f_icon_clyde_black_RGB.png',
         'kakao'       => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/KakaoTalk_logo.svg/240px-KakaoTalk_logo.svg.png',
         'kakaotalk'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/KakaoTalk_logo.svg/240px-KakaoTalk_logo.svg.png',
 
         // Social Media
-        'facebook'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/facebook.png',
-        'instagram'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/instagram.png',
-        'twitter'     => 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/X_logo_2023.svg/240px-X_logo_2023.svg.png',
-        'tiktok'      => 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/240px-TikTok_logo.svg.png',
-        'snapchat'    => 'https://upload.wikimedia.org/wikipedia/en/thumb/a/ad/Snapchat_logo.svg/240px-Snapchat_logo.svg.png',
+        'facebook'    => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/facebook.png',
+        'instagram'   => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/instagram.png',
+        'twitter'     => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/twitter.png',
+        'tiktok'      => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/tiktok.png',
+        'snapchat'    => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/snapchat.png',
         'pinterest'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Pinterest-logo.png/240px-Pinterest-logo.png',
         'linkedin'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/240px-LinkedIn_logo_initials.png',
         'vk'          => 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/VK_Compact_Logo_%282021-present%29.svg/240px-VK_Compact_Logo_%282021-present%29.svg.png',
@@ -41,10 +41,16 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
         'twitch'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Twitch_logo.svg/240px-Twitch_logo.svg.png',
 
         // Google services
-        'google'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/240px-Google_%22G%22_logo.svg.png',
-        'gmail'       => 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Gmail_icon_%282020%29.svg/240px-Gmail_icon_%282020%29.svg.png',
-        'youtube'     => 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/240px-YouTube_full-color_icon_%282017%29.svg.png',
-        'google/youtube/gmail' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/240px-Google_%22G%22_logo.svg.png',
+        'google'      => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google.png',
+        'gmail'       => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/gmail.png',
+        'youtube'     => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/youtube.png',
+        'google/youtube/gmail' => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google.png',
+        'googlevoice' => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google.png',
+        'google voice' => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google.png',
+
+        // AI / Modern Tech
+        'openai'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/240px-ChatGPT_logo.svg.png',
+        'chatgpt'     => 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/240px-ChatGPT_logo.svg.png',
 
         // Shopping/delivery
         'amazon'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/240px-Amazon_logo.svg.png',
@@ -68,8 +74,8 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
         'revolut'     => 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Revolut_logo.svg/240px-Revolut_logo.svg.png',
 
         // Tech/software
-        'microsoft'   => 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/240px-Microsoft_logo.svg.png',
-        'apple'       => 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/240px-Apple_logo_black.svg.png',
+        'microsoft'   => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/microsoft.png',
+        'apple'       => 'https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/apple.png',
         'yahoo'       => 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Yahoo%21_logo.svg/240px-Yahoo%21_logo.svg.png',
         'microsoft/outlook' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/240px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png',
         'outlook'     => 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/240px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png',
@@ -83,16 +89,16 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
         'tinder'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Tinder_logo.png/240px-Tinder_logo.png',
         'hinge'       => 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Hinge_logo_%28app%29.png/240px-Hinge_logo_%28app%29.png',
         'poshmark'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Poshmark_logo.png/240px-Poshmark_logo.png',
-        'crowdtap'    => 'https://www.google.com/s2/favicons?sz=64&domain=crowdtap.com',
+        'crowdtap'    => 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Question_mark_alternate.svg/240px-Question_mark_alternate.svg.png',
 
         // VerifySMS specific short codes
         'df'          => 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/DoorDash_Logo.svg/240px-DoorDash_Logo.svg.png',
-        'dj'          => 'https://www.google.com/s2/favicons?sz=64&domain=doordash.com',
+        'dj'          => 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/DoorDash_Logo.svg/240px-DoorDash_Logo.svg.png',
         'dm'          => 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Poshmark_logo.png/240px-Poshmark_logo.png',
         'ei'          => 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Bumble-yellow-logo.svg/240px-Bumble-yellow-logo.svg.png',
 
         // Triumph (DinoMMO)
-        'triumph'     => 'https://www.google.com/s2/favicons?sz=64&domain=triumph.com',
+        'triumph'     => 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Question_mark_alternate.svg/240px-Question_mark_alternate.svg.png',
     ];
 
     // Try exact service name match
@@ -108,8 +114,50 @@ function getServiceIcon(string $serviceName, string $serviceCode = ''): string {
         }
     }
 
-    // Ultimate fallback: Google favicon API
-    // Clean the service name to get a likely domain
-    $domain = preg_replace('/[^a-z0-9]/', '', $name);
-    return "https://www.google.com/s2/favicons?sz=64&domain={$domain}.com";
+    // Comprehensive API Fallback: TigerSMS hosts high-quality icons for almost every single service code (wa, tg, alibaba, acz, etc.)
+    // We return this URL, and if it occasionally 404s, the frontend JS `onerror` handler will catch it and swap to the SVG question mark.
+    if (!empty($code)) {
+        $cleanCode = urlencode(strtolower(trim($code)));
+        return "https://tigersms.com/assets/images/services/{$cleanCode}.png";
+    }
+
+    // Ultimate fallback: Question mark logo if the brand is unknown (using robust inline SVG)
+    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z'/%3E%3C/svg%3E";
 }
+
+function getServicePriority(string $serviceName): int {
+    $name = strtolower(trim($serviceName));
+    static $priorities = [
+        'whatsapp' => 1,
+        'telegram' => 2,
+        'facebook' => 3,
+        'instagram' => 4,
+        'google' => 5,
+        'gmail' => 5,
+        'twitter' => 6,
+        'x' => 6,
+        'tiktok' => 7,
+        'snapchat' => 8,
+        'tinder' => 9,
+        'discord' => 10,
+        'apple' => 11,
+        'netflix' => 12,
+        'microsoft' => 13,
+        'amazon' => 14,
+        'linkedin' => 15,
+        'viber' => 16,
+        'line' => 17,
+        'paypal' => 18,
+        'cashapp' => 19,
+        'venmo' => 20,
+    ];
+    
+    foreach ($priorities as $key => $priority) {
+        if (str_contains($name, $key)) {
+            return $priority;
+        }
+    }
+    
+    return 999;
+}
+

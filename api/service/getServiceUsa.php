@@ -116,6 +116,14 @@ $base_calculated_price = $base_price_naira + $fixed_profit;
             } 
         }
     
+        // Sort popular services first
+        usort($final, function($a, $b) {
+            $pA = getServicePriority($a['service_name']);
+            $pB = getServicePriority($b['service_name']);
+            if ($pA !== $pB) return $pA <=> $pB;
+            return strcasecmp($a['service_name'], $b['service_name']);
+        });
+
         // Clean output and return JSON
         if (ob_get_length()) ob_clean(); 
         header('Content-Type: application/json');

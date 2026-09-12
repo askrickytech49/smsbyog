@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Africa/Lagos');
 include __DIR__ . '/../../include/config.php';
 function generateRandomString($length = 20)
 {
@@ -49,8 +50,8 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
 } else {
     $server   = mysqli_real_escape_string($conn, $_GET['server']);
     $service  = mysqli_real_escape_string($conn, $_GET['service']);
-    // Use provided operator or default to 'any' so 5sim picks best available
-    $operator = !empty($_GET['operator_id']) ? mysqli_real_escape_string($conn, $_GET['operator_id']) : 'any';
+    // ALWAYS use 'any' so 5sim natively picks the cheapest working operator available right now
+    $operator = 'any';
     $user_id  = $check_token;
 
     $sql4 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
@@ -79,11 +80,24 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     
     $raw_api_price = 0;
     
-    // 3. Navigate the response: [Country][Service][Operator]['cost']
-    if (isset($api_prices[$server][$service][$operator])) {
+    // 3. Navigate the response: [Product][Country][Operator]['cost']
+    // When querying with both country & product, 5SIM returns: {product: {country: {operator: {cost, count}}}}
+    // Note: 5sim prices API does NOT have an 'any' operator key.
+    // Operators are named virtual4, virtual27, etc.
+    // When operator is 'any', find the cheapest available operator with stock.
+    if ($operator === 'any' && isset($api_prices[$server][$service])) {
+        foreach ($api_prices[$server][$service] as $op_name => $op_data) {
+            if (isset($op_data['cost']) && $op_data['count'] > 0) {
+                if ($raw_api_price <= 0 || (float)$op_data['cost'] < $raw_api_price) {
+                    $raw_api_price = (float)$op_data['cost'];
+                }
+            }
+        }
+        // We DO NOT overwrite $operator here!
+        // We keep it as 'any' so 5SIM can automatically pick the best working operator natively.
+        // We only looped above to find the cheapest real price for the wallet deduction.
+    } elseif (isset($api_prices[$server][$service][$operator])) {
         $item = $api_prices[$server][$service][$operator];
-        
-        // Ensure we check if the cost exists and if there is actual stock (count > 0)
         if (isset($item['cost']) && $item['count'] > 0) {
             $raw_api_price = (float)$item['cost'];
         }
@@ -130,10 +144,15 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
     $result = curl_exec($ch);
     $response = json_decode($result, true);
 
-    // 5sim returns JSON on success/fail
-    if (!isset($response['id'])) {
-        $error = $response['errors'] ?? $response['message'] ?? 'API_LIMIT_OR_NO_NUMBERS';
-        echo '{"status":"500","message":"Error : ' . $error . '"}';
+    // 5sim returns JSON on success, but often plain text strings on errors (e.g., "no free phones")
+    if (!$response || !isset($response['id'])) {
+        if (!$response) {
+            // It wasn't valid JSON, so the raw $result string IS the error message
+            $error = trim($result) ?: 'API_LIMIT_OR_NO_NUMBERS';
+        } else {
+            $error = $response['errors'] ?? $response['message'] ?? 'API_LIMIT_OR_NO_NUMBERS';
+        }
+        echo '{"status":"500","message":"Error : ' . htmlspecialchars($error) . '"}';
         exit;
     } else {
         $random_order = generateRandomString();

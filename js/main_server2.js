@@ -1,6 +1,6 @@
 /**
- * main_server2.js — Server 2 (5sim)
- * 3-step buy flow: Country → Service → OTP
+ * main_server2.js — Server 2 (5SIM)
+ * SERVICE-FIRST buy flow: Service → Country → OTP
  */
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
@@ -50,70 +50,52 @@ function goStep(n) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── STEP 1 — COUNTRY ──────────────────────────────────────────────────────────
+// ── STEP 1 — SERVICE ──────────────────────────────────────────────────────────
 
-function selectCountry(card) {
-    document.querySelectorAll('.country-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    const server = card.dataset.server;
-    const name   = card.querySelector('.country-name').textContent;
-    document.getElementById('server_no').value = server;
-    document.getElementById('step2-title').textContent = 'Services for ' + name;
-    loadServices(server);
-    goStep(2);
-}
+let selectedServiceId   = '';
+let selectedServiceName = '';
+let selectedCountryCode = '';
+let selectedCountryName = '';
+let selectedOperator    = '';
+let selectedPrice       = 0;
 
-// ── STEP 2 — SERVICES ─────────────────────────────────────────────────────────
-
-let selectedServiceId       = '';
-let selectedServiceName     = '';
-let selectedServicePrice    = 0;
-let selectedOperator        = '';
-
-function loadServices(server) {
+function loadAllServices() {
     const token = document.getElementById('token').value;
     const list  = document.getElementById('service-list');
 
-    list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>';
-    document.getElementById('buy-btn').disabled = true;
-    document.getElementById('selected-name').textContent  = '—';
-    document.getElementById('selected-price').textContent = '₦0';
-    selectedServiceId = '';
-    selectedOperator  = '';
+    list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>';
 
     $.ajax({
         type: 'GET',
-        url:  'api/service/getService2',
-        data: { token, server },
+        url:  'api/service/getServices2All',
+        data: { token },
         dataType: 'json',
         success: function(res) {
             list.innerHTML = '';
             const services = res.service || [];
 
             if (!services.length) {
-                list.innerHTML = '<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/5089/5089767.png"><p>No services available for this country.</p></div>';
+                list.innerHTML = '<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/5089/5089767.png"><p>No services available right now.</p></div>';
                 return;
             }
 
             services.forEach(svc => {
-                const stock = parseInt(svc.stock) || 0;
-                const stockHtml = stock > 0
-                    ? `<span class="service-stock" style="color:${stock < 10 ? '#ef4444' : '#10b981'}">${stock} available</span>`
-                    : `<span class="service-stock" style="color:#9ca3af">Limited stock</span>`;
-
                 const row = document.createElement('div');
                 row.className = 'service-row';
-                row.dataset.id       = svc.id;
-                row.dataset.operator = svc.operator || '';
-                row.dataset.name     = svc.service_name;
-                row.dataset.price    = svc.service_price;
+                row.dataset.id    = svc.id;
+                row.dataset.name  = svc.service_name;
                 row.innerHTML = `
-                    <div class="service-info">
-                        <div class="service-name">${svc.service_name}</div>
-                        ${stockHtml}
+                    <div class="service-info" style="display:flex; align-items:center; gap:12px;">
+                        <img src="${svc.logo_url}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23cbd5e1%22%3E%3Cpath d=%22M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z%22/%3E%3C/svg%3E';" style="width:30px; height:30px; border-radius:6px; object-fit:contain;" alt="${svc.service_name}">
+                        <div>
+                            <div class="service-name">${svc.service_name}</div>
+                            <span class="service-stock" style="color:#10b981">${svc.country_count} countries</span>
+                        </div>
                     </div>
-                    <div class="service-price">₦${Number(svc.service_price).toLocaleString()}</div>`;
-                row.addEventListener('click', () => selectService(row));
+                    <div class="service-price" style="color:#6b7280; font-size:0.85rem;">
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </div>`;
+                row.addEventListener('click', () => selectServiceStep1(svc.id, svc.service_name));
                 list.appendChild(row);
             });
 
@@ -126,18 +108,23 @@ function loadServices(server) {
     });
 }
 
-function selectService(row) {
-    document.querySelectorAll('.service-row').forEach(r => r.classList.remove('selected'));
-    row.classList.add('selected');
-    selectedServiceId    = row.dataset.id;
-    selectedOperator     = row.dataset.operator;
-    selectedServiceName  = row.dataset.name;
-    selectedServicePrice = row.dataset.price;
-    document.getElementById('service_id').value            = selectedServiceId;
-    document.getElementById('operator_id').value           = selectedOperator;
-    document.getElementById('selected-name').textContent   = selectedServiceName;
-    document.getElementById('selected-price').textContent  = '₦' + Number(selectedServicePrice).toLocaleString();
-    document.getElementById('buy-btn').disabled = false;
+function selectServiceStep1(serviceId, serviceName) {
+    selectedServiceId   = serviceId;
+    selectedServiceName = serviceName;
+    document.getElementById('service_id').value = serviceId;
+    document.getElementById('step2-title').textContent = 'Countries for ' + serviceName;
+
+    // Reset country selection
+    selectedCountryCode = '';
+    selectedCountryName = '';
+    selectedOperator    = '';
+    selectedPrice       = 0;
+    document.getElementById('buy-btn').disabled = true;
+    document.getElementById('selected-name').textContent  = '—';
+    document.getElementById('selected-price').textContent = '₦0';
+
+    loadCountriesForService(serviceId);
+    goStep(2);
 }
 
 function attachServiceSearch() {
@@ -145,7 +132,7 @@ function attachServiceSearch() {
     input.oninput = function() {
         const q = this.value.toLowerCase().trim();
         let found = 0;
-        document.querySelectorAll('.service-row').forEach(row => {
+        document.querySelectorAll('#service-list .service-row').forEach(row => {
             const match = row.dataset.name.toLowerCase().includes(q);
             row.style.display = match ? '' : 'none';
             if (match) found++;
@@ -155,12 +142,128 @@ function attachServiceSearch() {
             const d = document.createElement('div');
             d.id = 'no-result-msg';
             d.className = 'empty-state';
-            d.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/6357/6357033.png"><p>No results found.</p>';
+            d.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/6357/6357033.png"><p>No services found.</p>';
             document.getElementById('service-list').appendChild(d);
         } else if (found && existing) {
             existing.remove();
         }
     };
+}
+
+// ── STEP 2 — COUNTRY ──────────────────────────────────────────────────────────
+
+const countryFlagMap = {
+    'afghanistan':'af','albania':'al','algeria':'dz','angola':'ao','antiguaandbarbuda':'ag',
+    'argentina':'ar','armenia':'am','aruba':'aw','australia':'au','austria':'at','azerbaijan':'az',
+    'bahamas':'bs','bahrain':'bh','bangladesh':'bd','barbados':'bb','belarus':'by','belgium':'be',
+    'belize':'bz','benin':'bj','bhutane':'bt','bih':'ba','bolivia':'bo','botswana':'bw','brazil':'br',
+    'brunei':'bn','bulgaria':'bg','burkinafaso':'bf','burundi':'bi','cambodia':'kh','cameroon':'cm',
+    'canada':'ca','capeverde':'cv','chad':'td','chile':'cl','colombia':'co','comoros':'km',
+    'congo':'cg','costarica':'cr','croatia':'hr','cyprus':'cy','czech':'cz','denmark':'dk',
+    'djibouti':'dj','dominicana':'do','easttimor':'tl','ecuador':'ec','egypt':'eg','england':'gb',
+    'equatorialguinea':'gq','estonia':'ee','ethiopia':'et','finland':'fi','france':'fr',
+    'frenchguiana':'gf','gabon':'ga','gambia':'gm','georgia':'ge','germany':'de','ghana':'gh',
+    'greece':'gr','guadeloupe':'gp','guatemala':'gt','guinea':'gn','guineabissau':'gw','guyana':'gy',
+    'haiti':'ht','honduras':'hn','hongkong':'hk','hungary':'hu','iceland':'is','india':'in',
+    'indonesia':'id','iraq':'iq','ireland':'ie','israel':'il','italy':'it','ivorycoast':'ci',
+    'jamaica':'jm','japan':'jp','jordan':'jo','kazakhstan':'kz','kenya':'ke','kuwait':'kw',
+    'kyrgyzstan':'kg','laos':'la','latvia':'lv','lebanon':'lb','lesotho':'ls','liberia':'lr',
+    'lithuania':'lt','luxembourg':'lu','macau':'mo','madagascar':'mg','malawi':'mw','malaysia':'my',
+    'maldives':'mv','mali':'ml','mauritania':'mr','mauritius':'mu','mexico':'mx','moldova':'md',
+    'mongolia':'mn','montenegro':'me','morocco':'ma','mozambique':'mz','myanmar':'mm','namibia':'na',
+    'nepal':'np','netherlands':'nl','newcaledonia':'nc','newzealand':'nz','nicaragua':'ni',
+    'niger':'ne','nigeria':'ng','northmacedonia':'mk','norway':'no','oman':'om','pakistan':'pk',
+    'palestine':'ps','panama':'pa','papuanewguinea':'pg','paraguay':'py','peru':'pe','philippines':'ph',
+    'poland':'pl','portugal':'pt','puertorico':'pr','qatar':'qa','reunion':'re','romania':'ro',
+    'russia':'ru','rwanda':'rw','saudiarabia':'sa','senegal':'sn','serbia':'rs','seychelles':'sc',
+    'sierraleone':'sl','singapore':'sg','slovakia':'sk','slovenia':'si','somalia':'so',
+    'southafrica':'za','southkorea':'kr','spain':'es','srilanka':'lk','sudan':'sd','suriname':'sr',
+    'sweden':'se','switzerland':'ch','taiwan':'tw','tajikistan':'tj','tanzania':'tz','thailand':'th',
+    'togo':'tg','trinidadandtobago':'tt','tunisia':'tn','turkey':'tr','turkmenistan':'tm',
+    'uganda':'ug','ukraine':'ua','uae':'ae','unitedstates':'us','uruguay':'uy','uzbekistan':'uz',
+    'venezuela':'ve','vietnam':'vn','yemen':'ye','zambia':'zm','zimbabwe':'zw','usa':'us',
+    'unitedkingdom':'gb','uk':'gb','elsalvador':'sv'
+};
+
+function getFlag(countryKey) {
+    const n = countryKey.toLowerCase().replace(/[\s_-]/g, '');
+    return countryFlagMap[n] || 'un';
+}
+
+function loadCountriesForService(serviceId) {
+    const token = document.getElementById('token').value;
+    const list  = document.getElementById('country-list');
+
+    list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>';
+
+    $.ajax({
+        type: 'GET',
+        url:  'api/service/getCountriesForService2',
+        data: { token, service: serviceId },
+        dataType: 'json',
+        success: function(res) {
+            list.innerHTML = '';
+            const countries = res.countries || [];
+
+            if (!countries.length) {
+                list.innerHTML = '<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/5089/5089767.png"><p>No countries available for this service.</p></div>';
+                return;
+            }
+
+            countries.forEach(c => {
+                const iso = getFlag(c.country_code);
+                const stock = c.stock;
+                const stockColor = stock < 10 ? '#ef4444' : '#10b981';
+
+                const row = document.createElement('div');
+                row.className = 'service-row';
+                row.dataset.code     = c.country_code;
+                row.dataset.name     = c.country_name;
+                row.dataset.price    = c.price;
+                row.dataset.operator = c.operator || 'any';
+                row.innerHTML = `
+                    <div class="service-info" style="display:flex; align-items:center; gap:10px;">
+                        <span class="fi fi-${iso}" style="font-size:1.3rem;"></span>
+                        <div>
+                            <div class="service-name">${c.country_name}</div>
+                            <span class="service-stock" style="color:${stockColor}">${stock} available</span>
+                        </div>
+                    </div>
+                    <div class="service-price">₦${Number(c.price).toLocaleString()}</div>`;
+                row.addEventListener('click', () => selectCountryStep2(row));
+                list.appendChild(row);
+            });
+
+            document.getElementById('country-search').value = '';
+        },
+        error: function() {
+            list.innerHTML = '<div class="empty-state"><p>Failed to load countries. Please try again.</p></div>';
+        }
+    });
+}
+
+function selectCountryStep2(row) {
+    document.querySelectorAll('#country-list .service-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+
+    selectedCountryCode = row.dataset.code;
+    selectedCountryName = row.dataset.name;
+    selectedOperator    = row.dataset.operator;
+    selectedPrice       = row.dataset.price;
+
+    document.getElementById('server_no').value             = selectedCountryCode;
+    document.getElementById('operator_id').value           = selectedOperator;
+    document.getElementById('selected-name').textContent   = selectedServiceName + ' — ' + selectedCountryName;
+    document.getElementById('selected-price').textContent  = '₦' + Number(selectedPrice).toLocaleString();
+    document.getElementById('buy-btn').disabled = false;
+}
+
+function filterCountryRows() {
+    const q = document.getElementById('country-search').value.toLowerCase().trim();
+    document.querySelectorAll('#country-list .service-row').forEach(row => {
+        const match = row.dataset.name.toLowerCase().includes(q);
+        row.style.display = match ? '' : 'none';
+    });
 }
 
 // ── BUY ───────────────────────────────────────────────────────────────────────
@@ -172,6 +275,7 @@ function doBuy() {
     const operator = document.getElementById('operator_id').value;
 
     if (!service) { Notiflix.Notify.warning('Please select a service first.'); return; }
+    if (!server)  { Notiflix.Notify.warning('Please select a country first.'); return; }
 
     const btn = document.getElementById('buy-btn');
     btn.disabled = true;
@@ -180,7 +284,7 @@ function doBuy() {
     $.ajax({
         type: 'GET',
         url:  'api/service/buynumber2',
-        data: { token, server, service, operator },
+        data: { token, server, service, operator_id: operator },
         dataType: 'json',
         success: function(res) {
             btn.disabled = false;
@@ -220,8 +324,8 @@ function renderOtpCard(item) {
                 <div class="sms-timer-pill" id="t_${item.id}"><i class="bi bi-clock"></i> --:--</div>
             </div>
             <div class="sms-number-row">
-                <span class="sms-number-text">+${item.number}</span>
-                <button class="sms-copy-btn" onclick="copyToClipboard('+${item.number}')">
+                <span class="sms-number-text">+${String(item.number).replace(/^\+/, '')}</span>
+                <button class="sms-copy-btn" onclick="copyToClipboard('+${String(item.number).replace(/^\+/, '')}')">
                     <i class="bi bi-copy"></i> Copy
                 </button>
             </div>
@@ -321,7 +425,6 @@ function checkOrder() {
                 countdownTimer(item.left_time, 't_' + item.id);
                 setSMSInterval('sms_' + item.id, item.id, token, item.number);
             });
-            // Always go to step 3 when active numbers exist (handles page refresh)
             goStep(3);
         }
     });
@@ -329,7 +432,7 @@ function checkOrder() {
 
 function cancelNumber(orderId, btnId, number) {
     Notiflix.Confirm.show('Confirm Cancel',
-        'Cancel number +' + number + '? You will be refunded.',
+        'Cancel number +' + String(number).replace(/^\+/, '') + '? You will be refunded.',
         'Yes, Cancel', 'No',
         function() {
             const token = document.getElementById('token').value;
@@ -364,10 +467,14 @@ function user_balance(token) {
     $.ajax({
         type: 'POST', url: 'api/auth/session', data: { token },
         success: function(res) {
-            try { const d = JSON.parse(res); const el = document.getElementById('current_balance'); if (el && d.balance !== undefined) el.textContent = Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2, maximumFractionDigits:2}); } catch(e) {}
+            try { const d = JSON.parse(res); const el = document.getElementById('current_balance'); if (el && d.balance !== undefined) el.textContent = '₦' + Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2, maximumFractionDigits:2}); } catch(e) {}
         }
     });
 }
 
-function initPage() { checkOrder(); }
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function initPage() {
+    loadAllServices();
+    checkOrder();
+}
 if (typeof $ === 'function') { $(initPage); } else { document.addEventListener('DOMContentLoaded', initPage); }

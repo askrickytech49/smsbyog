@@ -51,9 +51,7 @@ if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
             }
 
             // --- No SMS received — fetch upstream credentials and cancel ---
-            $sql3      = mysqli_query($conn, "SELECT * FROM otp_server WHERE id='" . $active_data['server_id'] . "'");
-            $server    = mysqli_fetch_assoc($sql3);
-            $sql4      = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='" . $server['api_id'] . "'");
+            $sql4      = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='" . $active_data['api_id'] . "'");
             $api_data  = mysqli_fetch_assoc($sql4);
             $api_url   = $api_data['api_url'];
             $api_key   = $api_data['api_key'];

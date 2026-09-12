@@ -72,42 +72,22 @@ $page_title = "Buy USA Numbers — " . $site_data['web_name'];
                 <div class="step-indicator">
                   <div class="step-item active" id="si-1">
                     <div class="step-circle">1</div>
-                    <span class="step-label">Country</span>
+                    <span class="step-label">Service</span>
                   </div>
                   <div class="step-item" id="si-2">
                     <div class="step-circle">2</div>
-                    <span class="step-label">Service</span>
-                  </div>
-                  <div class="step-item" id="si-3">
-                    <div class="step-circle">3</div>
                     <span class="step-label">OTP</span>
                   </div>
                 </div>
 
                 <!-- HIDDEN FIELDS -->
                 <input type="hidden" id="token"      value="<?= htmlspecialchars($_SESSION['token']) ?>">
-                <input type="hidden" id="server_no"  value="">
+                <input type="hidden" id="server_no"  value="187">
                 <input type="hidden" id="service_id" value="">
 
-                <!-- ── STEP 1: COUNTRY ── -->
+                <!-- ── STEP 1: SERVICE ── -->
                 <div class="step-panel active" id="step1">
-                  <h6 class="fw-bold mb-3 text-center" style="color:#111;">Select a Country</h6>
-                  <div class="country-grid" id="country-grid">
-
-                    <div class="country-card" data-server="187" onclick="selectCountry(this)">
-                      <span class="fi fi-us country-flag-img"></span>
-                      <div class="country-name">United States</div>
-                    </div>
-
-                  </div>
-                </div>
-
-                <!-- ── STEP 2: SERVICE ── -->
-                <div class="step-panel" id="step2">
-                  <button class="step-back-btn" onclick="goStep(1)">
-                    <i class="bi bi-arrow-left"></i> Back
-                  </button>
-                  <h6 class="fw-bold mb-3" id="step2-title" style="color:#111;">Select a Service</h6>
+                  <h6 class="fw-bold mb-3 text-center" style="color:#111;">Select a Service for USA</h6>
 
                   <div class="buy-bar">
                     <div class="buy-bar-info">
@@ -132,8 +112,8 @@ $page_title = "Buy USA Numbers — " . $site_data['web_name'];
                   </div>
                 </div>
 
-                <!-- ── STEP 3: OTP ── -->
-                <div class="step-panel" id="step3">
+                <!-- ── STEP 2: OTP ── -->
+                <div class="step-panel" id="step2">
                   <div class="step3-header" id="step3-header">
                     <div class="success-icon"><i class="bi bi-check-lg"></i></div>
                     <h5 id="step3-title-text">Your Active Number</h5>

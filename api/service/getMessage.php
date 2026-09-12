@@ -17,10 +17,7 @@ if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
     $sql1 = mysqli_query($conn, "SELECT * FROM active_number WHERE order_id='$order_id' AND active_status='2'");
     if (mysqli_num_rows($sql1) == 1) {
       $active_data = mysqli_fetch_assoc($sql1);
-      $sql2 = mysqli_query($conn, "SELECT * FROM otp_server WHERE id='" . $active_data['server_id'] . "'");
-      $server_data = mysqli_fetch_assoc($sql2);
-      $api_id = $server_data['api_id'];
-      $sql3 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='$api_id'");
+      $sql3 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='" . $active_data['api_id'] . "'");
       $api_data = mysqli_fetch_assoc($sql3);
       $sql4 = mysqli_query($conn, "SELECT * FROM user_wallet WHERE user_id='$user_id'");
       $user_data = mysqli_fetch_assoc($sql4);

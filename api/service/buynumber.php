@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Africa/Lagos');
 include __DIR__ . '/../../include/config.php';
 function generateRandomString($length = 20)
 {
@@ -47,20 +48,17 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     if ($check_token === false) {
         echo '{"status":"500","message":"Token Expired Please Logout And Login Again"}';
     } else {
-        $server = mysqli_real_escape_string($conn, $_GET['server']);
+        $server_code = mysqli_real_escape_string($conn, $_GET['server']);
+        $server = $server_code; // for custom_price and active_number db compatibility
         $service = mysqli_real_escape_string($conn, $_GET['service']);
         $user_id = $check_token;
 
-        // 1. Get Server and API Details
-        $sql3 = mysqli_query($conn, "SELECT * FROM otp_server WHERE id='" . $server . "'");
-        if (mysqli_num_rows($sql3) == 0) {
-            echo '{"status":"500","message":"Server Not Found"}';
+        // 1. Get API Details for TigerSMS (Server 1 is API ID 8)
+        $sql4 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='8'");
+        if (mysqli_num_rows($sql4) == 0) {
+            echo '{"status":"500","message":"API Configuration Not Found"}';
             exit;
         }
-        $server_data = mysqli_fetch_assoc($sql3);
-        $server_code = $server_data['server_code'];
-
-        $sql4 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='" . $server_data['api_id'] . "'");
         $api_data = mysqli_fetch_assoc($sql4);
         $api_key = $api_data['api_key'];
         $api_url = $api_data['api_url'];
@@ -130,7 +128,7 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
                 
                 $service_query = mysqli_query($conn, "SELECT service_name FROM service WHERE service_id = '$service' LIMIT 1");
                 $db_service = mysqli_fetch_assoc($service_query);
-                $service_name = $db_service['service_name'] ?? $service;
+                $service_name = strip_tags($db_service['service_name'] ?? $service);
                 
                 if ($user_balance >= $service_price) {
                     $cut_balance = $user_balance - $service_price;

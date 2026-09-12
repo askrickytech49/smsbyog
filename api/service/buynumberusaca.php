@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Africa/Lagos');
 include __DIR__ . '/../../include/config.php';
 function generateRandomString($length = 20)
 {
@@ -114,10 +115,10 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         $api_order_id = $response->transaction_id;
         $phone_number = $response->phone_number;
         $random_order = generateRandomString();
-        // Store real expiry from DinoMMO response if available, else 8 min fallback
-        $expires_at = isset($response->expires_at)
-            ? date('Y-m-d H:i:s', strtotime($response->expires_at))
-            : date('Y-m-d H:i:s', strtotime('+8 minutes'));
+        // Always use local time + 8 minutes for expiry.
+        // DinoMMO returns expires_at in UTC which causes timezone mismatch
+        // with buy_time (saved in Africa/Lagos). Using local +8min keeps it consistent.
+        $expires_at = date('Y-m-d H:i:s', strtotime('+8 minutes'));
         
         mysqli_begin_transaction($conn, MYSQLI_TRANS_START_READ_WRITE);
         try {

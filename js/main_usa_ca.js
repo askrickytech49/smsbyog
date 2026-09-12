@@ -1,150 +1,266 @@
 /**
  * main_usa_ca.js — USA + Canada Server (Dinosms)
- * 3-step buy flow: Country → Service → OTP
+ * SERVICE-FIRST buy flow: Service → Country → OTP
  */
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
 
 function copyToClipboard(text) {
     text = String(text).replace(/^\+/, '').slice(0, 12);
     navigator.clipboard ? navigator.clipboard.writeText(text) : legacyCopy(text);
     Notiflix.Notify.success('Copied: ' + text);
 }
+
 function legacyCopy(text) {
-    const ta = document.createElement('textarea'); ta.value = text;
+    const ta = document.createElement('textarea');
+    ta.value = text;
     ta.style.position = 'fixed'; ta.style.left = '-9999px';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
 }
+
 function getCookie(name) {
     const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
     return match ? decodeURIComponent(match[1]) : '';
 }
+
 function setCookie(name, value, minutes) {
-    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${new Date(Date.now()+minutes*60000).toUTCString()}; path=/`;
+    const exp = new Date(Date.now() + minutes * 60000).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${exp}; path=/`;
 }
-function removeCookie(name) { document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; }
+
+function removeCookie(name) {
+    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
+
 function playAudio(file) { try { new Audio(file).play(); } catch(e) {} }
 
+// ── STEP NAVIGATION ────────────────────────────────────────────────────────────
+
 function goStep(n) {
-    document.querySelectorAll('.step-panel').forEach((p, i) => p.classList.toggle('active', i+1===n));
+    document.querySelectorAll('.step-panel').forEach((p, i) => {
+        p.classList.toggle('active', i + 1 === n);
+    });
     document.querySelectorAll('.step-item').forEach((item, i) => {
-        item.classList.remove('active','done');
-        if (i+1 < n)  item.classList.add('done');
-        if (i+1 === n) item.classList.add('active');
+        item.classList.remove('active', 'done');
+        if (i + 1 < n)  item.classList.add('done');
+        if (i + 1 === n) item.classList.add('active');
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function selectCountry(card) {
-    document.querySelectorAll('.country-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    const server = card.dataset.server;
-    const name   = card.querySelector('.country-name').textContent;
-    document.getElementById('server_no').value = server;
-    document.getElementById('step2-title').textContent = 'Services — ' + name;
-    loadServices(server);
-    goStep(2);
-}
+// ── STEP 1 — SERVICE ──────────────────────────────────────────────────────────
 
-let selectedServiceId = '', selectedServiceName = '', selectedServicePrice = 0;
+let selectedServiceId   = '';
+let selectedServiceName = '';
+let selectedCountryCode = '';
+let selectedCountryName = '';
+let selectedPrice       = 0;
 
-function loadServices(server) {
+function loadAllServices() {
     const token = document.getElementById('token').value;
     const list  = document.getElementById('service-list');
-    list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>';
-    document.getElementById('buy-btn').disabled = true;
-    document.getElementById('selected-name').textContent  = '—';
-    document.getElementById('selected-price').textContent = '₦0';
-    selectedServiceId = '';
+
+    list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>';
 
     $.ajax({
-        type: 'GET', url: 'api/service/getServiceUsaCa', data: { token, server }, dataType: 'json',
+        type: 'GET',
+        url:  'api/service/getServicesUsaCaAll',
+        data: { token },
+        dataType: 'json',
         success: function(res) {
             list.innerHTML = '';
             const services = res.service || [];
+
             if (!services.length) {
-                list.innerHTML = '<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/5089/5089767.png"><p>No services available.</p></div>';
+                list.innerHTML = '<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/5089/5089767.png"><p>No services available right now.</p></div>';
                 return;
             }
+
             services.forEach(svc => {
                 const row = document.createElement('div');
                 row.className = 'service-row';
                 row.dataset.id    = svc.id;
                 row.dataset.name  = svc.service_name;
-                row.dataset.price = svc.service_price;
                 row.innerHTML = `
-                    <div class="service-info">
-                        <div class="service-name">${svc.service_name}</div>
-                        <span class="service-stock" style="color:#10b981">Active</span>
+                    <div class="service-info" style="display:flex; align-items:center; gap:12px;">
+                        <img src="${svc.logo_url}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23cbd5e1%22%3E%3Cpath d=%22M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z%22/%3E%3C/svg%3E';" style="width:30px; height:30px; border-radius:6px; object-fit:contain;" alt="${svc.service_name}">
+                        <div>
+                            <div class="service-name">${svc.service_name}</div>
+                            <span class="service-stock" style="color:#10b981">Active</span>
+                        </div>
                     </div>
-                    <div class="service-price">₦${Number(svc.service_price).toLocaleString()}</div>`;
-                row.addEventListener('click', () => selectService(row));
+                    <div class="service-price" style="color:#6b7280; font-size:0.85rem;">
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </div>`;
+                row.addEventListener('click', () => selectServiceStep1(svc.id, svc.service_name));
                 list.appendChild(row);
             });
+
             document.getElementById('service-search').value = '';
             attachServiceSearch();
         },
-        error: function() { list.innerHTML = '<div class="empty-state"><p>Failed to load services.</p></div>'; }
-    });
-}
-
-function selectService(row) {
-    document.querySelectorAll('.service-row').forEach(r => r.classList.remove('selected'));
-    row.classList.add('selected');
-    selectedServiceId    = row.dataset.id;
-    selectedServiceName  = row.dataset.name;
-    selectedServicePrice = row.dataset.price;
-    document.getElementById('service_id').value           = selectedServiceId;
-    document.getElementById('selected-name').textContent  = selectedServiceName;
-    document.getElementById('selected-price').textContent = '₦' + Number(selectedServicePrice).toLocaleString();
-    document.getElementById('buy-btn').disabled = false;
-}
-
-function attachServiceSearch() {
-    document.getElementById('service-search').oninput = function() {
-        const q = this.value.toLowerCase().trim();
-        let found = 0;
-        document.querySelectorAll('.service-row').forEach(row => {
-            const match = row.dataset.name.toLowerCase().includes(q);
-            row.style.display = match ? '' : 'none';
-            if (match) found++;
-        });
-        const ex = document.getElementById('no-result-msg');
-        if (!found && !ex) {
-            const d = document.createElement('div'); d.id = 'no-result-msg'; d.className = 'empty-state';
-            d.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/6357/6357033.png"><p>No results found.</p>';
-            document.getElementById('service-list').appendChild(d);
-        } else if (found && ex) ex.remove();
-    };
-}
-
-function doBuy() {
-    const token   = document.getElementById('token').value;
-    const server  = document.getElementById('server_no').value;
-    const service = document.getElementById('service_id').value;
-    if (!service) { Notiflix.Notify.warning('Please select a service first.'); return; }
-    const btn = document.getElementById('buy-btn');
-    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buying…';
-    $.ajax({
-        type: 'GET', url: 'api/service/buynumberusaca', data: { token, server, service }, dataType: 'json',
-        success: function(res) {
-            btn.disabled = false; btn.innerHTML = '<i class="bi bi-cart-plus-fill"></i> Buy Number';
-            if (res.status == 200 || res.status === '200') {
-                Notiflix.Notify.success(res.message || 'Number purchased!');
-                const h = document.getElementById('step3-title-text'); const p = document.getElementById('step3-subtitle');
-                if (h) h.textContent = 'Number Purchased!'; if (p) p.textContent = 'Waiting for your OTP code\u2026';
-                goStep(3); checkOrder(); user_balance(token);
-            } else { Notiflix.Notify.failure(res.message || 'Purchase failed.'); }
-        },
         error: function() {
-            btn.disabled = false; btn.innerHTML = '<i class="bi bi-cart-plus-fill"></i> Buy Number';
-            Notiflix.Notify.failure('Network error.');
+            list.innerHTML = '<div class="empty-state"><p>Failed to load services. Please try again.</p></div>';
         }
     });
 }
 
+function selectServiceStep1(serviceId, serviceName) {
+    selectedServiceId   = serviceId;
+    selectedServiceName = serviceName;
+    document.getElementById('service_id').value = serviceId;
+    document.getElementById('step2-title').textContent = 'Countries for ' + serviceName;
+
+    // Reset country selection
+    selectedCountryCode = '';
+    selectedCountryName = '';
+    selectedPrice       = 0;
+    document.getElementById('buy-btn').disabled = true;
+    document.getElementById('selected-name').textContent  = '—';
+    document.getElementById('selected-price').textContent = '₦0';
+
+    loadCountriesForService(serviceId);
+    goStep(2);
+}
+
+function attachServiceSearch() {
+    const input = document.getElementById('service-search');
+    input.oninput = function() {
+        const q = this.value.toLowerCase().trim();
+        let found = 0;
+        document.querySelectorAll('#service-list .service-row').forEach(row => {
+            const match = row.dataset.name.toLowerCase().includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) found++;
+        });
+        const existing = document.getElementById('no-result-msg');
+        if (!found && !existing) {
+            const d = document.createElement('div');
+            d.id = 'no-result-msg';
+            d.className = 'empty-state';
+            d.innerHTML = '<img src="https://cdn-icons-png.flaticon.com/512/6357/6357033.png"><p>No services found.</p>';
+            document.getElementById('service-list').appendChild(d);
+        } else if (found && existing) {
+            existing.remove();
+        }
+    };
+}
+
+// ── STEP 2 — COUNTRY ──────────────────────────────────────────────────────────
+
+function loadCountriesForService(serviceId) {
+    const token = document.getElementById('token').value;
+    const list  = document.getElementById('country-list');
+
+    list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div>';
+
+    $.ajax({
+        type: 'GET',
+        url:  'api/service/getCountriesForServiceUsaCa',
+        data: { token, service: serviceId },
+        dataType: 'json',
+        success: function(res) {
+            list.innerHTML = '';
+            const countries = res.countries || [];
+
+            if (!countries.length) {
+                list.innerHTML = '<div class="empty-state"><img src="https://cdn-icons-png.flaticon.com/512/5089/5089767.png"><p>Service not available for USA/Canada.</p></div>';
+                return;
+            }
+
+            countries.forEach(c => {
+                const iso = c.country_code.toLowerCase();
+                
+                const row = document.createElement('div');
+                row.className = 'service-row';
+                row.dataset.code     = c.country_code;
+                row.dataset.name     = c.country_name;
+                row.dataset.price    = c.price;
+                row.innerHTML = `
+                    <div class="service-info" style="display:flex; align-items:center; gap:10px;">
+                        <span class="fi fi-${iso}" style="font-size:1.3rem;"></span>
+                        <div>
+                            <div class="service-name">${c.country_name}</div>
+                            <span class="service-stock" style="color:#10b981">Available</span>
+                        </div>
+                    </div>
+                    <div class="service-price">₦${Number(c.price).toLocaleString()}</div>`;
+                row.addEventListener('click', () => selectCountryStep2(row));
+                list.appendChild(row);
+            });
+        },
+        error: function() {
+            list.innerHTML = '<div class="empty-state"><p>Failed to load countries. Please try again.</p></div>';
+        }
+    });
+}
+
+function selectCountryStep2(row) {
+    document.querySelectorAll('#country-list .service-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+
+    selectedCountryCode = row.dataset.code;
+    selectedCountryName = row.dataset.name;
+    selectedPrice       = row.dataset.price;
+
+    document.getElementById('server_no').value             = selectedCountryCode;
+    document.getElementById('selected-name').textContent   = selectedServiceName + ' — ' + selectedCountryName;
+    document.getElementById('selected-price').textContent  = '₦' + Number(selectedPrice).toLocaleString();
+    document.getElementById('buy-btn').disabled = false;
+}
+
+// ── BUY ───────────────────────────────────────────────────────────────────────
+
+function doBuy() {
+    const token    = document.getElementById('token').value;
+    const server   = document.getElementById('server_no').value;
+    const service  = document.getElementById('service_id').value;
+
+    if (!service) { Notiflix.Notify.warning('Please select a service first.'); return; }
+    if (!server)  { Notiflix.Notify.warning('Please select a country first.'); return; }
+
+    const btn = document.getElementById('buy-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buying…';
+
+    $.ajax({
+        type: 'GET',
+        url:  'api/service/buynumberusaca',
+        data: { token, server, service },
+        dataType: 'json',
+        success: function(res) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cart-plus-fill"></i> Buy Number';
+            if (res.status == 200 || res.status === '200') {
+                Notiflix.Notify.success(res.message || 'Number purchased!');
+                const h = document.getElementById('step3-title-text');
+                const p = document.getElementById('step3-subtitle');
+                if (h) h.textContent = 'Number Purchased!';
+                if (p) p.textContent = 'Waiting for your OTP code…';
+                goStep(3);
+                checkOrder();
+                user_balance(token);
+            } else {
+                Notiflix.Notify.failure(res.message || 'Purchase failed. Try again.');
+            }
+        },
+        error: function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cart-plus-fill"></i> Buy Number';
+            Notiflix.Notify.failure('Network error. Please try again.');
+        }
+    });
+}
+
+// ── OTP CARD ──────────────────────────────────────────────────────────────────
+
 let smsIntervals = {};
 
 function renderOtpCard(item) {
-    const card = document.createElement('div'); card.className = 'sms-card';
+    const card = document.createElement('div');
+    card.className = 'sms-card';
     card.innerHTML = `
         <div class="sms-card-inner">
             <div class="sms-top-row">
@@ -152,19 +268,22 @@ function renderOtpCard(item) {
                 <div class="sms-timer-pill" id="t_${item.id}"><i class="bi bi-clock"></i> --:--</div>
             </div>
             <div class="sms-number-row">
-                <span class="sms-number-text">+${item.number}</span>
-                <button class="sms-copy-btn" onclick="copyToClipboard('+${item.number}')"><i class="bi bi-copy"></i> Copy</button>
+                <span class="sms-number-text">+${String(item.number).replace(/^\+/, '')}</span>
+                <button class="sms-copy-btn" onclick="copyToClipboard('+${String(item.number).replace(/^\+/, '')}')">
+                    <i class="bi bi-copy"></i> Copy
+                </button>
             </div>
             <div class="sms-divider"></div>
             <div class="sms-body-label"><i class="bi bi-chat-text"></i> OTP / SMS Code</div>
             <div class="sms-code-box" id="sms_${item.id}">
-                ${item.sms ? `<span class="sms-code-value">${item.sms}</span>`
-                           : `<span class="sms-waiting"><span class="sms-dot"></span><span class="sms-dot"></span><span class="sms-dot"></span>&nbsp;Waiting for SMS…</span>`}
+                ${item.sms
+                    ? `<span class="sms-code-value">${item.sms}</span>`
+                    : `<span class="sms-waiting"><span class="sms-dot"></span><span class="sms-dot"></span><span class="sms-dot"></span>&nbsp;Waiting for SMS…</span>`}
             </div>
             <div class="sms-card-footer">
                 <div class="sms-price-tag"><i class="bi bi-wallet2"></i> ₦${Number(item.amount).toLocaleString()}</div>
                 <button class="sms-cancel-btn" id="cancel_${item.id}"
-                    onclick="cancelNumber('${item.id}','cancel_${item.id}','${item.number}')">
+                    onclick="cancelNumber('${item.id}', 'cancel_${item.id}', '${item.number}')">
                     <i class="bi bi-x-circle"></i> Cancel & Refund
                 </button>
             </div>
@@ -173,12 +292,13 @@ function renderOtpCard(item) {
 }
 
 function countdownTimer(durationMs, elementId) {
-    const el = document.getElementById(elementId); if (!el) return;
+    const el = document.getElementById(elementId);
+    if (!el) return;
     const interval = setInterval(() => {
         durationMs -= 1000;
         if (durationMs >= 0) {
-            const m = String(Math.floor(durationMs/60000)).padStart(2,'0');
-            const s = String(Math.floor((durationMs%60000)/1000)).padStart(2,'0');
+            const m = String(Math.floor(durationMs / 60000)).padStart(2, '0');
+            const s = String(Math.floor((durationMs % 60000) / 1000)).padStart(2, '0');
             el.innerHTML = `<i class="bi bi-clock"></i> ${m}:${s}`;
             el.classList.remove('sms-timer-expired');
         } else {
@@ -193,19 +313,27 @@ function setSMSInterval(elementId, orderId, token, number) {
     if (!smsIntervals[elementId]) smsIntervals[elementId] = [];
     const interval = setInterval(() => {
         $.ajax({
-            type: 'GET', url: 'api/service/getMessageUsaCa', data: { order_id: orderId, token }, dataType: 'json',
+            type: 'GET',
+            url:  'api/service/getMessageUsaCa',
+            data: { order_id: orderId, token },
+            dataType: 'json',
             success: function(data) {
-                const box = document.getElementById(elementId); if (!box) { clearInterval(interval); return; }
+                const box = document.getElementById(elementId);
+                if (!box) { clearInterval(interval); return; }
                 if (data.status === '300') {
                     box.innerHTML = '<span class="sms-waiting"><span class="sms-dot"></span><span class="sms-dot"></span><span class="sms-dot"></span>&nbsp;Waiting for SMS…</span>';
                 } else if (data.status === '200') {
                     box.innerHTML = `<span class="sms-code-value">${data.sms}</span>`;
-                    if (getCookie(orderId) !== data.sms) {
+                    const old = getCookie(orderId);
+                    if (old !== data.sms) {
                         Notiflix.Notify.success('OTP received on +' + number);
-                        setCookie(orderId, data.sms, 20); playAudio('bell.mp3');
+                        setCookie(orderId, data.sms, 20);
+                        playAudio('bell.mp3');
                     }
                     smsIntervals[elementId].forEach(clearInterval);
-                } else { box.innerHTML = '<span class="sms-waiting"><span class="sms-dot"></span><span class="sms-dot"></span><span class="sms-dot"></span>&nbsp;Waiting for SMS…</span>'; }
+                } else {
+                    box.innerHTML = '<span class="sms-waiting"><span class="sms-dot"></span><span class="sms-dot"></span><span class="sms-dot"></span>&nbsp;Waiting for SMS…</span>';
+                }
             }
         });
     }, 2000);
@@ -213,16 +341,22 @@ function setSMSInterval(elementId, orderId, token, number) {
 }
 
 function checkOrder() {
-    const token = document.getElementById('token').value;
+    const token     = document.getElementById('token').value;
     const container = document.getElementById('card-container');
-    Object.values(smsIntervals).forEach(arr => arr.forEach(clearInterval)); smsIntervals = {};
-    container.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div>';
-    $.ajax({
-        type: 'GET', url: 'api/service/ActiveNumberUsaCa', data: { token }, dataType: 'json',
-        success: function(res) {
-            user_balance(token); container.innerHTML = '';
-            const items = res.data || [];
 
+    Object.values(smsIntervals).forEach(arr => arr.forEach(clearInterval));
+    smsIntervals = {};
+    container.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div>';
+
+    $.ajax({
+        type: 'GET',
+        url:  'api/service/ActiveNumberUsaCa',
+        data: { token },
+        dataType: 'json',
+        success: function(res) {
+            user_balance(token);
+            container.innerHTML = '';
+            const items = res.data || [];
             if (!items.length) {
                 if (document.getElementById('step3').classList.contains('active')) {
                     container.innerHTML = '<div class="no-active-numbers"><i class="bi bi-phone"></i><p>No active numbers. Buy a new one below.</p></div>';
@@ -235,37 +369,56 @@ function checkOrder() {
                 countdownTimer(item.left_time, 't_' + item.id);
                 setSMSInterval('sms_' + item.id, item.id, token, item.number);
             });
-            // Always go to step 3 when active numbers exist (handles page refresh)
             goStep(3);
         }
     });
 }
 
 function cancelNumber(orderId, btnId, number) {
-    Notiflix.Confirm.show('Confirm Cancel', 'Cancel number +' + number + '?', 'Yes, Cancel', 'No',
+    Notiflix.Confirm.show('Confirm Cancel',
+        'Cancel number +' + String(number).replace(/^\+/, '') + '? You will be refunded.',
+        'Yes, Cancel', 'No',
         function() {
             const token = document.getElementById('token').value;
-            const btn = document.getElementById(btnId);
+            const btn   = document.getElementById(btnId);
             if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
             $.ajax({
-                type: 'GET', url: 'api/service/cancelNumberUsaCa', data: { token, order_id: orderId }, dataType: 'json',
+                type: 'GET',
+                url:  'api/service/cancelNumberUsaCa',
+                data: { token, order_id: orderId },
+                dataType: 'json',
                 success: function(res) {
-                    res.status == 200 || res.status === '200'
-                        ? (Notiflix.Notify.success(res.message || 'Refunded.'), removeCookie(orderId))
-                        : Notiflix.Notify.failure(res.message || 'Error.');
-                    user_balance(token); checkOrder();
+                    if (res.status == 200 || res.status === '200') {
+                        Notiflix.Notify.success(res.message || 'Refunded.');
+                        removeCookie(orderId);
+                    } else {
+                        Notiflix.Notify.failure(res.message || 'Error.');
+                    }
+                    user_balance(token);
+                    checkOrder();
                 }
             });
         }
     );
 }
 
-function buyAnother() { goStep(1); document.getElementById('card-container').innerHTML = ''; }
+function buyAnother() {
+    goStep(1);
+    document.getElementById('card-container').innerHTML = '';
+}
 
 function user_balance(token) {
-    $.ajax({ type:'POST', url:'api/auth/session', data:{token},
-        success: function(res) { try { const d=JSON.parse(res); const el=document.getElementById('current_balance'); if(el && d.balance !== undefined) { el.textContent=Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2,maximumFractionDigits:2}); } } catch(e){} }
+    $.ajax({
+        type: 'POST', url: 'api/auth/session', data: { token },
+        success: function(res) {
+            try { const d = JSON.parse(res); const el = document.getElementById('current_balance'); if (el && d.balance !== undefined) el.textContent = '₦' + Number(d.balance).toLocaleString('en-NG', {minimumFractionDigits:2, maximumFractionDigits:2}); } catch(e) {}
+        }
     });
 }
 
-$(function() { checkOrder(); });
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function initPage() {
+    loadAllServices();
+    checkOrder();
+}
+if (typeof $ === 'function') { $(initPage); } else { document.addEventListener('DOMContentLoaded', initPage); }

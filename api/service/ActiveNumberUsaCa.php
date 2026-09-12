@@ -99,7 +99,7 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
                     'number'     => $row['number'],
                     'amount'     => $row['service_price'],
                     'left_time'  => $left,
-                    'app'        => $row['service_name'],
+                    'app'        => strip_tags($row['service_name']),
                     'sms'        => $row['sms_text'],
                     'service_id' => $row['service_id'],
                     'server_id'  => $row['server_id'],
