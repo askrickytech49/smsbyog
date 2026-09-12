@@ -7,7 +7,13 @@
  */
 function require_api_active($conn, $api_id) {
     $id  = (int)$api_id;
-    $row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT is_active FROM api_detail WHERE id='$id' LIMIT 1"));
+    $query = mysqli_query($conn, "SELECT is_active FROM api_detail WHERE id='$id' LIMIT 1");
+    if (!$query) {
+        echo json_encode(['status' => '503', 'message' => 'Database error: ' . mysqli_error($conn), 'service' => []]);
+        exit;
+    }
+    
+    $row = mysqli_fetch_assoc($query);
     if (!$row || $row['is_active'] != 1) {
         echo json_encode(['status' => '503', 'message' => 'This service is temporarily unavailable.', 'service' => []]);
         exit;

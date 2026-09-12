@@ -24,8 +24,12 @@ if ($check_token === false) {
 
 // Fetch 5SIM API details
 $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
+if (!$api_sql) {
+    echo json_encode(['service' => [], 'error' => 'Database error: ' . mysqli_error($conn)]);
+    exit;
+}
 $api_data = mysqli_fetch_assoc($api_sql);
-$api_url = rtrim($api_data['api_url'], '/');
+$api_url = rtrim($api_data['api_url'] ?? '', '/');
 
 // Fetch ALL prices from 5SIM — returns {country: {product: {operator: {cost, count}}}}
 $url = "https://5sim.net/v1/guest/prices";
