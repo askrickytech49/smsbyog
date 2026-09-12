@@ -153,7 +153,7 @@ function getServicePriority(string $serviceName): int {
     ];
     
     foreach ($priorities as $key => $priority) {
-        if (str_contains($name, $key)) {
+        if (strpos($name, $key) !== false) {
             return $priority;
         }
     }
