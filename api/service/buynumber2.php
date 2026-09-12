@@ -82,32 +82,30 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     
     // 3. Navigate the response: [Product][Country][Operator]['cost']
     // When querying with both country & product, 5SIM returns: {product: {country: {operator: {cost, count}}}}
-    // Note: 5sim prices API does NOT have an 'any' operator key.
-    // Operators are named virtual4, virtual27, etc.
-    // When operator is 'any', find the cheapest available operator with stock.
-    if ($operator === 'any' && isset($api_prices[$server][$service])) {
+    // Build a sorted list of operators with stock (highest stock first for best chance of success)
+    $available_operators = [];
+    if (isset($api_prices[$server][$service])) {
         foreach ($api_prices[$server][$service] as $op_name => $op_data) {
             if (isset($op_data['cost']) && $op_data['count'] > 0) {
+                $available_operators[] = [
+                    'name'  => $op_name,
+                    'cost'  => (float)$op_data['cost'],
+                    'count' => (int)$op_data['count'],
+                ];
                 if ($raw_api_price <= 0 || (float)$op_data['cost'] < $raw_api_price) {
                     $raw_api_price = (float)$op_data['cost'];
                 }
             }
         }
-        // We DO NOT overwrite $operator here!
-        // We keep it as 'any' so 5SIM can automatically pick the best working operator natively.
-        // We only looped above to find the cheapest real price for the wallet deduction.
-    } elseif (isset($api_prices[$server][$service][$operator])) {
-        $item = $api_prices[$server][$service][$operator];
-        if (isset($item['cost']) && $item['count'] > 0) {
-            $raw_api_price = (float)$item['cost'];
-        }
     }
-    
-    // 4. Handle errors if price is 0 or operator is out of stock
-    if ($raw_api_price <= 0) {
+    // Sort by stock count descending (try the operator with most stock first)
+    usort($available_operators, fn($a, $b) => $b['count'] - $a['count']);
+
+    // 4. Handle errors if no operators found at all
+    if ($raw_api_price <= 0 || empty($available_operators)) {
         echo json_encode([
             "status" => "500",
-            "message" => "Operator " . ucfirst($operator) . " is currently out of stock or unavailable for " . ucfirst($service)
+            "message" => "No operators available for " . ucfirst($service) . " in " . ucfirst($server)
         ]);
         exit;
     }
@@ -131,28 +129,50 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
         exit;
     }
 
-    // 4. Request the Number (5sim Order URL)
-    // Format: /v1/user/buy/activation/$country/$operator/$product
-    $buy_url = "{$api_url}/v1/user/buy/activation/{$server}/{$operator}/{$service}";
-    
-    $ch = curl_init($buy_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $api_key",
-        "Accept: application/json"
-    ]);
-    $result = curl_exec($ch);
-    $response = json_decode($result, true);
+    // 4. RETRY LOOP: Try each operator until one actually delivers a number
+    // 5SIM's stock counts are often stale/cached, so we try 'any' first, then each specific operator.
+    $operators_to_try = ['any']; // Try 'any' first as it's fastest when it works
+    foreach ($available_operators as $op) {
+        $operators_to_try[] = $op['name'];
+    }
 
-    // 5sim returns JSON on success, but often plain text strings on errors (e.g., "no free phones")
-    if (!$response || !isset($response['id'])) {
-        if (!$response) {
-            // It wasn't valid JSON, so the raw $result string IS the error message
-            $error = trim($result) ?: 'API_LIMIT_OR_NO_NUMBERS';
-        } else {
-            $error = $response['errors'] ?? $response['message'] ?? 'API_LIMIT_OR_NO_NUMBERS';
+    $response = null;
+    $result = '';
+    $last_error = '';
+
+    foreach ($operators_to_try as $try_operator) {
+        $buy_url = "{$api_url}/v1/user/buy/activation/{$server}/{$try_operator}/{$service}";
+        
+        $ch = curl_init($buy_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer $api_key",
+            "Accept: application/json"
+        ]);
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        $response = json_decode($result, true);
+
+        // If we got a valid response with an ID, we succeeded!
+        if ($response && isset($response['id'])) {
+            $operator = $try_operator; // Record which operator worked
+            break;
         }
-        echo '{"status":"500","message":"Error : ' . htmlspecialchars($error) . '"}';
+
+        // Record the error and try next operator
+        $last_error = trim($result) ?: 'API_LIMIT_OR_NO_NUMBERS';
+        $response = null; // Reset so loop continues
+    }
+
+    // If ALL operators failed
+    if (!$response || !isset($response['id'])) {
+        echo json_encode([
+            "status" => "500",
+            "message" => "All operators are currently busy for " . ucfirst($service) . " in " . ucfirst($server) . ". Please try another country or try again shortly."
+        ]);
         exit;
     } else {
         $random_order = generateRandomString();
