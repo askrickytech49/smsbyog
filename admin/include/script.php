@@ -52,12 +52,15 @@
 
   // Initialize DataTables
   $(function() {
-    if ($('.admin-datatable').length) {
-        $('.admin-datatable').DataTable({
+    $('.admin-datatable').each(function() {
+        var orderAttr = $(this).attr('data-order');
+        var dtOrder = orderAttr ? JSON.parse(orderAttr) : [[0, 'asc']];
+        $(this).DataTable({
             responsive: true,
             pageLength: 25,
+            order: dtOrder,
             language: { search: '', searchPlaceholder: 'Search...' }
         });
-    }
+    });
   });
   </script>

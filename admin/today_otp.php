@@ -18,7 +18,7 @@ $page_title='Number History';
 <div class="admin-card">
   <div class="admin-card-body p-0">
     <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+      <table class="admin-table admin-datatable" style="width:100%" data-order='[[ 5, "desc" ]]'>
         <thead><tr><th>User</th><th>Number</th><th>Service</th><th>Price</th><th>OTP Code</th><th>Time</th></tr></thead>
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)): ?>
