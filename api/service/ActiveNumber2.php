@@ -23,9 +23,8 @@ if ($check_token === false) {
         $final = array();
         
         // Fetch 5sim API details once to save database resources
-        $sql_api = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
-        $api_data = mysqli_fetch_assoc($sql_api);
-        $api_key = $api_data['api_key'];
+        $api_url = "https://5sim.net";
+$api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI6MTc4OTE0OTk5OSwicmF5IjoiYmMxNTVkYzI1NGNkZjlhZThlYTg3OTFjN2Y1MzYwNGEiLCJzdWIiOjQ0ODMyNjV9.PxCFWUR6bP29BpMt1PKfAdHSmdmXUQriKLq6nPYEkWldyephtuijh4BqnU_EtMTgxXdLXwmX-hNJKKBNEMZBG-p8WK1o6usLPOdTwWu3Lw0yOcS0e-YwPUxTPKu0ocZSdSP5FJtCUZMTKCTIe7nZmWBngLkyUmuPQzbNG12KF5JL0G6_G8_iG3WBQSMg7yeQF-13l6KOzc5aA56V4PdgiVHlTYbibicINth7evneW7I7pT_HLStvbUjLtgA8mEWsSvUFMEknyflUkwZi2Yo2sjSOEZH50Tc5KYz7iKFIq7p5KKmf3J_5pM7PFri1I8yXpSqUeEjUoGtN4QnDRCSRmg";
         $api_url = rtrim($api_data['api_url'], '/');
 
         while ($row = mysqli_fetch_array($result)) {

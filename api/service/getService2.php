@@ -1,7 +1,7 @@
 <?php
 include __DIR__ . '/../../include/config.php';
 include __DIR__ . '/../../include/api_active_check.php';
-require_api_active($conn, 2);
+// require_api_active($conn, 2);
 
 include __DIR__ . '/../../include/service_icons.php';
 function makeCurlRequest($url, $api_key, $country)
@@ -56,8 +56,6 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     
     // Fetch API Configuration
     $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
-    $api_data = mysqli_fetch_assoc($api_sql);
-    
     $conversion_rate = $api_data['rate'];
     $fixed_profit = $api_data['profit_amount'];
     // $markup_percent = $api_data['percentage'];

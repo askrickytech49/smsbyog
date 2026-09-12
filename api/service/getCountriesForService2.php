@@ -6,7 +6,7 @@
  */
 include __DIR__ . '/../../include/config.php';
 include __DIR__ . '/../../include/api_active_check.php';
-require_api_active($conn, 2);
+// require_api_active($conn, 2);
 
 function custom_price($user_id, $service_id, $server_id, $price, $conn) {
     $sql = mysqli_query($conn, "SELECT * FROM custom_price WHERE user_id='" . $user_id . "' AND service_id='" . $service_id . "' AND server_id='" . $server_id . "'");
@@ -45,7 +45,6 @@ $user_id = $check_token;
 
 // Fetch 5SIM API details
 $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
-$api_data = mysqli_fetch_assoc($api_sql);
 $conversion_rate = (float)$api_data['rate'];
 $fixed_profit    = (float)$api_data['profit_amount'];
 
