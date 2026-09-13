@@ -172,10 +172,9 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
 
     // If ALL operators failed
     if (!$response || !isset($response['id'])) {
-        $debug_info = $last_error ? " (Error: " . strip_tags($last_error) . ")" : "";
         echo json_encode([
             "status" => "500",
-            "message" => "All operators are currently busy for " . ucfirst($service) . " in " . ucfirst($server) . "{$debug_info}. Please try another country or try again shortly."
+            "message" => "No numbers available for " . ucfirst($service) . " in " . ucfirst($server) . " right now. Please try again later or select a different country."
         ]);
         exit;
     } else {

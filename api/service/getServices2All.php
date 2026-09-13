@@ -49,7 +49,12 @@ if (!$allPrices) {
     
     $allPrices = $raw ? json_decode($raw, true) : [];
     
-    if ($allPrices && is_array($allPrices)) {
+    // Fallback to stale cache if the API request failed or returned empty
+    if (!$allPrices || !is_array($allPrices) || empty($allPrices)) {
+        $allPrices = api_cache_get_stale($cache_key);
+    }
+    
+    if ($allPrices && is_array($allPrices) && !empty($allPrices)) {
         api_cache_set($cache_key, $allPrices);
     }
 }
@@ -60,12 +65,30 @@ if (!$allPrices || !is_array($allPrices)) {
     exit;
 }
 
+// Fetch active services and their manual sort orders for API ID 2 (5sim)
+$activeServices = [];
+$serviceOrders = [];
+$activeRes = mysqli_query($conn, "SELECT service_code FROM api_active_services WHERE api_id='2'");
+if ($activeRes) {
+    while ($r = mysqli_fetch_assoc($activeRes)) {
+        $activeServices[$r['service_code']] = true;
+    }
+}
+$orderRes = mysqli_query($conn, "SELECT service_code, sort_order FROM api_service_order WHERE api_id='2'");
+if ($orderRes) {
+    while ($r = mysqli_fetch_assoc($orderRes)) {
+        $serviceOrders[$r['service_code']] = (int)$r['sort_order'];
+    }
+}
+
 // Build unique service list with total stock
 $serviceMap = []; // product_name => ['total_stock', 'country_count']
 
 foreach ($allPrices as $country => $products) {
     if (!is_array($products)) continue;
     foreach ($products as $product => $operators) {
+        if (!isset($activeServices[$product])) continue; // Only show active services
+        
         if (!is_array($operators)) continue;
         foreach ($operators as $opName => $opDetails) {
             $count = (int)($opDetails['count'] ?? 0);
@@ -103,8 +126,12 @@ foreach ($serviceMap as $code => $info) {
     ];
 }
 
-// Sort alphabetically
-usort($final, function($a, $b) {
+// Sort manual order first, then popular services priority, then alphabetically
+usort($final, function($a, $b) use ($serviceOrders) {
+    $orderA = $serviceOrders[$a['id']] ?? 9999;
+    $orderB = $serviceOrders[$b['id']] ?? 9999;
+    if ($orderA !== $orderB) return $orderA <=> $orderB;
+    
     $pA = getServicePriority($a['service_name']);
     $pB = getServicePriority($b['service_name']);
     if ($pA !== $pB) {

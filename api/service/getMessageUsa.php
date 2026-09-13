@@ -75,12 +75,20 @@ if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
             } else {
                 // No code received, perform local refund
                 if ($active_data['status'] == 2) {
-                    $add_balance = $user_data['balance'] + $active_data['service_price'];
-                    $cut_otp = $user_data['total_otp'] - 1;
-                    
-                    // Mark as Cancelled (Status 3) and Refund Wallet
-                    mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . $active_data['id'] . "'");
-                    mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='$user_id'");
+                    mysqli_begin_transaction($conn);
+                    try {
+                        $sql_wallet = mysqli_query($conn, "SELECT balance, total_otp FROM user_wallet WHERE user_id='$user_id' FOR UPDATE");
+                        $wallet = mysqli_fetch_assoc($sql_wallet);
+                        $add_balance = $wallet['balance'] + $active_data['service_price'];
+                        $cut_otp = max(0, $wallet['total_otp'] - 1);
+                        
+                        // Mark as Cancelled (Status 3) and Refund Wallet
+                        mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . $active_data['id'] . "'");
+                        mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='$user_id'");
+                        mysqli_commit($conn);
+                    } catch (Exception $e) {
+                        mysqli_rollback($conn);
+                    }
         
                     // --- CALL CANCEL API ---
                     // Even if it already expired, we send a cancel request to be safe

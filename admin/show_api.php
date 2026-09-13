@@ -8,7 +8,7 @@ if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php')
 
 if(isset($_POST['delete'])){ $did=(int)$_POST['id']; mysqli_query($conn,"DELETE FROM api_detail WHERE id='$did'"); header('Location: show_api'); exit; }
 
-$sql=mysqli_query($conn,"SELECT * FROM api_detail ORDER BY id ASC");
+$sql=mysqli_query($conn,"SELECT * FROM api_detail ORDER BY sort_order ASC, id ASC");
 $USD_TO_NGN=1500;
 $page_title='API Providers';
 ?>
@@ -19,7 +19,7 @@ $page_title='API Providers';
   </div>
   <a href="add_api" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add API</a>
 </div>
-<div class="row g-4">
+<div class="row g-4" id="sortableApiList">
 <?php
 $http_code = 0;
 while($data=mysqli_fetch_assoc($sql)):
@@ -62,10 +62,13 @@ while($data=mysqli_fetch_assoc($sql)):
     else{ $resp=explode(':',trim($r)); if(isset($resp[0])&&$resp[0]==='ACCESS_BALANCE'&&isset($resp[1])&&is_numeric(trim($resp[1]))){ $u=(float)trim($resp[1]); $n=$u*$USD_TO_NGN; $bal='<div style="font-size:15px;font-weight:700">$'.number_format($u,2).'</div><div style="font-size:12px;color:var(--text-muted)">₦'.number_format($n,2).'</div>'; } else{ $bal='<span style="color:var(--danger);font-size:12px">'.htmlspecialchars(substr($r,0,60)).'</span>'; } }
   }
 ?>
-<div class="col-12 col-md-6">
+<div class="col-12 col-md-6 api-card-col" data-id="<?=$data['id']?>">
   <div class="admin-card h-100" id="api-card-<?=$data['id']?>" style="<?=$data['is_active']?'':'opacity:.6;'?>">
     <div class="admin-card-header">
-      <h6><i class="bi bi-plug me-2 text-red"></i><?=htmlspecialchars($data['api_name'])?></h6>
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-grip-vertical text-muted drag-handle-api" style="cursor: grab; font-size: 1.2rem;"></i>
+        <h6 class="mb-0"><i class="bi bi-plug me-2 text-red"></i><?=htmlspecialchars($data['api_name'])?></h6>
+      </div>
       <div class="d-flex align-items-center gap-2">
         <!-- Toggle switch -->
         <div class="form-check form-switch mb-0" title="<?=$data['is_active']?'Disable API':'Enable API'?>">
@@ -155,3 +158,38 @@ document.querySelectorAll('.api-toggle').forEach(function(toggle) {
 });
 </script>
 <?php include __DIR__.'/include/layout_end.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const el = document.getElementById('sortableApiList');
+    if (el) {
+        Sortable.create(el, {
+            handle: '.drag-handle-api',
+            animation: 150,
+            onEnd: function(evt) {
+                const cols = el.querySelectorAll('.api-card-col');
+                const orderData = [];
+                cols.forEach((col, index) => {
+                    const id = col.dataset.id;
+                    orderData.push({ id: id, order: index });
+                });
+
+                fetch('ajax/update_api_order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orders: orderData })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert('Error updating order: ' + data.message);
+                    }
+                })
+                .catch(e => {
+                    console.error('Network error', e);
+                });
+            }
+        });
+    }
+});
+</script>

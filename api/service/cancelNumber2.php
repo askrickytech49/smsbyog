@@ -86,7 +86,7 @@ $api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI
                         
                         $refund_amount = $order_to_cancel['service_price'];
                         $new_balance = $user_wallet['balance'] + $refund_amount;
-                        $new_otp_count = $user_wallet['total_otp'] - 1;
+                        $new_otp_count = max(0, $user_wallet['total_otp'] - 1);
 
                         // Update Wallet & Order Status
                         mysqli_query($conn, "UPDATE user_wallet SET balance='$new_balance', total_otp='$new_otp_count' WHERE user_id='$user_id'");

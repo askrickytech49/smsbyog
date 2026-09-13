@@ -22,6 +22,19 @@ function api_cache_get($key, $ttl_seconds = 120) {
     return null; // Cache miss
 }
 
+// Get the cache regardless of age (useful as a fallback if the live API is down)
+function api_cache_get_stale($key) {
+    $cache_dir = __DIR__ . '/../cache';
+    $file = $cache_dir . '/' . md5($key) . '.json';
+    if (file_exists($file)) {
+        $data = file_get_contents($file);
+        if ($data !== false) {
+            return json_decode($data, true);
+        }
+    }
+    return null;
+}
+
 function api_cache_set($key, $data) {
     $cache_dir = __DIR__ . '/../cache';
     if (!is_dir($cache_dir)) {
@@ -31,3 +44,4 @@ function api_cache_set($key, $data) {
     $file = $cache_dir . '/' . md5($key) . '.json';
     file_put_contents($file, json_encode($data), LOCK_EX);
 }
+

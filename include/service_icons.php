@@ -12,6 +12,25 @@ function getServiceIcon($serviceName, $serviceCode = '') {
     $name = strtolower(trim($serviceName));
     $code = strtolower(trim($serviceCode));
 
+    // ── CHECK CUSTOM ICON FIRST ──────────────────────────────────────────────
+    // Admin can override any service icon via the admin panel
+    global $conn;
+    if ($code && $conn) {
+        static $customIcons = null;
+        if ($customIcons === null) {
+            $customIcons = [];
+            $q = mysqli_query($conn, "SELECT service_code, icon_path FROM service_custom_icons");
+            if ($q) {
+                while ($r = mysqli_fetch_assoc($q)) {
+                    $customIcons[strtolower($r['service_code'])] = $r['icon_path'];
+                }
+            }
+        }
+        if (isset($customIcons[$code])) {
+            return $customIcons[$code];
+        }
+    }
+
     // ── CURATED HIGH-QUALITY ICONS ────────────────────────────────────────────
     // Using official or Wikipedia SVG/PNG sources where possible
     static $icons = [

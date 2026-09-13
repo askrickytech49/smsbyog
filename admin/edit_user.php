@@ -211,7 +211,7 @@ $page_title='Edit User — '.htmlspecialchars($user['name']??'');
             <tbody>
             <?php while($n=mysqli_fetch_assoc($nums)): ?>
             <tr>
-              <td><strong>+<?=htmlspecialchars($n['number'])?></strong></td>
+              <td><strong>+<?=htmlspecialchars(ltrim($n['number'], '+'))?></strong></td>
               <td style="font-size:12px"><?=htmlspecialchars($n['service_name']??$n['service_id'])?></td>
               <td>₦<?=number_format($n['service_price']??0)?></td>
               <td>

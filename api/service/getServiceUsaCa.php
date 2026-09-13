@@ -41,19 +41,53 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
     $conversion_rate = $api_data['rate'];
     $fixed_profit    = $api_data['profit_amount'];
 
-    // Fetch services from DinoMMO
+    // Fetch services from DinoMMO with cache fallback
     $services_url = "{$api_url}/sms-otp/services";
-    $api_prices   = getfunction($services_url, $api_key);
+    
+    include_once __DIR__ . '/../../include/api_cache.php';
+    $cache_key = 'dinommo_services_' . md5($api_key);
+    $api_prices = api_cache_get($cache_key, 120);
+    
+    if (!$api_prices) {
+        $api_prices = getfunction($services_url, $api_key);
+        
+        // Fallback to stale cache if failed
+        if (!is_array($api_prices) || empty($api_prices)) {
+            $api_prices = api_cache_get_stale($cache_key);
+        }
+        
+        if (is_array($api_prices) && !empty($api_prices)) {
+            api_cache_set($cache_key, $api_prices);
+        }
+    }
 
     if (!is_array($api_prices)) {
         echo '{"status":"500","message":"Failed to fetch services from provider"}';
         exit;
     }
 
+    // Fetch active services and their manual sort orders for API ID 3 (DinoSMS)
+    $activeServices = [];
+    $serviceOrders = [];
+    $activeRes = mysqli_query($conn, "SELECT service_code FROM api_active_services WHERE api_id='3'");
+    if ($activeRes) {
+        while ($r = mysqli_fetch_assoc($activeRes)) {
+            $activeServices[$r['service_code']] = true;
+        }
+    }
+    $orderRes = mysqli_query($conn, "SELECT service_code, sort_order FROM api_service_order WHERE api_id='3'");
+    if ($orderRes) {
+        while ($r = mysqli_fetch_assoc($orderRes)) {
+            $serviceOrders[$r['service_code']] = (int)$r['sort_order'];
+        }
+    }
+
     $final = [];
 
     foreach ($api_prices as $details) {
         $service_code  = $details['service_code']  ?? '';
+        if (!isset($activeServices[$service_code])) continue; // Only show active services
+
         $service_name  = $details['service_name']  ?? $service_code;
         $raw_api_price = (float)($details['price_usd'] ?? 0);
         $is_active     = $details['is_active']     ?? false;
@@ -77,8 +111,17 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
         ]);
     }
 
-    // Sort alphabetically
-    usort($final, function($a, $b) { return strcmp($a['service_name'], $b['service_name']); });
+    // Sort manual order first, then alphabetically
+    usort($final, function($a, $b) use ($serviceOrders) {
+        $orderA = $serviceOrders[$a['id']] ?? 9999;
+        $orderB = $serviceOrders[$b['id']] ?? 9999;
+        if ($orderA !== $orderB) return $orderA <=> $orderB;
+        
+        $pA = getServicePriority($a['service_name']);
+        $pB = getServicePriority($b['service_name']);
+        if ($pA !== $pB) return $pA <=> $pB;
+        return strcasecmp($a['service_name'], $b['service_name']);
+    });
 
     echo json_encode(['status' => '200', 'service' => $final]);
 }

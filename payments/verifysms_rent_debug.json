@@ -7,11 +7,11 @@
         "transaction_id"
     ],
     "response": {
-        "number": "6163531620",
-        "cost": 0.5,
-        "code": "bx",
-        "service": "OpenAI \/ ChatGPT",
-        "transaction_id": "fc658c12-406f-4744-ba51-c1fa6698c936"
+        "number": "+12185084944",
+        "cost": 1,
+        "code": "kl",
+        "service": "Amazon \/ AWS",
+        "transaction_id": "66a97b5c-b65a-424b-853d-89ca53da929b"
     },
-    "time": "2026-09-10 16:39:43"
+    "time": "2026-09-13 11:47:45"
 }

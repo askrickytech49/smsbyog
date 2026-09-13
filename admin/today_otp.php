@@ -24,7 +24,7 @@ $page_title='Number History';
         <?php while($r=mysqli_fetch_assoc($sql)): ?>
         <tr>
           <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['email']??$r['user_id'])?></td>
-          <td><strong>+<?=htmlspecialchars($r['number'])?></strong></td>
+          <td><strong>+<?=htmlspecialchars(ltrim($r['number'], '+'))?></strong></td>
           <td><?=htmlspecialchars($r['service_name']??$r['service_id'])?></td>
           <td>₦<?=number_format($r['service_price']??0)?></td>
           <td>

@@ -71,7 +71,7 @@ $api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI
                         $user_wallet = mysqli_fetch_assoc($sql_wallet);
                         
                         $add_balance = $user_wallet['balance'] + $row['service_price'];
-                        $cut_otp = $user_wallet['total_otp'] - 1;
+                        $cut_otp = max(0, $user_wallet['total_otp'] - 1);
 
                         // Mark as Cancelled/Refunded (status 3)
                         mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . $row['id'] . "'");

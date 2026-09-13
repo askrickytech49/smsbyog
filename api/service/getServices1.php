@@ -50,10 +50,15 @@ if (!$allPrices) {
     
     $allPrices = $raw ? json_decode($raw, true) : [];
     
-    if ($allPrices && is_array($allPrices)) {
+    // Fallback to stale cache if failed
+    if (!$allPrices || empty($allPrices)) {
+        $allPrices = api_cache_get_stale($cache_key);
+    }
+    
+    if ($allPrices && is_array($allPrices) && !empty($allPrices)) {
         api_cache_set($cache_key, $allPrices);
     } else {
-        error_log("TigerSMS getPrices failed. cURL Error: " . $error);
+        error_log("TigerSMS getPrices failed and no stale cache available. cURL Error: " . $error);
     }
 }
 
@@ -62,12 +67,30 @@ if (!$allPrices || !is_array($allPrices)) {
     exit;
 }
 
+// Fetch active services and their manual sort orders for API ID 8 (TigerSMS)
+$activeServices = [];
+$serviceOrders = [];
+$activeRes = mysqli_query($conn, "SELECT service_code FROM api_active_services WHERE api_id='8'");
+if ($activeRes) {
+    while ($r = mysqli_fetch_assoc($activeRes)) {
+        $activeServices[$r['service_code']] = true;
+    }
+}
+$orderRes = mysqli_query($conn, "SELECT service_code, sort_order FROM api_service_order WHERE api_id='8'");
+if ($orderRes) {
+    while ($r = mysqli_fetch_assoc($orderRes)) {
+        $serviceOrders[$r['service_code']] = (int)$r['sort_order'];
+    }
+}
+
 // Build a unique service list with total stock across all countries
 $serviceMap = []; // service_code => ['total_stock' => int, 'min_cost' => float]
 
 foreach ($allPrices as $countryCode => $services) {
     if (!is_array($services)) continue;
     foreach ($services as $serviceCode => $details) {
+        if (!isset($activeServices[$serviceCode])) continue; // Only show active services
+        
         $count = (int)($details['count'] ?? 0);
         $cost  = (float)($details['cost'] ?? 0);
         
@@ -114,8 +137,12 @@ foreach ($serviceMap as $code => $info) {
     ];
 }
 
-// Sort alphabetically by service name
-usort($final, function($a, $b) {
+// Sort manual order first, then popular services priority, then alphabetically
+usort($final, function($a, $b) use ($serviceOrders) {
+    $orderA = $serviceOrders[$a['id']] ?? 9999;
+    $orderB = $serviceOrders[$b['id']] ?? 9999;
+    if ($orderA !== $orderB) return $orderA <=> $orderB;
+    
     $pA = getServicePriority($a['service_name']);
     $pB = getServicePriority($b['service_name']);
     if ($pA !== $pB) return $pA <=> $pB;

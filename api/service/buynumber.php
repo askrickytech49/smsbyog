@@ -113,7 +113,13 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
         $response = explode(':', $result);
 
         if ($response[0] != "ACCESS_NUMBER") {
-            echo '{"status":"500","message":"Error : ' . $response[0] . '"}';
+            $err_msg = $response[0];
+            if ($err_msg == "NO_NUMBERS") {
+                $err_msg = "No numbers available for this service right now. Please try again later.";
+            } elseif ($err_msg == "NO_BALANCE") {
+                $err_msg = "Provider API error. Please contact support.";
+            }
+            echo '{"status":"500","message":"' . $err_msg . '"}';
             exit;
         } else {
             $random_order = generateRandomString();

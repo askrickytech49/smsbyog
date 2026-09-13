@@ -58,19 +58,51 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     $api_data = mysqli_fetch_assoc($api_sql);
         
     $conversion_rate = $api_data['rate'];
-$fixed_profit = $api_data['profit_amount'];
+    $fixed_profit = $api_data['profit_amount'];
     $url = $api_data['api_url'] . '/api/services?api_key=' . $api_data['api_key']; 
-    // Ensure this endpoint matches VerifySMS
+    
+    // Use caching and fallback
+    include_once __DIR__ . '/../../include/api_cache.php';
+    $cache_key = 'verifysms_services_' . md5($api_data['api_key']);
+    $api_prices = api_cache_get($cache_key, 120);
+    
+    if (!$api_prices) {
+        $price_response = makeCurlRequest($url, $api_data['api_key']); 
+        $api_prices = $price_response ? json_decode($price_response, true) : [];
         
-    // Fetch the list from VerifySMS
-    $price_response = makeCurlRequest($url, $api_data['api_key']); 
-    $api_prices = json_decode($price_response, true);
+        // Fallback to stale cache if API failed
+        if (!$api_prices || empty($api_prices)) {
+            $api_prices = api_cache_get_stale($cache_key);
+        }
+        
+        // Save to cache if valid
+        if ($api_prices && is_array($api_prices) && !empty($api_prices)) {
+            api_cache_set($cache_key, $api_prices);
+        }
+    }
     
     $final = array();
     
+    // Fetch active services and their manual sort orders
+    $activeServices = [];
+    $serviceOrders = [];
+    $activeRes = mysqli_query($conn, "SELECT service_code FROM api_active_services WHERE api_id='1'");
+    if ($activeRes) {
+        while ($r = mysqli_fetch_assoc($activeRes)) {
+            $activeServices[$r['service_code']] = true;
+        }
+    }
+    
+    $orderRes = mysqli_query($conn, "SELECT service_code, sort_order FROM api_service_order WHERE api_id='1'");
+    if ($orderRes) {
+        while ($r = mysqli_fetch_assoc($orderRes)) {
+            $serviceOrders[$r['service_code']] = (int)$r['sort_order'];
+        }
+    }
     if (is_array($api_prices) && !empty($api_prices)) {
             
         foreach ($api_prices as $service_id => $details) {
+            if (!isset($activeServices[$service_id])) continue; // Only show active services
             
             
             // 1. Fetch data from the flat object
@@ -116,8 +148,12 @@ $base_calculated_price = $base_price_naira + $fixed_profit;
             } 
         }
     
-        // Sort popular services first
-        usort($final, function($a, $b) {
+        // Sort manual order first, then popular services priority, then alphabetical
+        usort($final, function($a, $b) use ($serviceOrders) {
+            $orderA = $serviceOrders[$a['id']] ?? 9999;
+            $orderB = $serviceOrders[$b['id']] ?? 9999;
+            if ($orderA !== $orderB) return $orderA <=> $orderB;
+            
             $pA = getServicePriority($a['service_name']);
             $pB = getServicePriority($b['service_name']);
             if ($pA !== $pB) return $pA <=> $pB;
