@@ -122,27 +122,24 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
             
             switch ($http_status) {
                 case 401:
-                    $msg = "Invalid API Configuration (401).";
-                    break;
                 case 402:
-                    $msg = "API Provider Balance Exhausted (402).";
+                    $msg = "Service temporarily unavailable. Please try again shortly.";
                     break;
                 case 404:
-                    $msg = "Service not found on provider (404).";
+                    $msg = "Service is currently unavailable. Please try another service.";
                     break;
                 case 409:
-                    $msg = "No numbers available for this service (409).";
+                    $msg = "No numbers available for this service right now. Please try again later.";
                     break;
                 case 400:
-                    $msg = "Invalid Request (400). Check service code.";
+                    $msg = "Invalid request. Please select a valid service.";
                     break;
                 default:
-                    // Fallback for 500 or unknown errors
-                    $msg = $response['message'] ?? $response['error'] ?? "Provider Error ($http_status) $service";
+                    $msg = "Service temporarily unavailable. Please try again shortly.";
                     break;
             }
         
-            echo json_encode(["status" => "500", "message" => "Error: $msg"]);
+            echo json_encode(["status" => "500", "message" => $msg]);
             exit;
         }
         

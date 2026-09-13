@@ -117,7 +117,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
             // The selected operator ran out of stock between page load and click
             echo json_encode([
                 "status" => "500",
-                "message" => "Numbers for " . ucfirst($service) . " at the selected rate are currently out of stock. Please refresh the page to see the latest rates."
+                "message" => "Numbers for " . ucfirst($service) . " are currently out of stock. Please refresh the page to view current availability."
             ]);
             exit;
         }
@@ -195,9 +195,10 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
 
     // If all operators at this price failed
     if (!$response || !isset($response['id'])) {
+        $country_display = ucfirst(str_replace('_', ' ', $server));
         echo json_encode([
             "status" => "500",
-            "message" => "Numbers for " . ucfirst($service) . " (" . ucfirst($target_op_name) . ") in " . ucfirst($server) . " are currently unavailable at 5sim. Please try again in a moment or choose another country."
+            "message" => "Numbers for " . ucfirst($service) . " in " . $country_display . " are currently out of stock. Please try again in a few moments or select another country."
         ]);
         exit;
     } else {
@@ -223,7 +224,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
 
                 $sql5 = mysqli_query($conn, "UPDATE user_wallet SET balance='$cut_balance', total_otp='$add_otp' WHERE user_id='$user_id'");
                 
-                $service_display = ucfirst($service) . " (" . ucfirst($operator) . ")";
+                $service_display = ucfirst($service);
                 
                 $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, expires_at, status, sms_text, service_price, service_name, active_status) 
                 VALUES ('$user_id', '2', '$num_id', '$phone', '$server', '$service', '$random_order', '$current_time', '$expires_at', '2', '', '$service_price', '$service_display', '2')");

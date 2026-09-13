@@ -105,9 +105,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         
         // --- Handle API Errors based on HTTP Status Codes ---
         if (!isset($response->transaction_id) || !isset($response->phone_number) || empty($response->transaction_id) || empty($response->phone_number)) {
-            $api_resp_debug = json_encode($response);
-            $msg = isset($response->message) ? $response->message : (isset($response->error) ? $response->error : 'No number available from provider');
-            echo json_encode(["status" => "500", "message" => "Provider Error: $msg"]);
+            echo json_encode(["status" => "500", "message" => "No numbers currently available for this service. Please try again in a few moments or choose another country."]);
             exit;
         }
         

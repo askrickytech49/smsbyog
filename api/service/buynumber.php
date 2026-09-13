@@ -117,7 +117,7 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
             if ($err_msg == "NO_NUMBERS") {
                 $err_msg = "No numbers available for this service right now. Please try again later.";
             } elseif ($err_msg == "NO_BALANCE") {
-                $err_msg = "Provider API error. Please contact support.";
+                $err_msg = "Service temporarily unavailable. Please try again later.";
             }
             echo '{"status":"500","message":"' . $err_msg . '"}';
             exit;
