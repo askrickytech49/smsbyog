@@ -50,100 +50,124 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
 } else {
     $server   = mysqli_real_escape_string($conn, $_GET['server']);
     $service  = mysqli_real_escape_string($conn, $_GET['service']);
-    // ALWAYS use 'any' so 5sim natively picks the cheapest working operator available right now
-    $operator = 'any';
+    $requested_operator = isset($_GET['operator_id']) ? mysqli_real_escape_string($conn, strtolower(trim($_GET['operator_id']))) : '';
     $user_id  = $check_token;
 
     $api_url = "https://5sim.net";
-$api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI6MTc4OTE0OTk5OSwicmF5IjoiYmMxNTVkYzI1NGNkZjlhZThlYTg3OTFjN2Y1MzYwNGEiLCJzdWIiOjQ0ODMyNjV9.PxCFWUR6bP29BpMt1PKfAdHSmdmXUQriKLq6nPYEkWldyephtuijh4BqnU_EtMTgxXdLXwmX-hNJKKBNEMZBG-p8WK1o6usLPOdTwWu3Lw0yOcS0e-YwPUxTPKu0ocZSdSP5FJtCUZMTKCTIe7nZmWBngLkyUmuPQzbNG12KF5JL0G6_G8_iG3WBQSMg7yeQF-13l6KOzc5aA56V4PdgiVHlTYbibicINth7evneW7I7pT_HLStvbUjLtgA8mEWsSvUFMEknyflUkwZi2Yo2sjSOEZH50Tc5KYz7iKFIq7p5KKmf3J_5pM7PFri1I8yXpSqUeEjUoGtN4QnDRCSRmg";
+    $api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI6MTc4OTE0OTk5OSwicmF5IjoiYmMxNTVkYzI1NGNkZjlhZThlYTg3OTFjN2Y1MzYwNGEiLCJzdWIiOjQ0ODMyNjV9.PxCFWUR6bP29BpMt1PKfAdHSmdmXUQriKLq6nPYEkWldyephtuijh4BqnU_EtMTgxXdLXwmX-hNJKKBNEMZBG-p8WK1o6usLPOdTwWu3Lw0yOcS0e-YwPUxTPKu0ocZSdSP5FJtCUZMTKCTIe7nZmWBngLkyUmuPQzbNG12KF5JL0G6_G8_iG3WBQSMg7yeQF-13l6KOzc5aA56V4PdgiVHlTYbibicINth7evneW7I7pT_HLStvbUjLtgA8mEWsSvUFMEknyflUkwZi2Yo2sjSOEZH50Tc5KYz7iKFIq7p5KKmf3J_5pM7PFri1I8yXpSqUeEjUoGtN4QnDRCSRmg";
     // Fetch rate and profit from DB
     $api_sql2 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
     $api_data = $api_sql2 ? mysqli_fetch_assoc($api_sql2) : null;
-    $conversion_rate = $api_data ? $api_data['rate'] : 1500;
-    $fixed_profit = $api_data ? $api_data['profit_amount'] : 200;
+    $conversion_rate = $api_data ? (float)$api_data['rate'] : 1500;
+    $fixed_profit = $api_data ? (float)$api_data['profit_amount'] : 200;
 
     // 1. Fetch REAL-TIME PRICE from 5sim JSON API
-    // 5sim Prices are at: /v1/guest/prices?country=$server
-    
-    // $price_url = "{$api_url}/v1/guest/prices?country={$server}";
-    $price_url = "https://5sim.net/v1/guest/prices?country=" . $server . "&product=" . $service;
+    $price_url = "https://5sim.net/v1/guest/prices?country=" . urlencode($server) . "&product=" . urlencode($service);
 
     $ch_p = curl_init($price_url);
     curl_setopt($ch_p, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch_p, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch_p, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch_p, CURLOPT_HTTPHEADER, [
         "Authorization: Bearer $api_key",
         "Accept: application/json"
     ]);
     $price_res = curl_exec($ch_p);
     $api_prices = json_decode($price_res, true);
-    curl_close($ch_p); // Always close your curl handles
-    
-    $raw_api_price = 0;
-    
-    // 3. Navigate the response: [Product][Country][Operator]['cost']
-    // When querying with both country & product, 5SIM returns: {product: {country: {operator: {cost, count}}}}
-    // Build a sorted list of operators with stock (highest stock first for best chance of success)
+    curl_close($ch_p);
+
+    // Parse operators data safely from response
+    $operators_data = [];
+    if (isset($api_prices[$server][$service]) && is_array($api_prices[$server][$service])) {
+        $operators_data = $api_prices[$server][$service];
+    } elseif (isset($api_prices[$service][$server]) && is_array($api_prices[$service][$server])) {
+        $operators_data = $api_prices[$service][$server];
+    } elseif (isset($api_prices[$service]) && is_array($api_prices[$service])) {
+        $operators_data = $api_prices[$service];
+    } elseif (isset($api_prices[$server]) && is_array($api_prices[$server])) {
+        $operators_data = $api_prices[$server];
+    }
+
+    // Filter operators with active stock
     $available_operators = [];
-    if (isset($api_prices[$server][$service])) {
-        foreach ($api_prices[$server][$service] as $op_name => $op_data) {
-            if (isset($op_data['cost']) && $op_data['count'] > 0) {
-                $available_operators[] = [
-                    'name'  => $op_name,
-                    'cost'  => (float)$op_data['cost'],
-                    'count' => (int)$op_data['count'],
-                ];
-                if ($raw_api_price <= 0 || (float)$op_data['cost'] < $raw_api_price) {
-                    $raw_api_price = (float)$op_data['cost'];
-                }
-            }
+    foreach ($operators_data as $op_name => $op_data) {
+        if (is_array($op_data) && isset($op_data['cost']) && (int)($op_data['count'] ?? 0) > 0) {
+            $available_operators[$op_name] = [
+                'name'  => $op_name,
+                'cost'  => (float)$op_data['cost'],
+                'count' => (int)$op_data['count'],
+            ];
         }
     }
-    // Sort by stock count descending (try the operator with most stock first)
-    usort($available_operators, function($a, $b) { return $b['count'] - $a['count']; });
 
-    // 4. Handle errors if no operators found at all
-    if ($raw_api_price <= 0 || empty($available_operators)) {
+    if (empty($available_operators)) {
         echo json_encode([
             "status" => "500",
-            "message" => "No operators available for " . ucfirst($service) . " in " . ucfirst($server)
+            "message" => "No numbers currently available for " . ucfirst($service) . " in " . ucfirst($server) . ". Please try another country."
         ]);
         exit;
     }
 
-    // 2. Calculate Final Price
-   // Convert API USD price to Naira
-$base_price_naira = $raw_api_price * $conversion_rate;
+    // Determine target operator:
+    $target_operator = null;
+    if ($requested_operator !== '' && $requested_operator !== 'any') {
+        if (isset($available_operators[$requested_operator])) {
+            $target_operator = $available_operators[$requested_operator];
+        } else {
+            // The selected operator ran out of stock between page load and click
+            echo json_encode([
+                "status" => "500",
+                "message" => "Numbers for " . ucfirst($service) . " at the selected rate are currently out of stock. Please refresh the page to see the latest rates."
+            ]);
+            exit;
+        }
+    } else {
+        // Fallback to the cheapest available operator with stock
+        $sorted_by_price = array_values($available_operators);
+        usort($sorted_by_price, function($a, $b) {
+            return ($a['cost'] < $b['cost']) ? -1 : 1;
+        });
+        $target_operator = $sorted_by_price[0];
+    }
 
-// Add fixed profit
-$base_price = $base_price_naira + $fixed_profit;
+    $target_op_name = $target_operator['name'];
+    $raw_api_price  = $target_operator['cost'];
 
-// Apply custom user discount if any
-$service_price = custom_price($user_id, $service, $server, $base_price, $conn);
+    // 2. Calculate Final Price matching the chosen operator
+    $base_price_naira = $raw_api_price * $conversion_rate;
+    $base_price = $base_price_naira + $fixed_profit;
+    $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
     $service_price = round($service_price, 2);
 
     // 3. Wallet Check
     $sql2 = mysqli_query($conn, "SELECT balance FROM user_wallet WHERE user_id='$user_id'");
     $user_wallet = mysqli_fetch_assoc($sql2);
     if ($user_wallet['balance'] < $service_price) {
-        echo '{"status":"500","message":"Insufficient Balance. Amount Required: ₦'.$service_price.' Kindly Top-Up Your Balance"}';
+        echo json_encode([
+            "status" => "500",
+            "message" => "Insufficient Balance. Amount Required: ₦" . number_format($service_price, 2) . ". Kindly Top-Up Your Balance"
+        ]);
         exit;
     }
 
-    // 4. RETRY LOOP: Try each operator until one actually delivers a number
-    // 5SIM's stock counts are often stale/cached, so we try 'any' first, then each specific operator.
-    $operators_to_try = ['any']; // Try 'any' first as it's fastest when it works
-    foreach ($available_operators as $op) {
-        $operators_to_try[] = $op['name'];
+    // 4. BUY: Never use 'any'! Always request the specific operator to prevent 5sim overcharging.
+    // Allow fallback only to other operators that have the exact same price or lower.
+    $operators_to_try = [$target_op_name];
+    foreach ($available_operators as $op_name => $op_info) {
+        if ($op_name !== $target_op_name && $op_info['cost'] <= $raw_api_price) {
+            $operators_to_try[] = $op_name;
+        }
     }
 
     $response = null;
     $result = '';
     $last_error = '';
+    $purchased_operator = $target_op_name;
 
     foreach ($operators_to_try as $try_operator) {
         $encoded_server = urlencode($server);
-        $encoded_op = urlencode($try_operator);
-        $encoded_svc = urlencode($service);
+        $encoded_op     = urlencode($try_operator);
+        $encoded_svc    = urlencode($service);
         $buy_url = "{$api_url}/v1/user/buy/activation/{$encoded_server}/{$encoded_op}/{$encoded_svc}";
         
         $ch = curl_init($buy_url);
@@ -161,23 +185,23 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
 
         // If we got a valid response with an ID, we succeeded!
         if ($response && isset($response['id'])) {
-            $operator = $try_operator; // Record which operator worked
+            $purchased_operator = $try_operator;
             break;
         }
 
-        // Record the error and try next operator
         $last_error = trim($result) ?: 'API_LIMIT_OR_NO_NUMBERS';
-        $response = null; // Reset so loop continues
+        $response = null;
     }
 
-    // If ALL operators failed
+    // If all operators at this price failed
     if (!$response || !isset($response['id'])) {
         echo json_encode([
             "status" => "500",
-            "message" => "No numbers available for " . ucfirst($service) . " in " . ucfirst($server) . " right now. Please try again later or select a different country."
+            "message" => "Numbers for " . ucfirst($service) . " (" . ucfirst($target_op_name) . ") in " . ucfirst($server) . " are currently unavailable at 5sim. Please try again in a moment or choose another country."
         ]);
         exit;
     } else {
+        $operator = $purchased_operator;
         $random_order = generateRandomString();
         mysqli_begin_transaction($conn, MYSQLI_TRANS_START_READ_WRITE);
         try {
