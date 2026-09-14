@@ -3,7 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 ini_set('memory_limit', '256M');
-set_time_limit(60);
+set_time_limit(300);
 
 /**
  * getServices2All.php — Server 2 (5SIM)
@@ -34,32 +34,32 @@ $api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI
 
 // Fetch ALL prices from 5SIM with caching (3-minute TTL)
 include_once __DIR__ . '/../../include/api_cache.php';
-$cache_key = '5sim_guest_prices';
-$allPrices = api_cache_get($cache_key, 180);
+$cache_key = '5sim_guest_products_fast';
+$allProducts = api_cache_get($cache_key, 180);
 
-if (!$allPrices) {
-    $url = "https://5sim.net/v1/guest/prices";
+if (!$allProducts) {
+    $url = "https://5sim.net/v1/guest/products/any/any";
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $raw = curl_exec($ch);
     $curl_error = curl_error($ch);
     curl_close($ch);
     
-    $allPrices = $raw ? json_decode($raw, true) : [];
+    $allProducts = $raw ? json_decode($raw, true) : [];
     
     // Fallback to stale cache if the API request failed or returned empty
-    if (!$allPrices || !is_array($allPrices) || empty($allPrices)) {
-        $allPrices = api_cache_get_stale($cache_key);
+    if (!$allProducts || !is_array($allProducts) || empty($allProducts)) {
+        $allProducts = api_cache_get_stale($cache_key);
     }
     
-    if ($allPrices && is_array($allPrices) && !empty($allPrices)) {
-        api_cache_set($cache_key, $allPrices);
+    if ($allProducts && is_array($allProducts) && !empty($allProducts)) {
+        api_cache_set($cache_key, $allProducts);
     }
 }
 
-if (!$allPrices || !is_array($allPrices)) {
+if (!$allProducts || !is_array($allProducts)) {
     $debug_msg = 'Failed to fetch services. Cached data unavailable.';
     echo json_encode(['service' => [], 'error' => $debug_msg]);
     exit;
@@ -81,34 +81,25 @@ if ($orderRes) {
     }
 }
 
-// Build unique service list with total stock
+// Build unique service list with total stock. Country entries are calculated
+// by the country endpoint because the fast products response has no operator
+// or country breakdown.
 $serviceMap = []; // product_name => ['total_stock', 'country_count']
 
-foreach ($allPrices as $country => $products) {
-    if (!is_array($products)) continue;
-    foreach ($products as $product => $operators) {
-        if (!isset($activeServices[$product])) continue; // Only show active services
-        
-        if (!is_array($operators)) continue;
-        foreach ($operators as $opName => $opDetails) {
-            $count = (int)($opDetails['count'] ?? 0);
-            if ($count <= 0) continue;
-            
-            if (!isset($serviceMap[$product])) {
-                $serviceMap[$product] = [
-                    'total_stock'   => 0,
-                    'country_count' => 0,
-                    'countries_seen' => [],
-                ];
-            }
-            
-            $serviceMap[$product]['total_stock'] += $count;
-            if (!in_array($country, $serviceMap[$product]['countries_seen'])) {
-                $serviceMap[$product]['countries_seen'][] = $country;
-                $serviceMap[$product]['country_count']++;
-            }
-        }
+foreach ($allProducts as $product => $details) {
+    if (!isset($activeServices[$product])) continue; // Only show active services
+
+    $count = (int)($details['Qty'] ?? 0);
+    if ($count <= 0) continue;
+
+    if (!isset($serviceMap[$product])) {
+        $serviceMap[$product] = [
+            'total_stock'   => 0,
+            'country_count' => null,
+        ];
     }
+
+    $serviceMap[$product]['total_stock'] += $count;
 }
 
 // Build final array

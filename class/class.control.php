@@ -685,7 +685,7 @@ class radiumsahil {
 
     public function check_activities($balance, $total_otp, $lifetime, $token) {
         $oauthid = $token;
-        if ($this->negativebal($balance)==1 || $this->negativebal($total_otp)==1 || $this->negativebal($lifetime)==1 || ($balance > $lifetime)) {
+        if ($this->negativebal($balance)==1 || $this->negativebal($total_otp)==1 || $this->negativebal($lifetime)==1) {
             $stmt = $this->conn->prepare("SELECT * FROM user_data WHERE id = ? AND status = '1'");
             $stmt->bind_param("s", $oauthid);
             $stmt->execute();

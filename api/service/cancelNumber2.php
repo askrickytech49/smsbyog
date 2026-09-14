@@ -1,5 +1,6 @@
 <?php
 include_once __DIR__ . '/../../include/config.php';
+include_once __DIR__ . '/../../include/wallet_ledger.php';
 
 if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
     echo '{"status":"500","message":"Invalid Order id"}';
@@ -84,13 +85,11 @@ $api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI
                         $sql_user = mysqli_query($conn, "SELECT balance, total_otp FROM user_wallet WHERE user_id='$user_id' FOR UPDATE");
                         $user_wallet = mysqli_fetch_assoc($sql_user);
                         
-                        $refund_amount = $order_to_cancel['service_price'];
-                        $new_balance = $user_wallet['balance'] + $refund_amount;
                         $new_otp_count = max(0, $user_wallet['total_otp'] - 1);
 
                         // Update Wallet & Order Status
-                        mysqli_query($conn, "UPDATE user_wallet SET balance='$new_balance', total_otp='$new_otp_count' WHERE user_id='$user_id'");
-                        mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . $order_to_cancel['id'] . "'");
+                        mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . (int)$order_to_cancel['id'] . "' AND active_status='2' AND status='2'");
+                        refund_once($conn, (int)$user_id, $order_to_cancel['order_id'], $order_to_cancel['service_price'], 'cancelNumber2');
                         
                         mysqli_commit($conn);
                         echo '{"status":"200","message":"Number Cancelled & Refunded"}';

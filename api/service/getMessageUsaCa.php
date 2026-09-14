@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set('Africa/Lagos');
 include __DIR__ . '/../../include/config.php';
+include_once __DIR__ . '/../../include/wallet_ledger.php';
 $current_time_in_ist = date('Y-m-d H:i:s');
 if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
   echo '{"status":"500","message":"Invalid Order id"}';
@@ -89,20 +90,7 @@ if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
                             LIMIT 1
                         ");
                 
-                        $walletData = mysqli_fetch_assoc($walletQuery);
-                
-                        $add_balance = $walletData['balance'] + $active_data['service_price'];
-                        $cut_otp     = max(0, $walletData['total_otp'] - 1);
-                
-                        // UPDATE WALLET
-                        mysqli_query($conn, "
-                            UPDATE user_wallet 
-                            SET 
-                                balance='$add_balance',
-                                total_otp='$cut_otp'
-                            WHERE user_id='$user_id'
-                            LIMIT 1
-                        ");
+                        refund_once($conn, (int)$user_id, $active_data['order_id'], $active_data['service_price'], 'getMessageUsaCa');
                 
                         echo '{"status":"500","message":"Number Canceled/Expired. Refunded."}';
                 

@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set('Africa/Lagos');
 include_once __DIR__ . '/../../include/config.php';
+include_once __DIR__ . '/../../include/wallet_ledger.php';
 
 if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
     echo '{"status":"500","message":"Invalid Order id"}';
@@ -86,11 +87,10 @@ if (!isset($_GET['order_id']) || $_GET['order_id'] == "") {
                 // FIX: FOR UPDATE on wallet SELECT prevents race condition on balance read
                 $sql_wallet = mysqli_query($conn, "SELECT balance, total_otp FROM user_wallet WHERE user_id='$user_id' FOR UPDATE");
                 $wallet     = mysqli_fetch_assoc($sql_wallet);
-                $add_balance = $wallet['balance'] + $locked['service_price'];
                 $cut_otp     = max(0, $wallet['total_otp'] - 1);
 
-                mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . (int)$locked['id'] . "'");
-                mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='$user_id'");
+                mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . (int)$locked['id'] . "' AND active_status='2' AND status='2'");
+                refund_once($conn, (int)$user_id, $order_id, $locked['service_price'], 'cancelNumber');
 
                 mysqli_commit($conn);
                 echo '{"status":"200","message":"Number Cancelled & Refunded"}';

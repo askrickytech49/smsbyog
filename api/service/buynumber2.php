@@ -49,6 +49,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     echo '{"status":"500","message":"Token Expired Please Logout And Login Again"}';
 } else {
     $server   = mysqli_real_escape_string($conn, $_GET['server']);
+    $provider_server = ($server === 'usa2') ? 'usa' : $server;
     $service  = mysqli_real_escape_string($conn, $_GET['service']);
     $requested_operator = isset($_GET['operator_id']) ? mysqli_real_escape_string($conn, strtolower(trim($_GET['operator_id']))) : '';
     $user_id  = $check_token;
@@ -62,7 +63,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     $fixed_profit = $api_data ? (float)$api_data['profit_amount'] : 200;
 
     // 1. Fetch REAL-TIME PRICE from 5sim JSON API
-    $price_url = "https://5sim.net/v1/guest/prices?country=" . urlencode($server) . "&product=" . urlencode($service);
+    $price_url = "https://5sim.net/v1/guest/prices?country=" . urlencode($provider_server) . "&product=" . urlencode($service);
 
     $ch_p = curl_init($price_url);
     curl_setopt($ch_p, CURLOPT_RETURNTRANSFER, 1);
@@ -78,10 +79,10 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
 
     // Parse operators data safely from response
     $operators_data = [];
-    if (isset($api_prices[$server][$service]) && is_array($api_prices[$server][$service])) {
-        $operators_data = $api_prices[$server][$service];
-    } elseif (isset($api_prices[$service][$server]) && is_array($api_prices[$service][$server])) {
-        $operators_data = $api_prices[$service][$server];
+    if (isset($api_prices[$provider_server][$service]) && is_array($api_prices[$provider_server][$service])) {
+        $operators_data = $api_prices[$provider_server][$service];
+    } elseif (isset($api_prices[$service][$provider_server]) && is_array($api_prices[$service][$provider_server])) {
+        $operators_data = $api_prices[$service][$provider_server];
     } elseif (isset($api_prices[$service]) && is_array($api_prices[$service])) {
         $operators_data = $api_prices[$service];
     } elseif (isset($api_prices[$server]) && is_array($api_prices[$server])) {
@@ -91,6 +92,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     // Filter operators with active stock
     $available_operators = [];
     foreach ($operators_data as $op_name => $op_data) {
+        // Skip excluded operators (admin toggle)
         if (is_array($op_data) && isset($op_data['cost']) && (int)($op_data['count'] ?? 0) > 0) {
             $available_operators[$op_name] = [
                 'name'  => $op_name,
@@ -168,7 +170,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         $encoded_server = urlencode($server);
         $encoded_op     = urlencode($try_operator);
         $encoded_svc    = urlencode($service);
-        $buy_url = "{$api_url}/v1/user/buy/activation/{$encoded_server}/{$encoded_op}/{$encoded_svc}";
+        $buy_url = "{$api_url}/v1/user/buy/activation/" . urlencode($provider_server) . "/{$encoded_op}/{$encoded_svc}";
         
         $ch = curl_init($buy_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -196,6 +198,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     // If all operators at this price failed
     if (!$response || !isset($response['id'])) {
         $country_display = ucfirst(str_replace('_', ' ', $server));
+        error_log("5sim purchase failed: response=" . $result . "; service={$service}; country={$server}; operator={$target_op_name}");
         echo json_encode([
             "status" => "500",
             "message" => "Numbers for " . ucfirst($service) . " in " . $country_display . " are currently out of stock. Please try again in a few moments or select another country."

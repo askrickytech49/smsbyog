@@ -2,6 +2,7 @@
 date_default_timezone_set('Africa/Lagos');
 $current_time_in_ist = date('Y-m-d H:i:s');        
 require_once __DIR__ . '/../include/config.php';
+require_once __DIR__ . '/../include/wallet_ledger.php';
 function callapi($url) {
     $ch = curl_init($url);
 
@@ -137,10 +138,10 @@ if (($givenTime + $twentyMinutesInSeconds) <= $currentTime) {
    if($active_data['sms_text'] == ""){
         $call_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=setStatus&id={$number_id}&status=8";
        $api_response = callapi($call_url);
-$add_balance = $user_wallet['balance'] + $active_data['service_price'];  
-$cut_otp = $user_wallet['total_otp'] - 1;    
-mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".$active_data['id']."'");  
-mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='".$user_id."'");
+mysqli_begin_transaction($conn);
+mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".(int)$active_data['id']."' AND active_status='2'");
+refund_once($conn, (int)$user_id, $active_data['order_id'], $active_data['service_price'], 'stub_getStatus_expiry');
+mysqli_commit($conn);
 }else{
 mysqli_query($conn,"UPDATE active_number SET active_status='1', status='1' WHERE id='".$active_data['id']."'");  
 }
@@ -156,10 +157,10 @@ if($api_response == "STATUS_WAIT_CODE" || $api_response == "STATUS_WAIT_RETRY" )
  }  
 }elseif($api_response == "STATUS_CANCEL" || $api_response == "NO_ACTIVATION"){
    if($active_data['sms_text'] == ""){
-$add_balance = $user_wallet['balance'] + $active_data['service_price'];  
-$cut_otp = $user_wallet['total_otp'] - 1;    
-mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".$active_data['id']."'");  
-mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='".$user_id."'");
+mysqli_begin_transaction($conn);
+mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".(int)$active_data['id']."' AND active_status='2'");
+refund_once($conn, (int)$user_id, $active_data['order_id'], $active_data['service_price'], 'stub_getStatus_cancel');
+mysqli_commit($conn);
 }else{
 mysqli_query($conn,"UPDATE active_number SET active_status='1', status='1' WHERE id='".$active_data['id']."'");  
 }
@@ -232,10 +233,10 @@ if (($givenTime + $twentyMinutesInSeconds) <= $currentTime) {
    if($active_data['sms_text'] == ""){
         $call_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=setStatus&id={$number_id}&status=8";
        $api_response = callapi($call_url);
-$add_balance = $user_wallet['balance'] + $active_data['service_price'];  
-$cut_otp = $user_wallet['total_otp'] - 1;    
-mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".$active_data['id']."'");  
-mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='".$user_id."'");
+mysqli_begin_transaction($conn);
+mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".(int)$active_data['id']."' AND active_status='2'");
+refund_once($conn, (int)$user_id, $active_data['order_id'], $active_data['service_price'], 'stub_status_expiry');
+mysqli_commit($conn);
 }else{
 mysqli_query($conn,"UPDATE active_number SET active_status='1', status='1' WHERE id='".$active_data['id']."'");  
 }
@@ -245,10 +246,10 @@ echo"STATUS_CANCEL";
         // FIX: use $number_id (upstream provider ID), not $num_id (local order string)
         $call_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=setStatus&id={$number_id}&status=8";
        $api_response = callapi($call_url);
-$add_balance = $user_wallet['balance'] + $active_data['service_price'];  
-$cut_otp = $user_wallet['total_otp'] - 1;    
-mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".$active_data['id']."'");  
-mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='".$user_id."'");
+mysqli_begin_transaction($conn);
+mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".(int)$active_data['id']."' AND active_status='2'");
+refund_once($conn, (int)$user_id, $active_data['order_id'], $active_data['service_price'], 'stub_status_cancel');
+mysqli_commit($conn);
 }else{
 mysqli_query($conn,"UPDATE active_number SET active_status='1', status='1' WHERE id='".$active_data['id']."'");  
 }
@@ -306,10 +307,10 @@ if (($givenTime + $twentyMinutesInSeconds) <= $currentTime) {
    if($active_data['sms_text'] == ""){
         $call_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=setStatus&id={$number_id}&status=8";
        $api_response = callapi($call_url);
-$add_balance = $user_wallet['balance'] + $active_data['service_price'];  
-$cut_otp = $user_wallet['total_otp'] - 1;    
-mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".$active_data['id']."'");  
-mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='".$user_id."'");
+mysqli_begin_transaction($conn);
+mysqli_query($conn,"UPDATE active_number SET active_status='1', status='3' WHERE id='".(int)$active_data['id']."' AND active_status='2'");
+refund_once($conn, (int)$user_id, $active_data['order_id'], $active_data['service_price'], 'stub_setStatus3_expiry');
+mysqli_commit($conn);
 }else{
 mysqli_query($conn,"UPDATE active_number SET active_status='1', status='1' WHERE id='".$active_data['id']."'");  
 }

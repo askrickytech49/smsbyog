@@ -89,7 +89,7 @@ function loadAllServices() {
                         <img src="${svc.logo_url}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23cbd5e1%22%3E%3Cpath d=%22M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z%22/%3E%3C/svg%3E';" style="width:30px; height:30px; border-radius:6px; object-fit:contain;" alt="${svc.service_name}">
                         <div style="min-width: 0; flex: 1;">
                             <div class="service-name">${svc.service_name}</div>
-                            <span class="service-stock" style="color:#10b981">${svc.country_count} countries</span>
+                            <span class="service-stock" id="country-count-${CSS.escape(String(svc.id))}" style="color:#10b981">Checking countries...</span>
                         </div>
                     </div>
                     <div class="service-price" style="color:#6b7280; font-size:0.85rem;">
@@ -97,6 +97,31 @@ function loadAllServices() {
                     </div>`;
                 row.addEventListener('click', () => selectServiceStep1(svc.id, svc.service_name));
                 list.appendChild(row);
+
+                // The fast 5sim products endpoint does not expose countries.
+                // Ask the same filtered endpoint used by the next step so the
+                // count reflects USA and the optional USA 2 pool accurately.
+                $.ajax({
+                    type: 'GET',
+                    url: 'api/service/getCountriesForService2',
+                    data: { token, service: svc.id },
+                    dataType: 'json',
+                    success: function(countryRes) {
+                        const countEl = document.getElementById('country-count-' + CSS.escape(String(svc.id)));
+                        if (countEl) {
+                            if (countryRes.error) {
+                                countEl.textContent = 'Countries unavailable';
+                                return;
+                            }
+                            const count = (countryRes.countries || []).length;
+                            countEl.textContent = count + (count === 1 ? ' country' : ' countries');
+                        }
+                    },
+                    error: function() {
+                        const countEl = document.getElementById('country-count-' + CSS.escape(String(svc.id)));
+                        if (countEl) countEl.textContent = 'Countries unavailable';
+                    }
+                });
             });
 
             document.getElementById('service-search').value = '';

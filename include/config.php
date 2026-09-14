@@ -95,12 +95,8 @@ function check_token($token, $conn) {
 }
 function check_activities($balance, $total_otp, $lifetime, $token, $conn) {
     $oauthid = $token;
-    
-       function negativebal($value) {
-        return ($value < 0) ? 1 : 0;
-    }
 
-    if (negativebal($balance)==1 || negativebal($total_otp)==1 || negativebal($lifetime)==1 || ($balance > $lifetime)) {
+    if ($balance < 0 || $total_otp < 0 || $lifetime < 0) {
         $sql2 = mysqli_query($conn, "SELECT * FROM user_data WHERE id = '$oauthid' AND status = '2'");
         
         if (mysqli_num_rows($sql2) > 0) {

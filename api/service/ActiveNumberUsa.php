@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set('Africa/Lagos');
 include __DIR__ . '/../../include/config.php';
+include_once __DIR__ . '/../../include/wallet_ledger.php';
 
 if (!isset($_GET['token']) || $_GET['token'] == "") {
     echo '{"status":"500","message":"Token Blank"}';
@@ -95,11 +96,10 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
                                 if ($locked['sms_text'] == "") {
                                     $sql_wallet = mysqli_query($conn, "SELECT balance, total_otp FROM user_wallet WHERE user_id='$user_id' FOR UPDATE");
                                     $wallet = mysqli_fetch_assoc($sql_wallet);
-                                    $add_balance = $wallet['balance'] + $locked['service_price'];
                                     $cut_otp     = max(0, $wallet['total_otp'] - 1);
 
-                                    mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . (int)$locked['id'] . "'");
-                                    mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='$user_id'");
+                                    mysqli_query($conn, "UPDATE active_number SET active_status='1', status='3' WHERE id='" . (int)$locked['id'] . "' AND active_status='2' AND status='2'");
+                                    refund_once($conn, (int)$user_id, $row['order_id'], $locked['service_price'], 'ActiveNumberUsa');
                                 } else {
                                     // SMS arrived between reads — close without refund
                                     mysqli_query($conn, "UPDATE active_number SET active_status='1', status='1' WHERE id='" . (int)$locked['id'] . "'");

@@ -6,6 +6,9 @@ if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
 $ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
 
+// Release the PHP session lock before slow external API/cache work.
+session_write_close();
+
 $id=(int)($_GET['id']??0);
 $api=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM api_detail WHERE id='$id'"));
 if(!$api){ header('Location: show_api'); exit; }
@@ -52,21 +55,12 @@ $apiServiceNames = []; // code => name from the API itself
 
 if ($api_id == 8 || $api_id == 2) {
     include_once '../include/api_cache.php';
-    $cache_key = ($api_id == 8) ? 'tigersms_getPrices' : '5sim_guest_prices';
+    $cache_key = ($api_id == 8) ? 'tigersms_getPrices' : '5sim_guest_products_fast';
     $allPrices = api_cache_get($cache_key, 120);
     if (!$allPrices) {
-        if ($api_id == 8) {
-            $url = "{$api_data['api_url']}/stubs/handler_api.php?api_key={$api_data['api_key']}&action=getPrices";
-        } else {
-            $url = "{$api_data['api_url']}/v1/guest/prices";
-        }
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $raw = curl_exec($ch);
-        curl_close($ch);
-        $allPrices = json_decode($raw, true);
+        // The admin page must not wait on an external provider.
+        // User-facing endpoints refresh this cache separately.
+        $allPrices = api_cache_get_stale($cache_key);
     }
     if ($allPrices && is_array($allPrices)) {
         if ($api_id == 8) {
@@ -78,13 +72,9 @@ if ($api_id == 8 || $api_id == 2) {
                 }
             }
         } elseif ($api_id == 2) {
-            foreach ($allPrices as $country => $products) {
-                if (is_array($products)) {
-                    foreach ($products as $productCode => $operators) {
-                        if (is_array($operators)) {
-                            $availableCodes[$productCode] = true;
-                        }
-                    }
+            foreach ($allPrices as $productCode => $details) {
+                if (is_array($details) && isset($details['Qty'])) {
+                    $availableCodes[$productCode] = true;
                 }
             }
         }
@@ -190,6 +180,7 @@ $page_title='Edit API';
         </form>
       </div>
     </div>
+
   </div>
   
   <div class="col-12 col-md-7">
@@ -529,6 +520,7 @@ function uploadIcon(formData, code) {
         alert('Network error');
     });
 }
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>

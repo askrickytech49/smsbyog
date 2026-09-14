@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('memory_limit', '256M');
-set_time_limit(60);
+set_time_limit(15);
 
 /**
  * getServices1.php — Server 1 (TigerSMS)
@@ -42,20 +42,22 @@ if (!$allPrices) {
     $url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices";
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 8);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $raw = curl_exec($ch);
     $error = curl_error($ch);
+    $http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     
     $allPrices = $raw ? json_decode($raw, true) : [];
     
-    // Fallback to stale cache if failed
-    if (!$allPrices || empty($allPrices)) {
+    // Reject timeouts, provider errors, and malformed/empty responses.
+    if ($http_code < 200 || $http_code >= 300 || !is_array($allPrices) || empty($allPrices)) {
         $allPrices = api_cache_get_stale($cache_key);
     }
     
-    if ($allPrices && is_array($allPrices) && !empty($allPrices)) {
+    if ($allPrices && is_array($allPrices) && !empty($allPrices) && $http_code >= 200 && $http_code < 300) {
         api_cache_set($cache_key, $allPrices);
     } else {
         error_log("TigerSMS getPrices failed and no stale cache available. cURL Error: " . $error);

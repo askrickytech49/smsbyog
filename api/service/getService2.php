@@ -54,11 +54,20 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
 } else {
     $server = mysqli_real_escape_string($conn, $_GET['server']); // Country ID (e.g., 187)
     
-    // Fetch rate and profit from DB
+    // Fetch rate, profit, and excluded operators from DB
     $api_sql = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='2'");
     $api_data = $api_sql ? mysqli_fetch_assoc($api_sql) : null;
     $conversion_rate = $api_data ? $api_data['rate'] : 1500;
     $fixed_profit = $api_data ? $api_data['profit_amount'] : 200;
+    $excluded_ops = [];
+    $premium_only = false;
+    if ($api_data && !empty($api_data['excluded_operators'])) {
+        $operator_mode = strtolower(trim($api_data['excluded_operators']));
+        $premium_only = ($operator_mode === 'virtual28_only');
+        if (!$premium_only) {
+            $excluded_ops = array_map('trim', explode(',', $operator_mode));
+        }
+    }
     
     $api_url = "https://5sim.net";
     $api_key = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjA2ODU5OTksImlhdCI6MTc4OTE0OTk5OSwicmF5IjoiYmMxNTVkYzI1NGNkZjlhZThlYTg3OTFjN2Y1MzYwNGEiLCJzdWIiOjQ0ODMyNjV9.PxCFWUR6bP29BpMt1PKfAdHSmdmXUQriKLq6nPYEkWldyephtuijh4BqnU_EtMTgxXdLXwmX-hNJKKBNEMZBG-p8WK1o6usLPOdTwWu3Lw0yOcS0e-YwPUxTPKu0ocZSdSP5FJtCUZMTKCTIe7nZmWBngLkyUmuPQzbNG12KF5JL0G6_G8_iG3WBQSMg7yeQF-13l6KOzc5aA56V4PdgiVHlTYbibicINth7evneW7I7pT_HLStvbUjLtgA8mEWsSvUFMEknyflUkwZi2Yo2sjSOEZH50Tc5KYz7iKFIq7p5KKmf3J_5pM7PFri1I8yXpSqUeEjUoGtN4QnDRCSRmg";
@@ -87,7 +96,11 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     
     // Loop through every operator (vodafone, virtual60, etc.) for this service
     foreach ($operators as $op_name => $op_details) {
-        
+
+        // Skip excluded operators (admin toggle)
+        $normalized_operator = strtolower($op_name);
+        if (($premium_only && $normalized_operator !== 'virtual28') || (!$premium_only && in_array($normalized_operator, $excluded_ops, true))) continue;
+
         $stock_count = (int)$op_details['count'];
 
         // FILTER: Only proceed if there is stock available

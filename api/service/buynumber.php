@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set('Africa/Lagos');
 include __DIR__ . '/../../include/config.php';
+include_once __DIR__ . '/../../include/tiger_number_guard.php';
 function generateRandomString($length = 20)
 {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -52,6 +53,29 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         $server = $server_code; // for custom_price and active_number db compatibility
         $service = mysqli_real_escape_string($conn, $_GET['service']);
         $user_id = $check_token;
+        $country_names = [
+            '36' => 'Canada',
+            '32' => 'Romania',
+        ];
+        $provider_country_name = $country_names[$server_code] ?? ('Country ' . $server_code);
+        include_once __DIR__ . '/../../include/api_cache.php';
+        $country_catalog = api_cache_get('tigersms_getCountries', 3600);
+        if (!$country_catalog) {
+            $country_catalog = api_cache_get_stale('tigersms_getCountries');
+        }
+        if (is_array($country_catalog)) {
+            $country_catalog_by_id = [];
+            foreach ($country_catalog as $country_item) {
+                if (isset($country_item['id'])) {
+                    $country_catalog_by_id[(string)$country_item['id']] = $country_item;
+                }
+            }
+        }
+        if (isset($country_catalog_by_id[$server_code])) {
+            $provider_country_name = $country_catalog_by_id[$server_code]['eng']
+                ?? $country_catalog_by_id[$server_code]['name']
+                ?? $provider_country_name;
+        }
 
         // 1. Get API Details for TigerSMS (Server 1 is API ID 8)
         $sql4 = mysqli_query($conn, "SELECT * FROM api_detail WHERE id='8'");
@@ -114,14 +138,31 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
 
         if ($response[0] != "ACCESS_NUMBER") {
             $err_msg = $response[0];
+            error_log("TigerSMS purchase failed: response=" . $result . "; service={$service}; country={$server_code}");
             if ($err_msg == "NO_NUMBERS") {
                 $err_msg = "No numbers available for this service right now. Please try again later.";
             } elseif ($err_msg == "NO_BALANCE") {
                 $err_msg = "Service temporarily unavailable. Please try again later.";
+            } else {
+                $err_msg = "We could not complete this request. Please try again later.";
             }
-            echo '{"status":"500","message":"' . $err_msg . '"}';
+            echo json_encode(["status" => "500", "message" => $err_msg]);
             exit;
         } else {
+            // Reject a verifiable country mismatch before charging or saving.
+            $country_match = tiger_number_matches_country($provider_country_name, $response[2] ?? '');
+            if ($country_match === false) {
+                $cancel_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=setStatus&id=" . urlencode($response[1]) . "&status=8";
+                $cancel_ch = curl_init($cancel_url);
+                curl_setopt($cancel_ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($cancel_ch, CURLOPT_CONNECTTIMEOUT, 3);
+                curl_setopt($cancel_ch, CURLOPT_TIMEOUT, 8);
+                curl_exec($cancel_ch);
+                curl_close($cancel_ch);
+                echo '{"status":"500","message":"Provider returned a number from the wrong country. No charge was made."}';
+                exit;
+            }
+
             $random_order = generateRandomString();
         // TigerSMS doesn't return expiry — use 20-min window from purchase time
         $expires_at = date('Y-m-d H:i:s', strtotime('+20 minutes'));
@@ -142,9 +183,10 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
                     $add_otp = $user_otp + 1;
 
                     $sql5 = mysqli_query($conn, "UPDATE user_wallet SET balance='$cut_balance', total_otp='$add_otp' WHERE user_id='$user_id'");
-                    $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, service_id, order_id, buy_time, expires_at, status, sms_text, service_price, service_name, active_status) 
-                VALUES ('$user_id', '8', '{$response[1]}', '{$response[2]}', '$server', '$service', '$random_order', '$current_time_in_ist', '$expires_at', '2', '', '$service_price', '$service_name', '2')");
-                    
+                    $provider_country_name = mysqli_real_escape_string($conn, $provider_country_name);
+                    $sql6 = mysqli_query($conn, "INSERT INTO active_number(user_id, api_id, number_id, number, server_id, provider_country_name, service_id, order_id, buy_time, expires_at, status, sms_text, service_price, service_name, active_status)
+                VALUES ('$user_id', '8', '{$response[1]}', '{$response[2]}', '$server', '$provider_country_name', '$service', '$random_order', '$current_time_in_ist', '$expires_at', '2', '', '$service_price', '$service_name', '2')");
+
                     if ($sql5 && $sql6) {
                         // 1. COMMIT FIRST
                         mysqli_commit($conn); 

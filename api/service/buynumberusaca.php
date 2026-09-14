@@ -78,8 +78,8 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         }
     }
     
-    if ($raw_api_price <= 0) {
-         echo '{"status":"500","message":"Service currently unavailable (Price 0)"}';
+        if ($raw_api_price <= 0) {
+            echo json_encode(["status" => "500", "message" => "This service is temporarily unavailable. Please try again later."]);
          exit;
     }
     
@@ -99,13 +99,50 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         exit;
     }
     
-    // 4. Request the Number 
+    // 4. Request the number and preserve the provider response for diagnosis.
         $rent_url = "{$api_url}/sms-otp/request";
-        $response = purchaser($server, $service, $rent_url, $api_key);
-        
-        // --- Handle API Errors based on HTTP Status Codes ---
+        $payload = json_encode([
+            'serviceCode' => $service,
+            'countryCode' => $server,
+        ]);
+        $ch = curl_init($rent_url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_HTTPHEADER => [
+                'X-API-Key: ' . $api_key,
+                'Accept: application/json',
+                'Content-Type: application/json',
+            ],
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+        $raw_response = curl_exec($ch);
+        $curl_error = curl_error($ch);
+        $http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $response = $raw_response ? json_decode($raw_response) : null;
+
         if (!isset($response->transaction_id) || !isset($response->phone_number) || empty($response->transaction_id) || empty($response->phone_number)) {
-            echo json_encode(["status" => "500", "message" => "No numbers currently available for this service. Please try again in a few moments or choose another country."]);
+            $provider_message = '';
+            if (is_object($response)) {
+                $provider_message = $response->message ?? $response->error ?? $response->detail ?? '';
+            }
+            $provider_message = trim((string)$provider_message);
+            $diagnostic_text = strtolower($provider_message . ' ' . (string)$raw_response);
+            if ($curl_error !== '' || $http_code >= 500) {
+                $message = 'The service is temporarily unavailable. Please try again later.';
+            } elseif ($http_code === 401 || $http_code === 403) {
+                $message = 'This service is temporarily unavailable. Please try again later.';
+            } elseif (preg_match('/stock|available|number|inventory|country|operator|out of|not found/', $diagnostic_text)) {
+                $message = 'No numbers are currently available for this service. Please try again later or choose another country.';
+            } else {
+                $message = 'We could not complete this request. Please try again later.';
+            }
+            error_log("Dino purchase failed: HTTP {$http_code}; service={$service}; country={$server}; response=" . (string)$raw_response);
+            echo json_encode(["status" => "500", "message" => $message]);
             exit;
         }
         

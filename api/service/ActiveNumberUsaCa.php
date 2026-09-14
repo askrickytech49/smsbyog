@@ -63,6 +63,7 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
 
                         if (!$smsDelivered) {
                             // Atomic refund with affected-rows idempotency guard
+                            mysqli_begin_transaction($conn);
                             $lockRefund = mysqli_query($conn, "
                                 UPDATE active_number
                                 SET active_status='1', status='3'
@@ -73,14 +74,9 @@ if (!isset($_GET['token']) || $_GET['token'] == "") {
                             ");
 
                             if (mysqli_affected_rows($conn) > 0) {
-                                // Re-read wallet for accurate balance
-                                $sql_wallet = mysqli_query($conn, "SELECT balance, total_otp FROM user_wallet WHERE user_id='$user_id' LIMIT 1");
-                                $wallet     = mysqli_fetch_assoc($sql_wallet);
-                                $add_balance = $wallet['balance'] + $row['service_price'];
-                                $cut_otp     = max(0, $wallet['total_otp'] - 1);
-
-                                mysqli_query($conn, "UPDATE user_wallet SET balance='$add_balance', total_otp='$cut_otp' WHERE user_id='$user_id' LIMIT 1");
+                                refund_once($conn, (int)$user_id, $row['order_id'], $row['service_price'], 'ActiveNumberUsaCa');
                             }
+                            mysqli_commit($conn);
                         } else {
                             // SMS was actually delivered — save the code and close
                             $sms = mysqli_real_escape_string($conn, $upstream['otp_code']);
