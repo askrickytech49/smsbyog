@@ -8,6 +8,7 @@ if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php')
 
 $uid=(int)($_GET['user_id']??0);
 if(!$uid){ header('Location: all_user'); exit; }
+deny_protected_user_access($conn, $uid);
 
 $user=mysqli_fetch_assoc(mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE u.id='$uid'"));
 if(!$user){ header('Location: all_user'); exit; }

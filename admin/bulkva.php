@@ -2,6 +2,7 @@
 session_start();
 require '../include/config.php';
 require '../include/xixapay.php';
+require 'user_visibility.php';
 
 if (!isset($_SESSION['token'])) {
     if (isset($_COOKIE['remember_me'])) {
@@ -20,6 +21,7 @@ if (isset($_POST['generate'])) {
         FROM user_data u
         LEFT JOIN user_dynamic_va v ON u.id = v.user_id
         WHERE v.user_id IS NULL
+        AND " . admin_user_visibility_sql($conn, 'u.id') . "
         AND u.status = '1'
         LIMIT $limit
     ";

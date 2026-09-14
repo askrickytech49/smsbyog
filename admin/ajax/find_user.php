@@ -4,6 +4,7 @@ $email = $_POST['email'];
 
 
 include("../auth.php");
+$visibility = admin_user_visibility_sql($conn, 'u.id');
 if(isset($_SESSION['token']) =="") {
     if(isset($_COOKIE['remember_me'])) {
 		$radium_token = $_COOKIE['remember_me'];
@@ -27,7 +28,7 @@ if(isset($_SESSION['token']) =="") {
     $final_admin = mysqli_fetch_array($admin_sql2);
     if(in_array($final_admin['type'], ["admin", "super_admin"])){   
 if($email !=""){
-$sql=mysqli_query($conn,"SELECT * FROM user_data WHERE email='$email'");
+$sql=mysqli_query($conn,"SELECT * FROM user_data u WHERE u.email='$email' AND $visibility");
 if(mysqli_num_rows($sql) !=0){
 $datas=mysqli_fetch_assoc($sql);
 $id=$datas['id'];

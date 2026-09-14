@@ -5,6 +5,7 @@ $aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['toke
 if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
 $ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+$number_visibility = admin_user_visibility_sql($conn, 'a.user_id');
 
 // Date filter — default last 7 days
 $date_from = isset($_GET['date_from']) && $_GET['date_from'] ? $_GET['date_from'] : date('Y-m-d', strtotime('-6 days'));
@@ -16,21 +17,21 @@ $date_to_esc   = mysqli_real_escape_string($conn, $date_to);
 $sells = mysqli_query($conn,
     "SELECT service_name, server_id, COUNT(*) as cnt, SUM(service_price) as total
      FROM active_number
-     WHERE status='1'
+    WHERE $number_visibility AND status='1'
      AND DATE(buy_time) BETWEEN '$date_from_esc' AND '$date_to_esc'
      GROUP BY service_name, server_id
      ORDER BY cnt DESC"
 );
 
 // Summary stats for range
-$total_sales   = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM active_number WHERE status='1' AND DATE(buy_time) BETWEEN '$date_from_esc' AND '$date_to_esc'"))[0] ?? 0;
-$total_revenue = mysqli_fetch_row(mysqli_query($conn, "SELECT IFNULL(SUM(service_price),0) FROM active_number WHERE status='1' AND DATE(buy_time) BETWEEN '$date_from_esc' AND '$date_to_esc'"))[0] ?? 0;
+$total_sales   = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM active_number a WHERE $number_visibility AND a.status='1' AND DATE(a.buy_time) BETWEEN '$date_from_esc' AND '$date_to_esc'"))[0] ?? 0;
+$total_revenue = mysqli_fetch_row(mysqli_query($conn, "SELECT IFNULL(SUM(service_price),0) FROM active_number a WHERE $number_visibility AND a.status='1' AND DATE(a.buy_time) BETWEEN '$date_from_esc' AND '$date_to_esc'"))[0] ?? 0;
 
 // Currently active users (numbers still in countdown)
 $active_users = mysqli_query($conn,
     "SELECT DISTINCT u.name, u.email
      FROM active_number a JOIN user_data u ON a.user_id=u.id
-     WHERE a.active_status='2'
+    WHERE $number_visibility AND a.active_status='2'
      ORDER BY a.id DESC LIMIT 30"
 );
 $active_count = mysqli_num_rows($active_users);

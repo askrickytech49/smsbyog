@@ -1,5 +1,6 @@
 <?php
 include("auth.php");
+require_once __DIR__ . '/user_visibility.php';
 if(!isset($_SESSION['token'])){ if(isset($_COOKIE['remember_me'])){$_SESSION['token']=$_COOKIE['remember_me'];}else{header('Location: login.php');exit;} }
 $aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['token']."'");
 if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
@@ -12,7 +13,8 @@ if(isset($_POST['remove']) && isset($_POST['id'])){
     mysqli_query($conn,"UPDATE user_data SET type='user' WHERE id='$rid'");
     header('Location: admins'); exit;
 }
-$sql=mysqli_query($conn,"SELECT * FROM user_data WHERE type='admin' AND id!=483790 ORDER BY id DESC");
+$visibility = admin_user_visibility_sql($conn, 'u.id');
+$sql=mysqli_query($conn,"SELECT u.* FROM user_data u WHERE u.type='admin' AND $visibility ORDER BY u.id DESC");
 $page_title='Admins';
 ?>
 <?php include __DIR__.'/include/layout_start.php'; ?>

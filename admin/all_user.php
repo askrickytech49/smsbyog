@@ -7,7 +7,8 @@ $ad=mysqli_fetch_array($aq);
 $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
 
-$sql = mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id ORDER BY u.id DESC");
+$visibility = admin_user_visibility_sql($conn, 'u.id');
+$sql = mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE $visibility ORDER BY u.id DESC");
 $page_title = 'All Users';
 ?>
 <?php include __DIR__.'/include/layout_start.php'; ?>

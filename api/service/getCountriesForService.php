@@ -65,12 +65,17 @@ if (!$allPrices) {
     $url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices";
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 8);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $raw = curl_exec($ch);
+    $http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     $allPrices = $raw ? json_decode($raw, true) : [];
-    if ($allPrices && is_array($allPrices)) {
+
+    if ($http_code < 200 || $http_code >= 300 || !is_array($allPrices) || empty($allPrices)) {
+        $allPrices = api_cache_get_stale($cache_key_prices);
+    } elseif ($allPrices && is_array($allPrices)) {
         api_cache_set($cache_key_prices, $allPrices);
     }
 }
@@ -83,12 +88,16 @@ if (!$countriesList) {
     $countries_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getCountries";
     $ch2 = curl_init($countries_url);
     curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch2, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch2, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch2, CURLOPT_TIMEOUT, 6);
     curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
     $rawCountries = curl_exec($ch2);
+    $countries_http_code = (int)curl_getinfo($ch2, CURLINFO_HTTP_CODE);
     curl_close($ch2);
     $countriesList = $rawCountries ? json_decode($rawCountries, true) : [];
-    if ($countriesList && is_array($countriesList)) {
+    if ($countries_http_code < 200 || $countries_http_code >= 300 || !is_array($countriesList) || empty($countriesList)) {
+        $countriesList = api_cache_get_stale($cache_key_countries);
+    } elseif ($countriesList && is_array($countriesList)) {
         api_cache_set($cache_key_countries, $countriesList);
     }
 }
@@ -120,6 +129,14 @@ foreach ($allPrices as $countryCode => $services) {
     $countryName = 'Country ' . $countryCode;
     if (isset($countriesList[$countryCode])) {
         $countryName = $countriesList[$countryCode]['eng'] ?? $countriesList[$countryCode]['name'] ?? $countryName;
+    }
+    $countryNameKey = strtolower(trim($countryName));
+    if ($countryNameKey === 'united states') {
+        $countryName = 'USA';
+    } elseif ($countryNameKey === 'united states vip') {
+        $countryName = 'USA VIP';
+    } elseif ($countryNameKey === 'united states virt') {
+        $countryName = 'USA Virt';
     }
     
     $final[] = [

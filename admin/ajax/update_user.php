@@ -61,7 +61,7 @@ if(isset($_SESSION['token']) =="") {
     if(in_array($final_admin['type'], ["admin", "super_admin"])){   
 if($user_id !="" && $balance !="" && $recharge !="" && $total_otp !=""){
 if(is_numeric($balance) && is_numeric($recharge) && is_numeric($total_otp)){
-$sql=mysqli_query($conn,"SELECT * FROM user_data WHERE id='$user_id'");
+$sql=mysqli_query($conn,"SELECT * FROM user_data u WHERE u.id='$user_id' AND " . admin_user_visibility_sql($conn, 'u.id'));
 if(mysqli_num_rows($sql) !=0){
 $data3=mysqli_fetch_assoc($sql);
 $user_id=$data3['id'];

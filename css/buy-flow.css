@@ -402,6 +402,39 @@
 
 .sms-timer-pill.sms-timer-expired { background: #fee2e2; color: #991b1b; }
 
+.sms-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sms-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color .2s, border-color .2s, background .2s;
+}
+
+.sms-refresh-btn:hover {
+  border-color: #e10700;
+  background: #fff5f5;
+  color: #e10700;
+}
+
+.sms-refresh-btn.is-refreshing i { animation: sms-refresh-spin .7s linear infinite; }
+
+@keyframes sms-refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
 .sms-number-row {
   display: flex;
   align-items: center;

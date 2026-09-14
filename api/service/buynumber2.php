@@ -65,17 +65,31 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     // 1. Fetch REAL-TIME PRICE from 5sim JSON API
     $price_url = "https://5sim.net/v1/guest/prices?country=" . urlencode($provider_server) . "&product=" . urlencode($service);
 
-    $ch_p = curl_init($price_url);
-    curl_setopt($ch_p, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch_p, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch_p, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch_p, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $api_key",
-        "Accept: application/json"
-    ]);
-    $price_res = curl_exec($ch_p);
-    $api_prices = json_decode($price_res, true);
-    curl_close($ch_p);
+    $fetch_prices = function (bool $with_auth) use ($price_url, $api_key): array {
+        $ch = curl_init($price_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $headers = ['Accept: application/json'];
+        if ($with_auth) $headers[] = "Authorization: Bearer $api_key";
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $body = curl_exec($ch);
+        $http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $decoded = is_string($body) ? json_decode($body, true) : null;
+        return [
+            'http_code' => $http_code,
+            'data' => is_array($decoded) ? $decoded : [],
+        ];
+    };
+
+    $price_response = $fetch_prices(true);
+    if ($price_response['http_code'] < 200 || $price_response['http_code'] >= 300 || !$price_response['data']) {
+        $price_response = $fetch_prices(false);
+    }
+    $api_prices = $price_response['data'];
 
     // Parse operators data safely from response
     $operators_data = [];

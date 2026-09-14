@@ -163,5 +163,5 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
 <?php include 'partial/scripts.php'; ?>
 <script>window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.7.1.min.js"><\/script>')</script>
 <script src="assets/js/notiflix-aio-3.2.7.min.js"></script>
-<script src="js/main.js"></script>
+<script src="js/main.js?v=<?= time() ?>"></script>
 <?php include 'partial/footer-end.php'; ?>

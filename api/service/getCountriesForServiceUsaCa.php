@@ -73,7 +73,7 @@ $final = [];
 if ($price_us > 0) {
     $final[] = [
         'country_code' => 'us',
-        'country_name' => 'United States',
+        'country_name' => 'USA',
         'price'        => $price_us,
         'stock'        => 'Available'
     ];

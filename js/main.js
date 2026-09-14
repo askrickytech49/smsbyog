@@ -182,22 +182,54 @@ const countryFlagMap = {
     'taiwan':'tw','tajikistan':'tj','tanzania':'tz','thailand':'th','timor-leste':'tl','togo':'tg',
     'tonga':'to','trinidad and tobago':'tt','tunisia':'tn','turkey':'tr','turkmenistan':'tm',
     'turks and caicos islands':'tc','uganda':'ug','ukraine':'ua','united arab emirates':'ae',
-    'uruguay':'uy','usa':'us','uzbekistan':'uz','venezuela':'ve','vietnam':'vn','yemen':'ye',
+    'uruguay':'uy','usa':'us','usavip':'us','usavirt':'us','unitedstates':'us','unitedstatesvip':'us','unitedstatesvirt':'us','uzbekistan':'uz','venezuela':'ve','vietnam':'vn','yemen':'ye',
     'zambia':'zm','zimbabwe':'zw'
 };
 
 function getFlag(countryName) {
-    const n = countryName.toLowerCase();
-    return countryFlagMap[n] || 'un';
+    const original = countryName.toLowerCase().trim();
+    const n = original.replace(/[\s_-]+/g, '');
+    const aliases = {
+        'united kingdom': 'gb',
+        'united states': 'us',
+        'united states vip': 'us',
+        'united states virt': 'us',
+        'bosnia and herzegovina': 'ba',
+        'cayman islands': 'ky',
+        'central african republic': 'cf',
+        'congo dr': 'cd',
+        'cote divoire/ivory coast': 'ci',
+        'cuba': 'cu',
+        'dominica': 'dm',
+        'fiji': 'fj',
+        'grenada': 'gd',
+        'iran': 'ir',
+        'korea': 'kr',
+        'kosovo': 'xk',
+        "lao people's": 'la',
+        'libya': 'ly',
+        'macedonia': 'mk',
+        'malta': 'mt',
+        'saint kitts and nevis': 'kn',
+        'saint lucia': 'lc',
+        'saint vincent': 'vc',
+        'sao tome and principe': 'st',
+        'solomon islands': 'sb',
+        'south sudan': 'ss',
+        'swaziland': 'sz'
+    };
+    return aliases[original] || countryFlagMap[original] || countryFlagMap[n] || 'un';
 }
 
 function loadCountriesForService(serviceId) {
     const token = document.getElementById('token').value;
     const list  = document.getElementById('country-list');
+    let retryCount = 0;
 
     list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>';
 
-    $.ajax({
+    function requestCountries() {
+        $.ajax({
         type: 'GET',
         url:  'api/service/getCountriesForService',
         data: { token, service: serviceId },
@@ -238,9 +270,17 @@ function loadCountriesForService(serviceId) {
             document.getElementById('country-search').value = '';
         },
         error: function() {
-            list.innerHTML = '<div class="empty-state"><p>Failed to load countries. Please try again.</p></div>';
+            if (retryCount < 1) {
+                retryCount++;
+                window.setTimeout(requestCountries, 500);
+                return;
+            }
+            list.innerHTML = '<div class="empty-state"><p>Countries are temporarily unavailable. Please use the refresh button to try again.</p></div>';
         }
-    });
+        });
+    }
+
+    requestCountries();
 }
 
 function selectCountryStep2(row) {
@@ -319,7 +359,12 @@ function renderOtpCard(item) {
         <div class="sms-card-inner">
             <div class="sms-top-row">
                 <div class="sms-service-badge"><i class="bi bi-phone-fill"></i> ${item.app || 'Virtual Number'}</div>
-                <div class="sms-timer-pill" id="t_${item.id}"><i class="bi bi-clock"></i> --:--</div>
+                <div class="sms-card-actions">
+                    <div class="sms-timer-pill" id="t_${item.id}"><i class="bi bi-clock"></i> --:--</div>
+                    <button type="button" class="sms-refresh-btn" title="Refresh number and OTP" aria-label="Refresh number and OTP" onclick="refreshOtpCards(event, this)">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
             </div>
             <div class="sms-number-row">
                 <span class="sms-number-text">+${String(item.number).replace(/^\+/, '')}</span>
@@ -393,6 +438,13 @@ function setSMSInterval(elementId, orderId, token, number) {
         });
     }, 2000);
     smsIntervals[elementId].push(interval);
+}
+
+function refreshOtpCards(event, button) {
+    if (event) event.stopPropagation();
+    if (button && button.classList.contains('is-refreshing')) return;
+    if (button) button.classList.add('is-refreshing');
+    window.location.reload();
 }
 
 function checkOrder() {

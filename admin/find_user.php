@@ -7,9 +7,10 @@ $ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT *
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
 
 $found=null; $error='';
+$visibility = admin_user_visibility_sql($conn, 'u.id');
 if(isset($_POST['search'])){
     $em=mysqli_real_escape_string($conn,$_POST['email']??'');
-    $q=mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE u.email='$em' LIMIT 1");
+    $q=mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE u.email='$em' AND $visibility LIMIT 1");
     if(mysqli_num_rows($q)>0){ $found=mysqli_fetch_assoc($q); }
     else{ $error='No user found with that email address.'; }
 }

@@ -94,8 +94,12 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
         $price_url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getPrices&country={$server_code}";
         $ch_p = curl_init($price_url);
         curl_setopt($ch_p, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch_p, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch_p, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch_p, CURLOPT_SSL_VERIFYPEER, false);
         $price_res = curl_exec($ch_p);
         $api_prices = json_decode($price_res, true);
+        curl_close($ch_p);
         
         $raw_api_price = 0;
         if (isset($api_prices[$server_code][$service])) {
@@ -131,13 +135,22 @@ $service_price = custom_price($user_id, $service, $server, $base_price, $conn);
 
         // 5. Request the Number from API
         $url = "{$api_url}/stubs/handler_api.php?api_key={$api_key}&action=getNumber&service={$service}&country={$server_code}";
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $result = curl_exec($ch);
-        $response = explode(':', $result);
+        $result = '';
+        $response = [];
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $result = trim((string)curl_exec($ch));
+            curl_close($ch);
+            $response = explode(':', $result);
+            if (($response[0] ?? '') !== 'NO_NUMBERS') break;
+        }
 
-        if ($response[0] != "ACCESS_NUMBER") {
-            $err_msg = $response[0];
+        if (($response[0] ?? '') != "ACCESS_NUMBER") {
+            $err_msg = $response[0] ?? 'API_ERROR';
             error_log("TigerSMS purchase failed: response=" . $result . "; service={$service}; country={$server_code}");
             if ($err_msg == "NO_NUMBERS") {
                 $err_msg = "No numbers available for this service right now. Please try again later.";

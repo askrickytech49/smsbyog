@@ -5,11 +5,12 @@ $aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['toke
 if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
 $ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+$payment_visibility = admin_user_visibility_sql($conn, 'm.user_id');
 
 $msg=''; $msg_type='';
 if(isset($_POST['approve'])){
     $pid=(int)$_POST['id'];
-    $pay=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM manual_payments WHERE id='$pid'"));
+    $pay=mysqli_fetch_assoc(mysqli_query($conn,"SELECT m.* FROM manual_payments m WHERE m.id='$pid' AND " . $payment_visibility));
     if($pay && $pay['status']==0){
         mysqli_begin_transaction($conn);
         try{
@@ -23,11 +24,11 @@ if(isset($_POST['approve'])){
 }
 if(isset($_POST['reject'])){
     $pid=(int)$_POST['id'];
-    mysqli_query($conn,"UPDATE manual_payments SET status=-1 WHERE id='$pid'");
+    mysqli_query($conn,"UPDATE manual_payments m SET status=-1 WHERE id='$pid' AND " . $payment_visibility);
     $msg='Payment rejected.'; $msg_type='warning';
 }
 
-$sql=mysqli_query($conn,"SELECT m.*,u.name,u.email FROM manual_payments m LEFT JOIN user_data u ON m.user_id=u.id ORDER BY m.id DESC");
+$sql=mysqli_query($conn,"SELECT m.*,u.name,u.email FROM manual_payments m LEFT JOIN user_data u ON m.user_id=u.id WHERE $payment_visibility ORDER BY m.id DESC");
 $page_title='Manual Payments';
 ?>
 <?php include __DIR__.'/include/layout_start.php'; ?>

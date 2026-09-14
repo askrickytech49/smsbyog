@@ -23,6 +23,7 @@ if (!in_array($admin_user['type'], ["admin", "super_admin"])) {
 // Validate target user_id
 $target_id = (int)($_GET['user_id'] ?? 0);
 if (!$target_id) { echo "Invalid ID"; exit; }
+deny_protected_user_access($conn, $target_id);
 
 $target_sql  = mysqli_query($conn, "SELECT * FROM user_data WHERE id='$target_id'");
 if (mysqli_num_rows($target_sql) == 0) { echo "User not found."; exit; }

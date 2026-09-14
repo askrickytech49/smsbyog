@@ -5,6 +5,7 @@ $aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['toke
 if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
 $ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+$transaction_visibility = admin_user_visibility_sql($conn, 't.user_id');
 
 $msg=''; $msg_type='';
 
@@ -14,7 +15,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['bulk_approve']) && !empt
     try {
         foreach($_POST['txn_ids'] as $tid){
             $tid=mysqli_real_escape_string($conn,$tid);
-            $txn=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM user_transaction WHERE txn_id='$tid' AND status=0"));
+            $txn=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM user_transaction t WHERE t.txn_id='$tid' AND t.status=0 AND " . admin_user_visibility_sql($conn, 't.user_id')));
             if($txn){
                 mysqli_query($conn,"UPDATE user_transaction SET status=1 WHERE txn_id='$tid'");
                 mysqli_query($conn,"UPDATE user_wallet SET balance=balance+{$txn['amount']},total_recharge=total_recharge+{$txn['amount']} WHERE user_id={$txn['user_id']}");
@@ -30,7 +31,8 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['bulk_reject']) && !empty
     try {
         foreach($_POST['txn_ids'] as $tid){
             $tid=mysqli_real_escape_string($conn,$tid);
-            mysqli_query($conn,"UPDATE user_transaction SET status=-1 WHERE txn_id='$tid'");
+            $allowed = mysqli_query($conn,"SELECT id FROM user_transaction t WHERE t.txn_id='$tid' AND " . admin_user_visibility_sql($conn, 't.user_id'));
+            if ($allowed && mysqli_num_rows($allowed) > 0) mysqli_query($conn,"UPDATE user_transaction SET status=-1 WHERE txn_id='$tid'");
         }
         mysqli_commit($conn); $msg='Selected transactions rejected.'; $msg_type='warning';
     } catch(Exception $e){ mysqli_rollback($conn); $msg='Rejection failed.'; $msg_type='danger'; }
@@ -40,12 +42,13 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['bulk_reject']) && !empty
 if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['save_note']) && isset($_POST['txn_id'])){
     $tid=mysqli_real_escape_string($conn,$_POST['txn_id']);
     $note=mysqli_real_escape_string($conn,$_POST['note']??'');
-    mysqli_query($conn,"UPDATE user_transaction SET admin_note='$note' WHERE txn_id='$tid'");
+    $allowed = mysqli_query($conn,"SELECT id FROM user_transaction t WHERE t.txn_id='$tid' AND " . admin_user_visibility_sql($conn, 't.user_id'));
+    if ($allowed && mysqli_num_rows($allowed) > 0) mysqli_query($conn,"UPDATE user_transaction SET admin_note='$note' WHERE txn_id='$tid'");
     $msg='Note saved.'; $msg_type='success';
 }
 
 // Filter
-$where='1'; $limit=50; $offset=(int)($_GET['page']??0)*$limit;
+$where=$transaction_visibility; $limit=50; $offset=(int)($_GET['page']??0)*$limit;
 if(!empty($_GET['search'])){ $s=mysqli_real_escape_string($conn,$_GET['search']); $where.=" AND (u.email LIKE '%$s%' OR t.txn_id LIKE '%$s%')"; }
 if(isset($_GET['status']) && $_GET['status']!==''){ $st=(int)$_GET['status']; $where.=" AND t.status=$st"; }
 $total=mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM user_transaction t LEFT JOIN user_data u ON t.user_id=u.id WHERE $where"))[0];

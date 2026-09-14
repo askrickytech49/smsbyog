@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/smsbyog/user.smsbyog.com/
+    - /bin/rsync -a --delete --exclude='.git/' --exclude='.cpanel.yml' --exclude='.env' --exclude='cache/' --exclude='uploads/' --exclude='upload/' ./ $DEPLOYPATH

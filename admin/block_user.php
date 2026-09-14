@@ -6,8 +6,9 @@ if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
 $ad=mysqli_fetch_array($aq);
 $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+$user_visibility = admin_user_visibility_sql($conn, 'u.id');
 
-$sql = mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE u.status='2' ORDER BY u.id DESC");
+$sql = mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE $user_visibility AND u.status='2' ORDER BY u.id DESC");
 $page_title = 'Blocked Users';
 ?>
 <?php include __DIR__.'/include/layout_start.php'; ?>

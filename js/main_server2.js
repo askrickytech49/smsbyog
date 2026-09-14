@@ -347,7 +347,12 @@ function renderOtpCard(item) {
         <div class="sms-card-inner">
             <div class="sms-top-row">
                 <div class="sms-service-badge"><i class="bi bi-phone-fill"></i> ${item.app || 'Virtual Number'}</div>
-                <div class="sms-timer-pill" id="t_${item.id}"><i class="bi bi-clock"></i> --:--</div>
+                <div class="sms-card-actions">
+                    <div class="sms-timer-pill" id="t_${item.id}"><i class="bi bi-clock"></i> --:--</div>
+                    <button type="button" class="sms-refresh-btn" title="Refresh number and OTP" aria-label="Refresh number and OTP" onclick="refreshOtpCards(event, this)">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
             </div>
             <div class="sms-number-row">
                 <span class="sms-number-text">+${String(item.number).replace(/^\+/, '')}</span>
@@ -420,6 +425,13 @@ function setSMSInterval(elementId, orderId, token, number) {
         });
     }, 2000);
     smsIntervals[elementId].push(interval);
+}
+
+function refreshOtpCards(event, button) {
+    if (event) event.stopPropagation();
+    if (button && button.classList.contains('is-refreshing')) return;
+    if (button) button.classList.add('is-refreshing');
+    window.location.reload();
 }
 
 function checkOrder() {

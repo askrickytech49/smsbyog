@@ -5,8 +5,9 @@ $aq=mysqli_query($conn,"SELECT * FROM login_token WHERE token='".$_SESSION['toke
 if(mysqli_num_rows($aq)==0){header('Location: login.php');exit;}
 $ad=mysqli_fetch_array($aq); $au=mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$ad['user_id']."' AND status='1'"));
 if(!in_array($au['type'],["admin","super_admin"])){header('Location: login.php');exit;}
+$number_visibility = admin_user_visibility_sql($conn, 'a.user_id');
 
-$sql=mysqli_query($conn,"SELECT a.*,u.email FROM active_number a LEFT JOIN user_data u ON a.user_id=u.id WHERE a.status='3' ORDER BY a.id DESC");
+$sql=mysqli_query($conn,"SELECT a.*,u.email FROM active_number a LEFT JOIN user_data u ON a.user_id=u.id WHERE $number_visibility AND a.status='3' ORDER BY a.id DESC");
 $page_title='Cancelled Numbers';
 ?>
 <?php include __DIR__.'/include/layout_start.php'; ?>

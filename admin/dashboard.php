@@ -10,6 +10,9 @@ $admin_data = mysqli_fetch_array($admin_sql);
 $admin_sql2 = mysqli_query($conn,"SELECT * FROM user_data WHERE id='".$admin_data['user_id']."' AND status='1'");
 $final_admin = mysqli_fetch_array($admin_sql2);
 if(!in_array($final_admin['type'],["admin","super_admin"])){ header('Location: login.php'); exit; }
+$user_visibility = admin_user_visibility_sql($conn, 'u.id');
+$transaction_visibility = admin_user_visibility_sql($conn, 't.user_id');
+$number_visibility = admin_user_visibility_sql($conn, 'a.user_id');
 
 // CSV Export
 if(isset($_GET['export_users']) && $_GET['export_users']==='csv'){
@@ -17,7 +20,7 @@ if(isset($_GET['export_users']) && $_GET['export_users']==='csv'){
     header('Content-Disposition: attachment; filename=smsbyog_users_'.date('Ymd').'.csv');
     $out = fopen('php://output','w');
     fputcsv($out,['Name','Email','Registered Date','Balance','Total Recharge','OTP Bought','Status']);
-    $q = mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id ORDER BY u.id DESC");
+    $q = mysqli_query($conn,"SELECT u.*,w.balance,w.total_recharge,w.total_otp FROM user_data u LEFT JOIN user_wallet w ON u.id=w.user_id WHERE $user_visibility ORDER BY u.id DESC");
     while($r=mysqli_fetch_assoc($q)){
         fputcsv($out,[$r['name'],$r['email'],$r['register_date'],$r['balance']??0,$r['total_recharge']??0,$r['total_otp']??0,$r['status']==1?'Active':'Blocked']);
     }
@@ -25,25 +28,25 @@ if(isset($_GET['export_users']) && $_GET['export_users']==='csv'){
 }
 
 // ── KPI DATA ──────────────────────────────────────────────────────
-$total_users  = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM user_data"))[0];
-$today_users  = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM user_data WHERE DATE(register_date)=CURDATE()"))[0];
-$total_funded = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(amount),0) FROM user_transaction WHERE status='1'"))[0];
-$today_funded = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(amount),0) FROM user_transaction WHERE status='1' AND DATE(date)=CURDATE()"))[0];
-$total_otp    = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM active_number WHERE status='1'"))[0];
-$today_otp    = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM active_number WHERE status='1' AND DATE(buy_time)=CURDATE()"))[0];
-$total_bal    = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(w.balance),0) FROM user_wallet w JOIN user_data u ON w.user_id=u.id WHERE u.status='1'"))[0];
-$total_pending= mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM user_transaction WHERE status='0'"))[0];
+  $total_users  = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM user_data u WHERE $user_visibility"))[0];
+  $today_users  = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM user_data u WHERE $user_visibility AND DATE(register_date)=CURDATE()"))[0];
+  $total_funded = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(amount),0) FROM user_transaction t WHERE $transaction_visibility AND status='1'"))[0];
+  $today_funded = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(amount),0) FROM user_transaction t WHERE $transaction_visibility AND status='1' AND DATE(date)=CURDATE()"))[0];
+  $total_otp    = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM active_number a WHERE $number_visibility AND status='1'"))[0];
+  $today_otp    = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM active_number a WHERE $number_visibility AND status='1' AND DATE(buy_time)=CURDATE()"))[0];
+  $total_bal    = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(w.balance),0) FROM user_wallet w JOIN user_data u ON w.user_id=u.id WHERE $user_visibility AND u.status='1'"))[0];
+  $total_pending= mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM user_transaction t WHERE $transaction_visibility AND status='0'"))[0];
 
 // ── FUNNEL ────────────────────────────────────────────────────────
-$funded_users = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(DISTINCT user_id) FROM user_transaction WHERE status='1'"))[0];
-$otp_users    = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(DISTINCT user_id) FROM active_number WHERE status='1'"))[0];
+$funded_users = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(DISTINCT t.user_id) FROM user_transaction t WHERE $transaction_visibility AND t.status='1'"))[0];
+$otp_users    = mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(DISTINCT a.user_id) FROM active_number a WHERE $number_visibility AND a.status='1'"))[0];
 
 // ── 7-DAY REVENUE ─────────────────────────────────────────────────
 $rev7_labels=[]; $rev7_data=[];
 for($i=6;$i>=0;$i--){
     $d = date('Y-m-d',strtotime("-$i days"));
     $rev7_labels[] = date('M d',strtotime($d));
-    $v = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(amount),0) FROM user_transaction WHERE status='1' AND DATE(date)='$d'"))[0];
+    $v = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(t.amount),0) FROM user_transaction t WHERE $transaction_visibility AND t.status='1' AND DATE(t.date)='$d'"))[0];
     $rev7_data[] = (float)$v;
 }
 
@@ -52,12 +55,12 @@ $rev30_labels=[]; $rev30_data=[];
 for($i=29;$i>=0;$i--){
     $d = date('Y-m-d',strtotime("-$i days"));
     $rev30_labels[] = date('M d',strtotime($d));
-    $v = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(amount),0) FROM user_transaction WHERE status='1' AND DATE(date)='$d'"))[0];
+    $v = mysqli_fetch_row(mysqli_query($conn,"SELECT IFNULL(SUM(t.amount),0) FROM user_transaction t WHERE $transaction_visibility AND t.status='1' AND DATE(t.date)='$d'"))[0];
     $rev30_data[] = (float)$v;
 }
 
 // ── TOP 10 USERS ──────────────────────────────────────────────────
-$top10 = mysqli_query($conn,"SELECT u.name,u.email,w.balance,w.total_recharge FROM user_data u JOIN user_wallet w ON u.id=w.user_id ORDER BY w.total_recharge DESC LIMIT 10");
+$top10 = mysqli_query($conn,"SELECT u.name,u.email,w.balance,w.total_recharge FROM user_data u JOIN user_wallet w ON u.id=w.user_id WHERE $user_visibility ORDER BY w.total_recharge DESC LIMIT 10");
 
 $page_title = 'Dashboard';
 ?>
