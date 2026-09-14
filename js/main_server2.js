@@ -207,7 +207,7 @@ const countryFlagMap = {
     'sweden':'se','switzerland':'ch','taiwan':'tw','tajikistan':'tj','tanzania':'tz','thailand':'th',
     'togo':'tg','trinidadandtobago':'tt','tunisia':'tn','turkey':'tr','turkmenistan':'tm',
     'uganda':'ug','ukraine':'ua','uae':'ae','unitedstates':'us','uruguay':'uy','uzbekistan':'uz',
-    'venezuela':'ve','vietnam':'vn','yemen':'ye','zambia':'zm','zimbabwe':'zw','usa':'us',
+    'venezuela':'ve','vietnam':'vn','yemen':'ye','zambia':'zm','zimbabwe':'zw','usa':'us','usa2':'us',
     'unitedkingdom':'gb','uk':'gb','elsalvador':'sv'
 };
 
