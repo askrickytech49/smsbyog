@@ -1,0 +1,373 @@
+@import "tailwindcss";
+
+/* Prevent any element from causing horizontal page scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+@theme {
+  --color-surface: #fbf9f5;
+  --color-surface-dim: #dbdad6;
+  --color-surface-bright: #fbf9f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f3ef;
+  --color-surface-container: #efeeea;
+  --color-surface-container-high: #eae8e4;
+  --color-surface-container-highest: #e4e2de;
+  --color-on-surface: #1b1c1a;
+  --color-on-surface-variant: #47464f;
+  --color-inverse-surface: #30312e;
+  --color-inverse-on-surface: #f2f0ed;
+  --color-outline: #787680;
+  --color-outline-variant: #c8c5d0;
+  --color-surface-tint: #5b598c;
+  --color-primary: #070235;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1e1b4b;
+  --color-on-primary-container: #8683ba;
+  --color-inverse-primary: #c4c1fb;
+  --color-secondary: #904d00;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #fe932c;
+  --color-on-secondary-container: #663500;
+  --color-tertiary: #000829;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #001b5c;
+  --color-on-tertiary-container: #6c85d9;
+  --color-primary-fixed: #e3dfff;
+  --color-primary-fixed-dim: #c4c1fb;
+  --color-on-primary-fixed: #181445;
+  --color-on-primary-fixed-variant: #444173;
+  --color-secondary-fixed: #ffdcc3;
+  --color-secondary-fixed-dim: #ffb77d;
+  --color-on-secondary-fixed: #2f1500;
+  --color-on-secondary-fixed-variant: #6e3900;
+  --color-tertiary-fixed: #dce1ff;
+  --color-tertiary-fixed-dim: #b6c4ff;
+  --color-on-tertiary-fixed: #00164e;
+  --color-on-tertiary-fixed-variant: #264191;
+  --color-background: #fbf9f5;
+  --color-on-background: #1b1c1a;
+  --color-surface-variant: #e4e2de;
+  --color-navy-regal: #1E1B4B;
+  --color-navy-deep: #161338;
+  --color-navy-soft: #312E81;
+  --color-amber-rich: #D97706;
+  --color-amber-vibrant: #F59E0B;
+  --color-amber-glow: #FEF3C7;
+  --color-cream-base: #FBF9F5;
+  --color-cream-tint: #F5F3ED;
+  --color-cream-card: #FFFFFF;
+  --color-cream-warm: #FDF1E7;
+  --color-cream-peach: #FBDCC4;
+  --color-text-primary: #1E1B2E;
+  --color-text-secondary: #4B485A;
+  --color-text-muted: #6E6B7E;
+  --color-border-subtle: #E8E4DA;
+  --color-border-strong: #D1CBBC;
+  --color-health-teal: #0D9488;
+  --color-scholarship-gold: #C28E00;
+
+  --font-serif: "Noto Serif", Georgia, Cambria, serif;
+  --font-display: "Noto Serif", Georgia, Cambria, serif;
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Custom utility styles matching design tokens */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-sans, .font-body {
+  font-family: var(--font-sans);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f5f3ef;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1cbbc;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #787680;
+}
+
+/* ==========================================================
+   Apple-Inspired Liquid Glass Design Language
+   Translucent vibrancy, specular refraction & tactile springs
+   ========================================================== */
+
+/* 1. Liquid Glass Base Surfaces */
+.liquid-glass-nav {
+  background: linear-gradient(
+    135deg,
+    rgba(251, 249, 245, 0.82) 0%,
+    rgba(245, 243, 239, 0.72) 100%
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.03),
+    0 8px 32px -4px rgba(30, 27, 75, 0.06),
+    0 2px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.liquid-glass-dock {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(251, 249, 245, 0.75) 100%
+  );
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04),
+    0 16px 40px -8px rgba(30, 27, 75, 0.14),
+    0 4px 12px -2px rgba(30, 27, 75, 0.06);
+}
+
+.liquid-glass-card {
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(251, 249, 245, 0.65) 100%
+  );
+  backdrop-filter: blur(20px) saturate(175%);
+  -webkit-backdrop-filter: blur(20px) saturate(175%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.03),
+    0 12px 36px -6px rgba(30, 27, 75, 0.06);
+}
+
+/* 2. Liquid Glass Interactive Buttons */
+.liquid-glass-amber-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(217, 119, 6, 0.94) 0%,
+    rgba(245, 158, 11, 0.88) 100%
+  );
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(254, 243, 199, 0.6);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.15),
+    0 8px 24px -4px rgba(217, 119, 6, 0.35),
+    0 2px 6px 0 rgba(217, 119, 6, 0.2);
+  transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-amber-btn:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(217, 119, 6, 1) 0%,
+    rgba(251, 191, 36, 0.95) 100%
+  );
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.2),
+    0 12px 30px -4px rgba(217, 119, 6, 0.45),
+    0 4px 10px 0 rgba(217, 119, 6, 0.25);
+  transform: translateY(-1px) scale(1.015);
+}
+
+.liquid-glass-amber-btn:active {
+  transform: translateY(1px) scale(0.975);
+  box-shadow:
+    inset 0 2px 2px 0 rgba(0, 0, 0, 0.2),
+    0 4px 12px -2px rgba(217, 119, 6, 0.3);
+}
+
+.liquid-glass-light-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(253, 241, 231, 0.72) 100%
+  );
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04),
+    0 6px 20px -4px rgba(30, 27, 75, 0.06);
+  transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-light-btn:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(253, 241, 231, 0.88) 100%
+  );
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 1),
+    0 10px 24px -4px rgba(30, 27, 75, 0.1);
+  transform: translateY(-1px) scale(1.015);
+}
+
+.liquid-glass-light-btn:active {
+  transform: translateY(1px) scale(0.975);
+}
+
+.liquid-glass-dark-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 27, 75, 0.94) 0%,
+    rgba(22, 19, 56, 0.9) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.4),
+    0 10px 28px -4px rgba(7, 2, 53, 0.35);
+  transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-dark-btn:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(49, 46, 129, 0.96) 0%,
+    rgba(30, 27, 75, 0.95) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow:
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.5),
+    0 14px 34px -4px rgba(7, 2, 53, 0.45);
+  transform: translateY(-1px) scale(1.015);
+}
+
+.liquid-glass-dark-btn:active {
+  transform: translateY(1px) scale(0.975);
+}
+
+/* 3. Liquid Glass Segmented Pills & Tabs */
+.liquid-glass-pill-active {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(251, 249, 245, 0.78) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.95),
+    0 4px 14px -2px rgba(30, 27, 75, 0.08);
+}
+
+/* 4. Optical Refractive Sheen Effect */
+.glass-refraction {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-refraction::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+  transition: left 0.75s ease-in-out;
+}
+
+.glass-refraction:hover::before {
+  left: 140%;
+}
+
+/* 5. Ambient Atmospheric Mesh & Luxury Touches */
+.ambient-bg-glow {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 85% 0%, rgba(217, 119, 6, 0.055) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 45% at 10% 25%, rgba(49, 46, 129, 0.04) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 90% 75%, rgba(13, 148, 136, 0.035) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 20% 95%, rgba(30, 27, 75, 0.045) 0%, transparent 70%);
+  background-attachment: fixed;
+}
+
+.card-hover-lift {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px -8px rgba(30, 27, 75, 0.08), 0 4px 12px -2px rgba(30, 27, 75, 0.04);
+}
+
+
+
+/* ─── iOS Safari: Prevent auto-zoom on input focus ──────────────────────────
+   iOS Safari zooms in whenever a focused form element has font-size < 16px.
+   This rule forces 16px on all inputs/selects/textareas specifically on iOS
+   (touch devices), keeping the visual size intact via the viewport scale.
+   We use the -webkit-text-size-adjust trick limited to touch devices only
+   so desktop appearance is completely unaffected.
+────────────────────────────────────────────────────────────────────────── */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="search"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* On larger screens, allow normal sizing to take over again */
+@media screen and (min-width: 768px) {
+  input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="search"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: revert !important;
+  }
+}

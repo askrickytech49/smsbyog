@@ -29,3 +29,40 @@ node_modules/
 # Keep the folders but ignore contents
 !/upload/.gitkeep
 !/uploads/.gitkeep
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Environment & secrets
+.env
+.env.local
+.env.production
+!.env.example
+
+# Uploaded files (user content — not code)
+public/uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+
+# XAMPP / local server
+*.bak
+
+# Build archives
+*.zip
+*.tar.gz

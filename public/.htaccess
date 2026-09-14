@@ -1,0 +1,67 @@
+# Karl Peace Legacy Foundation — .htaccess
+# Works on Apache AND LiteSpeed (cPanel)
+# -------------------------------------------------------
+
+Options -Indexes
+
+# ── Custom error pages — redirect 404 to homepage ────
+ErrorDocument 404 /index.html
+ErrorDocument 403 /index.html
+
+# ── MIME types ────────────────────────────────────────
+<IfModule mod_mime.c>
+  AddType image/webp .webp
+  AddType image/avif .avif
+  AddType application/javascript .js .mjs
+  AddType text/css .css
+</IfModule>
+
+# ── Browser caching ───────────────────────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+  <FilesMatch "\.(jpg|jpeg|png|gif|webp|pdf|ico|svg)$">
+    ExpiresDefault "access plus 30 days"
+  </FilesMatch>
+  <FilesMatch "\.(js|css)$">
+    ExpiresDefault "access plus 1 year"
+  </FilesMatch>
+</IfModule>
+
+# ── Security: block PHP execution in uploads ──────────
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^uploads/.*\.php$ - [F,L]
+</IfModule>
+
+# ── SPA Routing ───────────────────────────────────────
+# Sends all non-file/non-API requests to index.html
+# so clean URLs like /admin /scholarships work on refresh
+# Compatible with Apache mod_rewrite AND LiteSpeed
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Skip real files and directories
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Skip API, PHP files and uploads
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !^/uploads/
+  RewriteCond %{REQUEST_URI} !\.php$
+
+  # Route everything else to index.html
+  RewriteRule ^ /index.html [L,QSA]
+</IfModule>
+
+# ── LiteSpeed specific fallback (if mod_rewrite not active) ──
+<IfModule LiteSpeed>
+  RewriteEngine On
+  RewriteBase /
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !^/uploads/
+  RewriteCond %{REQUEST_URI} !\.php$
+  RewriteRule ^ /index.html [L,QSA]
+</IfModule>

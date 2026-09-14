@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Authentication and Role Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email.matches('(?i)gtech\\.websites@gmail\\.com') ||
+        (request.auth.token.email != null && request.auth.token.email.matches('(?i).*@karlpeacelegacy\\.org'))
+      );
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor']
+      );
+    }
+
+    // 1. Global Site Settings
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 2. Foundation Programs
+    match /programs/{programId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 3. News & Dispatches
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. Leadership & Founders
+    match /leaders/{leaderId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 5. Impact Gallery
+    match /gallery/{photoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 6. Testimonials
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 7. Frequently Asked Questions
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 8. Scholarship Alert Subscribers
+    match /subscribers/{subscriberId} {
+      allow create: if request.resource.data.email is string && request.resource.data.name is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 9. Public Inquiries & Contact Messages
+    match /inquiries/{inquiryId} {
+      allow create: if request.resource.data.email is string && request.resource.data.message is string;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 10. User Profiles & Roles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isSuperAdmin();
+    }
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "entities": {
+    "settings": {
+      "title": "Site Settings",
+      "description": "Global foundation settings, contact info, hero texts, and scholarship alert status",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "heroBadge": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "officeAddress": { "type": "string" },
+        "scholarshipAlertActive": { "type": "boolean" },
+        "scholarshipAlertTitle": { "type": "string" },
+        "scholarshipAlertText": { "type": "string" },
+        "scholarshipAlertDeadline": { "type": "string" },
+        "scholarshipAlertCycle": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "updatedBy": { "type": "string" }
+      }
+    },
+    "programs": {
+      "title": "Foundation Programs",
+      "description": "Educational, mentorship, public health, and opportunity programs",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string", "enum": ["scholarships", "mentorship", "health", "opportunities"] },
+        "badge": { "type": "string" },
+        "badgeColor": { "type": "string" },
+        "image": { "type": "string" },
+        "description": { "type": "string" },
+        "keyPoints": { "type": "array", "items": { "type": "string" } },
+        "detailedNarrative": { "type": "string" },
+        "eligibilitySnippet": { "type": "string" },
+        "timeline": { "type": "string" },
+        "order": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "description"]
+    },
+    "news": {
+      "title": "News & Announcements",
+      "description": "Dispatches, scholarship announcements, and foundation bulletins",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "categoryType": { "type": "string", "enum": ["scholarship", "health", "mentorship", "bulletin"] },
+        "cycle": { "type": "string" },
+        "summary": { "type": "string" },
+        "fullContent": { "type": "string" },
+        "location": { "type": "string" },
+        "date": { "type": "string" },
+        "isUrgent": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "summary", "categoryType"]
+    },
+    "leaders": {
+      "title": "Leadership & Founders",
+      "description": "Executive leadership, trustees, founders, and patronage",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "category": { "type": "string", "enum": ["founder", "executive", "operations", "patron"] },
+        "tagline": { "type": "string" },
+        "shortBio": { "type": "string" },
+        "fullBio": { "type": "string" },
+        "image": { "type": "string" },
+        "badge": { "type": "string" },
+        "badgeColor": { "type": "string" },
+        "linkedin": { "type": "string" },
+        "twitter": { "type": "string" },
+        "email": { "type": "string" },
+        "keyContributions": { "type": "array", "items": { "type": "string" } },
+        "department": { "type": "string" },
+        "quote": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "role", "category"]
+    },
+    "gallery": {
+      "title": "Impact Gallery Photos",
+      "description": "Photographic documentation of student cohorts, health drives, and events",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "caption": { "type": "string" },
+        "category": { "type": "string", "enum": ["all", "scholarships", "mentorship", "health", "community"] },
+        "image": { "type": "string" },
+        "location": { "type": "string" },
+        "date": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["title", "image"]
+    },
+    "testimonials": {
+      "title": "Scholar & Beneficiary Testimonials",
+      "description": "Quotes and experiences from scholarship recipients and mentees",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "institution": { "type": "string" },
+        "field": { "type": "string" },
+        "quote": { "type": "string" },
+        "year": { "type": "string" }
+      },
+      "required": ["name", "quote"]
+    },
+    "faqs": {
+      "title": "Frequently Asked Questions",
+      "description": "Official answers to applicant inquiries and guidelines",
+      "type": "object",
+      "properties": {
+        "question": { "type": "string" },
+        "answer": { "type": "string" },
+        "category": { "type": "string", "enum": ["scholarships", "mentorship", "general"] },
+        "order": { "type": "number" }
+      },
+      "required": ["question", "answer"]
+    },
+    "subscribers": {
+      "title": "Scholarship Alert Subscribers",
+      "description": "Interested students who subscribed for alert updates",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "institution": { "type": "string" },
+        "course": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["new", "notified", "archived"] }
+      },
+      "required": ["name", "email"]
+    },
+    "inquiries": {
+      "title": "Public Inquiries",
+      "description": "Messages sent through the contact form",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["unread", "replied", "archived"] }
+      },
+      "required": ["name", "email", "message"]
+    },
+    "users": {
+      "title": "Admin Users",
+      "description": "User profiles and administrative permission designations",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "editor", "viewer"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    }
+  }
+}

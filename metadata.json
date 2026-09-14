@@ -1,0 +1,6 @@
+{
+  "name": "Karl Peace Legacy Foundation",
+  "description": "Official website for the Karl Peace Legacy Foundation, empowering Nigerian youth through tertiary scholarships, mentorship, public health initiatives, and opportunities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
