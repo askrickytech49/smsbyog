@@ -33,8 +33,8 @@ $initials = strtoupper(substr($admin_name, 0, 1));
   <!-- Right side actions -->
   <div class="d-flex align-items-center gap-3">
 
-    <!-- View Site — logs out admin and goes to user login -->
-    <a href="visit_site" class="btn btn-sm btn-light-action d-none d-md-inline-flex align-items-center gap-1">
+    <!-- View Site -->
+    <a href="https://smsbyog.com/" class="btn btn-sm btn-light-action d-none d-md-inline-flex align-items-center gap-1">
       <i class="bi bi-box-arrow-up-right"></i>
       <span>View Site</span>
     </a>
@@ -56,7 +56,7 @@ $initials = strtoupper(substr($admin_name, 0, 1));
           </div>
         </li>
         <li>
-          <a class="dropdown-item py-2" href="visit_site">
+          <a class="dropdown-item py-2" href="https://smsbyog.com/">
             <i class="bi bi-box-arrow-up-right me-2"></i> View Site
           </a>
         </li>
