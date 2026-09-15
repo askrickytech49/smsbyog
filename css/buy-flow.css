@@ -172,10 +172,12 @@
   max-height: 55vh;
   overflow-y: auto;
   padding-right: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.service-list::-webkit-scrollbar { width: 5px; }
-.service-list::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+.service-list::-webkit-scrollbar,
+.price-list::-webkit-scrollbar { display: none; }
 
 .service-row {
   display: flex;
@@ -309,6 +311,8 @@
   gap: 10px;
   max-height: 360px;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .price-option {
