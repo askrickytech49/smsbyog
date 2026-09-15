@@ -149,7 +149,7 @@ foreach ($serviceData as $country => $operators) {
     }
     $countryNameKey = strtolower(trim($countryName));
     if ($countryNameKey === 'united states' || $countryNameKey === 'united state') {
-        $countryName = 'USA';
+        $countryName = 'United State';
     } elseif ($countryNameKey === 'england') {
         $countryName = 'United Kingdom';
     }
