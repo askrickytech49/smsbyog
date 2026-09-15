@@ -240,6 +240,9 @@ function loadCountriesForService(serviceId) {
             }
 
             countries.forEach(c => {
+                const displayCountryName = /^(usa|united states?|united state)$/i.test(String(c.country_name || '').trim())
+                    ? 'United State'
+                    : (String(c.country_name || '').trim().toLowerCase() === 'england' ? 'United Kingdom' : c.country_name);
                 const iso = getFlag(c.country_code);
                 const stock = c.stock;
                 const stockColor = stock < 10 ? '#ef4444' : '#10b981';
@@ -248,7 +251,7 @@ function loadCountriesForService(serviceId) {
                 const row = document.createElement('div');
                 row.className = 'service-row';
                 row.dataset.code     = c.country_code;
-                row.dataset.name     = c.country_name;
+                row.dataset.name     = displayCountryName;
                 row.dataset.price    = c.price;
                 row.dataset.operator = c.operator || 'any';
                 row.dataset.hasOperators = hasOperators ? 'true' : 'false';
@@ -257,7 +260,7 @@ function loadCountriesForService(serviceId) {
                     <div class="service-info" style="display:flex; align-items:center; gap:10px;">
                         <span class="fi fi-${iso}" style="font-size:1.3rem;"></span>
                         <div>
-                            <div class="service-name">${c.country_name}</div>
+                            <div class="service-name">${displayCountryName}</div>
                             <span class="service-stock" style="color:${stockColor}">${stock} available</span>
                         </div>
                     </div>
