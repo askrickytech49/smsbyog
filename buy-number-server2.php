@@ -79,6 +79,10 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
                   </div>
                   <div class="step-item" id="si-3">
                     <div class="step-circle">3</div>
+                    <span class="step-label">Prices</span>
+                  </div>
+                  <div class="step-item" id="si-4">
+                    <div class="step-circle">4</div>
                     <span class="step-label">OTP</span>
                   </div>
                 </div>
@@ -112,7 +116,7 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
                   </button>
                   <h6 class="fw-bold mb-3" id="step2-title" style="color:#111;">Select a Country</h6>
 
-                  <div class="buy-bar">
+                  <div class="buy-bar" id="country-buy-bar" style="display:none;">
                     <div class="buy-bar-info">
                       <span class="buy-bar-label">Selected</span>
                       <span class="buy-bar-name"  id="selected-name">—</span>
@@ -130,10 +134,33 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
 
                   <div class="service-list" id="country-list">
                   </div>
+
                 </div>
 
-                <!-- ── STEP 3: OTP ── -->
+                <!-- ── STEP 3: AVAILABLE PRICE ── -->
                 <div class="step-panel" id="step3">
+                  <button class="step-back-btn" onclick="goStep(2)">
+                    <i class="bi bi-arrow-left"></i> Back
+                  </button>
+                  <h6 class="fw-bold mb-3" style="color:#111;">Available Price</h6>
+                  <div class="price-list" id="operator-list">
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
+                  </div>
+                  <div class="buy-bar mt-3">
+                    <div class="buy-bar-info">
+                      <span class="buy-bar-label">Selected</span>
+                      <span class="buy-bar-name" id="operator-selected-name">—</span>
+                      <span class="buy-bar-price" id="operator-selected-price">₦0</span>
+                    </div>
+                    <button class="buy-bar-btn" id="operator-buy-btn" disabled onclick="doBuy()">
+                      <i class="bi bi-cart-plus-fill"></i> Buy Number
+                    </button>
+                  </div>
+                </div>
+
+                <!-- ── STEP 4: OTP ── -->
+                <div class="step-panel" id="step4">
                   <div class="step3-header" id="step3-header"><div class="success-icon"><i class="bi bi-check-lg"></i></div><h5 id="step3-title-text">Your Active Number</h5><p id="step3-subtitle">Waiting for your OTP code…</p></div>
                   <div id="card-container"></div>
                   <div class="text-center mt-3">

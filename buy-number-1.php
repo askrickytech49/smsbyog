@@ -42,7 +42,7 @@ if (!$_api_st['server1']) { redirect('buy-number'); }
 $page_title = "Buy Numbers — " . $site_data['web_name'];
 ?>
 <?php include 'partial/header.php'; ?>
-<link rel="stylesheet" href="css/buy-flow.css">
+<link rel="stylesheet" href="css/buy-flow.css?v=<?= time() ?>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css">
 <?php include 'partial/loader.php'; ?>
 
@@ -80,6 +80,10 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
                   </div>
                   <div class="step-item" id="si-3">
                     <div class="step-circle">3</div>
+                    <span class="step-label">Price</span>
+                  </div>
+                  <div class="step-item" id="si-4">
+                    <div class="step-circle">4</div>
                     <span class="step-label">OTP</span>
                   </div>
                 </div>
@@ -113,17 +117,6 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
                   </button>
                   <h6 class="fw-bold mb-3" id="step2-title" style="color:#111;">Select a Country</h6>
 
-                  <div class="buy-bar">
-                    <div class="buy-bar-info">
-                      <span class="buy-bar-label">Selected</span>
-                      <span class="buy-bar-name"  id="selected-name">—</span>
-                      <span class="buy-bar-price" id="selected-price">₦0</span>
-                    </div>
-                    <button class="buy-bar-btn" id="buy-btn" disabled onclick="doBuy()">
-                      <i class="bi bi-cart-plus-fill"></i> Buy Number
-                    </button>
-                  </div>
-
                   <div class="service-search-wrap mb-3">
                     <i class="bi bi-search"></i>
                     <input type="text" id="country-search" placeholder="Search countries..." onkeyup="filterCountryRows()">
@@ -134,8 +127,21 @@ $page_title = "Buy Numbers — " . $site_data['web_name'];
                   </div>
                 </div>
 
-                <!-- ── STEP 3: OTP ── -->
+                <!-- ── STEP 3: AVAILABLE PRICE ── -->
                 <div class="step-panel" id="step3">
+                  <button class="step-back-btn" onclick="goStep(2)">
+                    <i class="bi bi-arrow-left"></i> Back
+                  </button>
+                  <h6 class="fw-bold mb-3" style="color:#111;">Available Price</h6>
+                  <div class="price-list" id="price-list"><div class="skeleton-row"></div><div class="skeleton-row"></div></div>
+                  <div class="buy-bar mt-3">
+                    <div class="buy-bar-info"><span class="buy-bar-label">Selected</span><span class="buy-bar-name" id="selected-name">—</span><span class="buy-bar-price" id="selected-price">₦0</span></div>
+                    <button class="buy-bar-btn" id="buy-btn" disabled onclick="doBuy()"><i class="bi bi-cart-plus-fill"></i> Buy Number</button>
+                  </div>
+                </div>
+
+                <!-- ── STEP 4: OTP ── -->
+                <div class="step-panel" id="step4">
                   <div class="step3-header" id="step3-header">
                     <div class="success-icon"><i class="bi bi-check-lg"></i></div>
                     <h5 id="step3-title-text">Your Active Number</h5>

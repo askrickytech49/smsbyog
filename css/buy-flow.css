@@ -303,6 +303,50 @@
 .buy-bar-btn:active { transform: scale(.97); }
 .buy-bar-btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
 
+.price-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.price-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  color: #111827;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: left;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+
+.price-option small {
+  color: #10b981;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.price-option:hover,
+.price-option.selected {
+  border-color: #e10700;
+  background: #fff5f5;
+  box-shadow: 0 4px 14px rgba(225,7,0,.12);
+}
+
+@media (max-width: 480px) {
+  .price-list { grid-template-columns: 1fr; }
+}
+
 /* ── BACK BUTTON ─────────────────────────────────────────── */
 .step-back-btn {
   display: inline-flex;

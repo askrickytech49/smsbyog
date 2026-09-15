@@ -49,7 +49,7 @@ if (!isset($_GET['server']) || $_GET['server'] == "") {
     echo '{"status":"500","message":"Token Expired Please Logout And Login Again"}';
 } else {
     $server   = mysqli_real_escape_string($conn, $_GET['server']);
-    $provider_server = ($server === 'usa2') ? 'usa' : $server;
+    $provider_server = $server;
     $service  = mysqli_real_escape_string($conn, $_GET['service']);
     $requested_operator = isset($_GET['operator_id']) ? mysqli_real_escape_string($conn, strtolower(trim($_GET['operator_id']))) : '';
     $user_id  = $check_token;

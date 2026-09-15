@@ -11,19 +11,36 @@ function tiger_number_matches_country(string $country_name, string $number): ?bo
     $number = preg_replace('/\D+/', '', $number);
     if ($number === '') return false;
 
+    $aliases = [
+        'united kingdom' => 'united kingdom',
+        'uk' => 'united kingdom',
+        'united states' => 'united states',
+        'united states vip' => 'united states',
+        'united states virt' => 'united states',
+        'usa' => 'united states',
+        'canada' => 'canada',
+        'cote divoire' => 'ivory coast',
+        'cote d ivoire' => 'ivory coast',
+        'cape verde' => 'cape verde',
+        'bermuda' => 'bermuda',
+        'bhutan' => 'bhutan',
+    ];
+    $name = $aliases[$name] ?? $name;
+
     // Shared numbering plans (USA/Canada, Caribbean, etc.) are deliberately
     // omitted because a prefix alone cannot identify the exact country.
     $prefixes = [
         'afghanistan' => '93', 'albania' => '355', 'algeria' => '213',
         'angola' => '244', 'argentina' => '54', 'armenia' => '374',
         'australia' => '61', 'austria' => '43', 'azerbaijan' => '994',
-        'bahrain' => '973', 'bangladesh' => '880',
-        'belarus' => '375', 'belgium' => '32', 'belize' => '501',
-        'benin' => '229', 'bolivia' => '591', 'bosnia and herzegovina' => '387',
+        'bahamas' => '1242', 'bahrain' => '973', 'bangladesh' => '880',
+        'barbados' => '1246', 'belarus' => '375', 'belgium' => '32', 'belize' => '501',
+        'benin' => '229', 'bermuda' => '1441', 'bhutan' => '975',
+        'bolivia' => '591', 'bosnia and herzegovina' => '387',
         'botswana' => '267', 'brazil' => '55', 'brunei' => '673',
         'bulgaria' => '359', 'burkina faso' => '226', 'burundi' => '257',
-        'cambodia' => '855', 'cameroon' => '237', 'chile' => '56',
-        'china' => '86', 'colombia' => '57', 'congo' => '242',
+        'cambodia' => '855', 'cameroon' => '237', 'cape verde' => '238',
+        'chile' => '56', 'china' => '86', 'colombia' => '57', 'congo' => '242',
         'croatia' => '385', 'cyprus' => '357', 'czech republic' => '420',
         'denmark' => '45', 'djibouti' => '253',
         'ecuador' => '593', 'egypt' => '20', 'estonia' => '372',

@@ -1,6 +1,6 @@
 /**
  * main_server2.js — Server 2 (5SIM)
- * SERVICE-FIRST buy flow: Service → Country → OTP
+ * SERVICE-FIRST buy flow: Service → Country → Prices → OTP
  */
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ function loadAllServices() {
 
                 // The fast 5sim products endpoint does not expose countries.
                 // Ask the same filtered endpoint used by the next step so the
-                // count reflects USA and the optional USA 2 pool accurately.
+                // count reflects the currently available provider countries.
                 $.ajax({
                     type: 'GET',
                     url: 'api/service/getCountriesForService2',
@@ -148,6 +148,9 @@ function selectServiceStep1(serviceId, serviceName) {
     document.getElementById('buy-btn').disabled = true;
     document.getElementById('selected-name').textContent  = '—';
     document.getElementById('selected-price').textContent = '₦0';
+    document.getElementById('operator-list').innerHTML = '';
+    document.getElementById('operator-selected-name').textContent = '—';
+    document.getElementById('operator-selected-price').textContent = '₦0';
 
     loadCountriesForService(serviceId);
     goStep(2);
@@ -207,7 +210,7 @@ const countryFlagMap = {
     'sweden':'se','switzerland':'ch','taiwan':'tw','tajikistan':'tj','tanzania':'tz','thailand':'th',
     'togo':'tg','trinidadandtobago':'tt','tunisia':'tn','turkey':'tr','turkmenistan':'tm',
     'uganda':'ug','ukraine':'ua','uae':'ae','unitedstates':'us','uruguay':'uy','uzbekistan':'uz',
-    'venezuela':'ve','vietnam':'vn','yemen':'ye','zambia':'zm','zimbabwe':'zw','usa':'us','usa2':'us',
+    'venezuela':'ve','vietnam':'vn','yemen':'ye','zambia':'zm','zimbabwe':'zw','usa':'us',
     'unitedkingdom':'gb','uk':'gb','elsalvador':'sv'
 };
 
@@ -240,6 +243,7 @@ function loadCountriesForService(serviceId) {
                 const iso = getFlag(c.country_code);
                 const stock = c.stock;
                 const stockColor = stock < 10 ? '#ef4444' : '#10b981';
+                const hasOperators = !!(c.has_operators && Array.isArray(c.operators) && c.operators.length);
 
                 const row = document.createElement('div');
                 row.className = 'service-row';
@@ -247,6 +251,8 @@ function loadCountriesForService(serviceId) {
                 row.dataset.name     = c.country_name;
                 row.dataset.price    = c.price;
                 row.dataset.operator = c.operator || 'any';
+                row.dataset.hasOperators = hasOperators ? 'true' : 'false';
+                row.dataset.operators = JSON.stringify(c.operators || []);
                 row.innerHTML = `
                     <div class="service-info" style="display:flex; align-items:center; gap:10px;">
                         <span class="fi fi-${iso}" style="font-size:1.3rem;"></span>
@@ -274,14 +280,55 @@ function selectCountryStep2(row) {
 
     selectedCountryCode = row.dataset.code;
     selectedCountryName = row.dataset.name;
-    selectedOperator    = row.dataset.operator;
+    selectedOperator    = '';
     selectedPrice       = row.dataset.price;
 
-    document.getElementById('server_no').value             = selectedCountryCode;
-    document.getElementById('operator_id').value           = selectedOperator;
-    document.getElementById('selected-name').textContent   = selectedServiceName + ' — ' + selectedCountryName;
-    document.getElementById('selected-price').textContent  = '₦' + Number(selectedPrice).toLocaleString();
-    document.getElementById('buy-btn').disabled = false;
+    const operatorList = document.getElementById('operator-list');
+    const hasOperators = row.dataset.hasOperators === 'true';
+    const operators = JSON.parse(row.dataset.operators || '[]');
+
+    document.getElementById('server_no').value = selectedCountryCode;
+    document.getElementById('operator_id').value = '';
+    document.getElementById('selected-name').textContent = selectedServiceName + ' — ' + selectedCountryName;
+    document.getElementById('selected-price').textContent = '₦' + Number(selectedPrice).toLocaleString();
+
+    if (hasOperators && operators.length) {
+        if (operatorList) {
+            operatorList.innerHTML = `
+                ${operators.map(op => `
+                    <button type="button" class="price-option" data-name="${op.name}" data-price="${op.price}">
+                        <span>₦${Number(op.price).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <small>${Number(op.count).toLocaleString()} available</small>
+                    </button>
+                `).join('')}
+            `;
+
+            operatorList.querySelectorAll('.price-option').forEach(opRow => {
+                opRow.addEventListener('click', () => {
+                    operatorList.querySelectorAll('.price-option').forEach(r => r.classList.remove('selected'));
+                    opRow.classList.add('selected');
+                    selectedOperator = opRow.dataset.name;
+                    document.getElementById('operator_id').value = selectedOperator;
+                    document.getElementById('selected-name').textContent = selectedServiceName + ' — ' + selectedCountryName;
+                    document.getElementById('operator-selected-name').textContent = selectedServiceName + ' — ' + selectedCountryName;
+                    document.getElementById('operator-selected-price').textContent = '₦' + Number(opRow.dataset.price || selectedPrice).toLocaleString();
+                    document.getElementById('operator-buy-btn').disabled = false;
+                });
+            });
+
+            selectedOperator = '';
+            document.getElementById('operator_id').value = '';
+            document.getElementById('operator-selected-name').textContent = '—';
+            document.getElementById('operator-selected-price').textContent = '₦0';
+            document.getElementById('operator-buy-btn').disabled = true;
+            goStep(3);
+            return;
+        }
+    }
+
+    selectedOperator = row.dataset.operator || 'any';
+    document.getElementById('operator_id').value = selectedOperator;
+    doBuy();
 }
 
 function filterCountryRows() {
@@ -299,11 +346,17 @@ function doBuy() {
     const server   = document.getElementById('server_no').value;
     const service  = document.getElementById('service_id').value;
     const operator = document.getElementById('operator_id').value;
+    const selectedCountry = document.querySelector('#country-list .service-row.selected');
+    const hasOperators = selectedCountry && selectedCountry.dataset.hasOperators === 'true';
 
     if (!service) { Notiflix.Notify.warning('Please select a service first.'); return; }
     if (!server)  { Notiflix.Notify.warning('Please select a country first.'); return; }
+    if (hasOperators && (!operator || operator === '')) {
+        Notiflix.Notify.warning('Please select a price before buying.');
+        return;
+    }
 
-    const btn = document.getElementById('buy-btn');
+    const btn = document.getElementById(hasOperators ? 'operator-buy-btn' : 'buy-btn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buying…';
 
@@ -321,7 +374,7 @@ function doBuy() {
                 const p = document.getElementById('step3-subtitle');
                 if (h) h.textContent = 'Number Purchased!';
                 if (p) p.textContent = 'Waiting for your OTP code…';
-                goStep(3);
+                goStep(4);
                 checkOrder();
                 user_balance(token);
             } else {
@@ -452,7 +505,7 @@ function checkOrder() {
             container.innerHTML = '';
             const items = res.data || [];
             if (!items.length) {
-                if (document.getElementById('step3').classList.contains('active')) {
+                if (document.getElementById('step4').classList.contains('active')) {
                     container.innerHTML = '<div class="no-active-numbers"><i class="bi bi-phone"></i><p>No active numbers. Buy a new one below.</p></div>';
                     setTimeout(() => goStep(1), 2000);
                 }
@@ -463,7 +516,7 @@ function checkOrder() {
                 countdownTimer(item.left_time, 't_' + item.id);
                 setSMSInterval('sms_' + item.id, item.id, token, item.number);
             });
-            goStep(3);
+            goStep(4);
         }
     });
 }

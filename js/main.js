@@ -1,6 +1,6 @@
 /**
  * main.js — Server 1 (TigerSMS)
- * SERVICE-FIRST buy flow: Service → Country → OTP
+ * SERVICE-FIRST buy flow: Service → Country → Price → OTP
  */
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
@@ -57,6 +57,8 @@ let selectedServiceName = '';
 let selectedCountryCode = '';
 let selectedCountryName = '';
 let selectedPrice       = 0;
+let selectedMaxPrice    = 0;
+let selectedProviderIds = [];
 
 function loadAllServices() {
     const token = document.getElementById('token').value;
@@ -98,7 +100,6 @@ function loadAllServices() {
                 list.appendChild(row);
             });
 
-            // Attach search filter
             document.getElementById('service-search').value = '';
             attachServiceSearch();
         },
@@ -114,7 +115,6 @@ function selectServiceStep1(serviceId, serviceName) {
     document.getElementById('service_id').value = serviceId;
     document.getElementById('step2-title').textContent = 'Countries for ' + serviceName;
 
-    // Reset country selection
     selectedCountryCode = '';
     selectedCountryName = '';
     selectedPrice       = 0;
@@ -151,74 +151,92 @@ function attachServiceSearch() {
 
 // ── STEP 2 — COUNTRY (second step now) ────────────────────────────────────────
 
-// ISO country code → flag-icons class map
 const countryFlagMap = {
-    'afghanistan':'af','albania':'al','algeria':'dz','angola':'ao','antigua and barbuda':'ag',
-    'argentinas':'ar','armenia':'am','aruba':'aw','australia':'au','austria':'at','azerbaijan':'az',
-    'bahamas':'bs','bahrain':'bh','bangladesh':'bd','barbados':'bb','belarus':'by','belgium':'be',
-    'belize':'bz','benin':'bj','bhutane':'bt','bih':'ba','bolivia':'bo','botswana':'bw','brazil':'br',
-    'brunei':'bn','bulgaria':'bg','burkina faso':'bf','burundi':'bi','cambodia':'kh','cameroon':'cm',
-    'canada':'ca','cape verde':'cv','cayman islands':'ky','chad':'td','chile':'cl','china':'cn',
-    'colombia':'co','comoros':'km','congo':'cg','costa rica':'cr','croatia':'hr','cyprus':'cy',
-    'czech republic':'cz','denmark':'dk','djibouti':'dj','dominican republic':'do','ecuador':'ec',
-    'egypt':'eg','el salvador':'sv','england':'gb','equatorial guinea':'gq','eritrea':'er','estonia':'ee',
-    'ethiopia':'et','finland':'fi','france':'fr','french guiana':'gf','gabon':'ga','gambia':'gm',
-    'georgia':'ge','germany':'de','ghana':'gh','greece':'gr','guadeloupe':'gp','guatemala':'gt',
-    'guinea':'gn','guinea-bissau':'gw','guyana':'gy','haiti':'ht','honduras':'hn','hong kong':'hk',
-    'hungary':'hu','iceland':'is','india':'in','indonesia':'id','iraq':'iq','ireland':'ie','israel':'il',
-    'italy':'it','ivory coast':'ci','jamaica':'jm','japan':'jp','jordan':'jo','kazakhstan':'kz',
-    'kenya':'ke','kuwait':'kw','kyrgyzstan':'kg','laos':'la','latvia':'lv','lebanon':'lb','lesotho':'ls',
-    'liberia':'lr','lithuania':'lt','luxembourg':'lu','macau':'mo','madagascar':'mg','malawi':'mw',
-    'malaysia':'my','maldives':'mv','mali':'ml','mauritania':'mr','mauritius':'mu','mexico':'mx',
-    'moldova':'md','monaco':'mc','mongolia':'mn','montenegro':'me','montserrat':'ms','morocco':'ma',
-    'mozambique':'mz','myanmar':'mm','namibia':'na','nepal':'np','netherlands':'nl','new caledonia':'nc',
-    'new zealand':'nz','nicaragua':'ni','niger':'ne','nigeria':'ng','north macedonia':'mk','norway':'no',
-    'oman':'om','pakistan':'pk','palestine':'ps','panama':'pa','papua new guinea':'pg','paraguay':'py',
-    'peru':'pe','philippines':'ph','poland':'pl','portugal':'pt','puerto rico':'pr','qatar':'qa',
-    'reunion':'re','romania':'ro','russia':'ru','rwanda':'rw','samoa':'ws','saudi arabia':'sa',
-    'senegal':'sn','serbia':'rs','seychelles':'sc','sierra leone':'sl','singapore':'sg','slovakia':'sk',
-    'slovenia':'si','somalia':'so','south africa':'za','south korea':'kr','spain':'es','sri lanka':'lk',
-    'sudan':'sd','suriname':'sr','sweden':'se','switzerland':'ch','syrian arab republic':'sy',
-    'taiwan':'tw','tajikistan':'tj','tanzania':'tz','thailand':'th','timor-leste':'tl','togo':'tg',
-    'tonga':'to','trinidad and tobago':'tt','tunisia':'tn','turkey':'tr','turkmenistan':'tm',
-    'turks and caicos islands':'tc','uganda':'ug','ukraine':'ua','united arab emirates':'ae',
-    'uruguay':'uy','usa':'us','usavip':'us','usavirt':'us','unitedstates':'us','unitedstatesvip':'us','unitedstatesvirt':'us','uzbekistan':'uz','venezuela':'ve','vietnam':'vn','yemen':'ye',
-    'zambia':'zm','zimbabwe':'zw'
+    'argentina':'ar','armenia':'am','australia':'au','austria':'at','azerbaijan':'az','bahamas':'bs','bahrain':'bh','bangladesh':'bd','barbados':'bb','belarus':'by','belgium':'be','belize':'bz','benin':'bj','bhutan':'bt','bolivia':'bo','bosnia and herzegovina':'ba','botswana':'bw','brazil':'br','brunei':'bn','bulgaria':'bg','burkina faso':'bf','burundi':'bi','cambodia':'kh','cameroon':'cm','canada':'ca','cape verde':'cv','chad':'td','chile':'cl','china':'cn','colombia':'co','congo':'cg','croatia':'hr','cyprus':'cy','czech republic':'cz','denmark':'dk','djibouti':'dj','ecuador':'ec','egypt':'eg','estonia':'ee','ethiopia':'et','finland':'fi','france':'fr','gabon':'ga','gambia':'gm','georgia':'ge','germany':'de','ghana':'gh','greece':'gr','guatemala':'gt','guinea':'gn','guinea-bissau':'gw','guyana':'gy','haiti':'ht','honduras':'hn','hong kong':'hk','hungary':'hu','iceland':'is','india':'in','indonesia':'id','iraq':'iq','ireland':'ie','israel':'il','italy':'it','ivory coast':'ci','jamaica':'jm','japan':'jp','jordan':'jo','kazakhstan':'kz','kenya':'ke','kuwait':'kw','kyrgyzstan':'kg','laos':'la','latvia':'lv','lebanon':'lb','lesotho':'ls','liberia':'lr','lithuania':'lt','luxembourg':'lu','madagascar':'mg','malawi':'mw','malaysia':'my','maldives':'mv','mali':'ml','mauritania':'mr','mauritius':'mu','mexico':'mx','moldova':'md','mongolia':'mn','morocco':'ma','mozambique':'mz','myanmar':'mm','namibia':'na','nepal':'np','netherlands':'nl','new zealand':'nz','nicaragua':'ni','niger':'ne','nigeria':'ng','north macedonia':'mk','norway':'no','oman':'om','pakistan':'pk','panama':'pa','paraguay':'py','peru':'pe','philippines':'ph','poland':'pl','portugal':'pt','qatar':'qa','romania':'ro','russia':'ru','rwanda':'rw','saudi arabia':'sa','senegal':'sn','serbia':'rs','singapore':'sg','slovakia':'sk','slovenia':'si','somalia':'so','south africa':'za','south korea':'kr','spain':'es','sri lanka':'lk','sudan':'sd','suriname':'sr','sweden':'se','switzerland':'ch','taiwan':'tw','tajikistan':'tj','tanzania':'tz','thailand':'th','tunisia':'tn','turkey':'tr','turkmenistan':'tm','uganda':'ug','ukraine':'ua','united arab emirates':'ae','united kingdom':'gb','united states':'us','uruguay':'uy','usa':'us','uzbekistan':'uz','venezuela':'ve','vietnam':'vn','yemen':'ye','zambia':'zm','zimbabwe':'zw','bermuda':'bm'
 };
 
+function normalizeTigerCountryCode(input) {
+    const raw = String(input ?? '').trim();
+    if (!raw) return '';
+    if (/^\d+$/.test(raw)) return raw;
+
+    const byName = {
+        'uk': '16',
+        'gb': '16',
+        'united kingdom': '16',
+        'england': '16',
+        'usa': '187',
+        'us': '187',
+        'united states': '187',
+        'canada': '36',
+        'cape verde': '186',
+        'ivory coast': '27',
+        'cote divoire': '27',
+        'cote d ivoire': '27'
+    };
+
+    const normalized = raw.toLowerCase().replace(/[\s_-]+/g, ' ');
+    return byName[normalized] || '';
+}
+
 function getFlag(countryName) {
-    const original = countryName.toLowerCase().trim();
-    const n = original.replace(/[\s_-]+/g, '');
+    const original = String(countryName || '').toLowerCase().trim();
+    if (!original) return 'un';
+
+    const normalized = original
+        .replace(/&/g, ' and ')
+        .replace(/\s+/g, ' ')
+        .replace(/[_\-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const compact = normalized.replace(/\s+/g, '');
     const aliases = {
         'united kingdom': 'gb',
+        'uk': 'gb',
         'united states': 'us',
         'united states vip': 'us',
         'united states virt': 'us',
+        'usa': 'us',
+        'usa vip': 'us',
+        'usa virt': 'us',
+        'canada': 'ca',
+        'cape verde': 'cv',
+        'cote d ivoire': 'ci',
+        'cote divoire': 'ci',
+        'ivory coast': 'ci',
         'bosnia and herzegovina': 'ba',
-        'cayman islands': 'ky',
-        'central african republic': 'cf',
-        'congo dr': 'cd',
-        'cote divoire/ivory coast': 'ci',
+        'north macedonia': 'mk',
+        'republic of korea': 'kr',
+        'south korea': 'kr',
+        'united arab emirates': 'ae',
+        'russian federation': 'ru',
+        'the bahamas': 'bs',
+        'bermuda': 'bm',
+        'bhutan': 'bt',
+        'antigua and barbuda': 'ag',
+        'albania': 'al',
+        'algeria': 'dz',
+        'anguilla': 'ai',
+        'aruba': 'aw',
+        'argentina': 'ar',
+        'armenia': 'am',
+        'congo': 'cg',
+        'republic of the congo': 'cg',
+        'democratic republic of the congo': 'cd',
+        'dr congo': 'cd',
+        'costa rica': 'cr',
+        'croatia': 'hr',
         'cuba': 'cu',
-        'dominica': 'dm',
-        'fiji': 'fj',
-        'grenada': 'gd',
-        'iran': 'ir',
-        'korea': 'kr',
-        'kosovo': 'xk',
-        "lao people's": 'la',
-        'libya': 'ly',
-        'macedonia': 'mk',
-        'malta': 'mt',
-        'saint kitts and nevis': 'kn',
-        'saint lucia': 'lc',
-        'saint vincent': 'vc',
-        'sao tome and principe': 'st',
-        'solomon islands': 'sb',
-        'south sudan': 'ss',
-        'swaziland': 'sz'
+        'dominican republic': 'do',
+        'ecuador': 'ec',
+        'egypt': 'eg',
+        'el salvador': 'sv',
+        'equatorial guinea': 'gq',
+        'iran': 'ir'
     };
-    return aliases[original] || countryFlagMap[original] || countryFlagMap[n] || 'un';
+
+    return aliases[normalized] || aliases[original] || countryFlagMap[normalized] || countryFlagMap[original] || countryFlagMap[compact] || 'un';
 }
 
 function loadCountriesForService(serviceId) {
@@ -243,7 +261,45 @@ function loadCountriesForService(serviceId) {
                 return;
             }
 
-            countries.forEach(c => {
+            const topCountryPriority = [
+                'USA',
+                'USA VIP',
+                'USA Virt',
+                'United States',
+                'United States VIP',
+                'United States Virt',
+                'United Kingdom',
+                'Canada',
+                'Australia',
+                'Germany',
+                'France',
+                'Spain',
+                'Saudi Arabia',
+                'United Arab Emirates',
+                'India'
+            ];
+
+            const normalizeCountryPriorityName = (name) => String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+            const orderedCountries = [...countries].sort((a, b) => {
+                const aName = String(a.country_name || '').trim();
+                const bName = String(b.country_name || '').trim();
+                const aKey = normalizeCountryPriorityName(aName);
+                const bKey = normalizeCountryPriorityName(bName);
+
+                const aIndex = topCountryPriority.findIndex(item => normalizeCountryPriorityName(item) === aKey);
+                const bIndex = topCountryPriority.findIndex(item => normalizeCountryPriorityName(item) === bKey);
+
+                if (aIndex !== -1 || bIndex !== -1) {
+                    if (aIndex === -1) return 1;
+                    if (bIndex === -1) return -1;
+                    return aIndex - bIndex;
+                }
+
+                return aName.localeCompare(bName);
+            });
+
+            orderedCountries.forEach(c => {
                 const iso = getFlag(c.country_name);
                 const stock = c.stock;
                 const stockColor = stock < 10 ? '#ef4444' : '#10b981';
@@ -266,7 +322,6 @@ function loadCountriesForService(serviceId) {
                 list.appendChild(row);
             });
 
-            // Reset country search
             document.getElementById('country-search').value = '';
         },
         error: function() {
@@ -286,15 +341,55 @@ function loadCountriesForService(serviceId) {
 function selectCountryStep2(row) {
     document.querySelectorAll('#country-list .service-row').forEach(r => r.classList.remove('selected'));
     row.classList.add('selected');
-    
-    selectedCountryCode = row.dataset.code;
+
+    const safeCode = normalizeTigerCountryCode(row.dataset.code);
+    selectedCountryCode = safeCode || String(row.dataset.code || '').trim();
     selectedCountryName = row.dataset.name;
-    selectedPrice       = row.dataset.price;
+    selectedPrice       = 0;
+    selectedMaxPrice    = 0;
+    selectedProviderIds = [];
 
     document.getElementById('server_no').value            = selectedCountryCode;
     document.getElementById('selected-name').textContent  = selectedServiceName + ' — ' + selectedCountryName;
-    document.getElementById('selected-price').textContent = '₦' + Number(selectedPrice).toLocaleString();
-    document.getElementById('buy-btn').disabled = false;
+        document.getElementById('selected-price').textContent = '₦0';
+    document.getElementById('buy-btn').disabled = true;
+    loadPriceBuckets();
+    goStep(3);
+}
+
+function loadPriceBuckets() {
+    const token = document.getElementById('token').value;
+    const list = document.getElementById('price-list');
+    list.innerHTML = '<div class="skeleton-row"></div><div class="skeleton-row"></div>';
+    $.ajax({
+        type: 'GET', url: 'api/service/getPrices1',
+        data: { token, service: selectedServiceId, country: selectedCountryCode },
+        dataType: 'json',
+        success: function(res) {
+            list.innerHTML = '';
+            const prices = res.prices || [];
+            priceOptions = prices;
+            if (!prices.length) { list.innerHTML = '<div class="empty-state"><p>No price options are currently available.</p></div>'; return; }
+            prices.forEach(option => {
+                const row = document.createElement('button');
+                row.type = 'button';
+                row.className = 'price-option';
+                const customerPrice = Number(option.price);
+                row.innerHTML = `<span>₦${customerPrice.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span><small>${Number(option.stock).toLocaleString()} available</small>`;
+                row.addEventListener('click', () => {
+                    document.querySelectorAll('.price-option').forEach(item => item.classList.remove('selected'));
+                    row.classList.add('selected');
+                    selectedMaxPrice = Number(option.max_price);
+                    selectedPrice = Number(option.price);
+                    selectedProviderIds = option.provider_ids || [];
+                    document.getElementById('selected-price').textContent = '₦' + Number(selectedPrice).toLocaleString();
+                    document.getElementById('buy-btn').disabled = false;
+                });
+                list.appendChild(row);
+            });
+        },
+        error: function() { list.innerHTML = '<div class="empty-state"><p>Price options are temporarily unavailable. Please go back and try again.</p></div>'; }
+    });
 }
 
 function filterCountryRows() {
@@ -309,11 +404,15 @@ function filterCountryRows() {
 
 function doBuy() {
     const token   = document.getElementById('token').value;
-    const server  = document.getElementById('server_no').value;
+    const serverRaw = document.getElementById('server_no').value;
+    const server = normalizeTigerCountryCode(serverRaw);
     const service = document.getElementById('service_id').value;
 
     if (!service) { Notiflix.Notify.warning('Please select a service first.'); return; }
-    if (!server)  { Notiflix.Notify.warning('Please select a country first.'); return; }
+    if (!server)  { Notiflix.Notify.warning('Please select a valid Tiger country first.'); return; }
+    if (!selectedMaxPrice) { Notiflix.Notify.warning('Please select an available price.'); return; }
+
+    document.getElementById('server_no').value = server;
 
     const btn = document.getElementById('buy-btn');
     btn.disabled = true;
@@ -322,7 +421,7 @@ function doBuy() {
     $.ajax({
         type: 'GET',
         url:  'api/service/buynumber',
-        data: { token, server, service },
+        data: { token, server, service, max_price: selectedMaxPrice, provider_ids: selectedProviderIds.join(',') },
         dataType: 'json',
         success: function(res) {
             btn.disabled = false;
@@ -333,11 +432,14 @@ function doBuy() {
                 const p = document.getElementById('step3-subtitle');
                 if (h) h.textContent = 'Number Purchased!';
                 if (p) p.textContent = 'Waiting for your OTP code…';
-                goStep(3);
+                goStep(4);
                 checkOrder();
                 user_balance(token);
             } else {
                 Notiflix.Notify.failure(res.message || 'Purchase failed. Try again.');
+                if (String(res.message || '').toLowerCase().includes('no number')) {
+                    loadPriceBuckets();
+                }
             }
         },
         error: function() {
@@ -471,20 +573,20 @@ function checkOrder() {
             if (!items.length) {
                 // No active numbers — only go to step 1 if we are currently on step 3
                 // (i.e. all numbers expired). If on step 1 or 2, stay there.
-                if (document.getElementById('step3').classList.contains('active')) {
+                if (document.getElementById('step4').classList.contains('active')) {
                     container.innerHTML = '<div class="no-active-numbers"><i class="bi bi-phone"></i><p>No active numbers. Buy a new one below.</p></div>';
                     setTimeout(() => goStep(1), 2000);
                 }
                 return;
             }
 
-            // Has active numbers — always show step 3
+            // Has active numbers — always show the OTP step.
             items.forEach(item => {
                 container.appendChild(renderOtpCard(item));
                 countdownTimer(item.left_time, 't_' + item.id);
                 setSMSInterval('sms_' + item.id, item.id, token, item.number);
             });
-            goStep(3);
+            goStep(4);
         },
         error: function() {
             container.innerHTML = '<div class="no-active-numbers"><p>Failed to load numbers.</p></div>';

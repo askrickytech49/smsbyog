@@ -99,53 +99,47 @@ $rawCountries = curl_exec($ch2);
 curl_close($ch2);
 $countriesList = $rawCountries ? json_decode($rawCountries, true) : [];
 
-// Build countries list
+// Build countries list. Respect the actual 5SIM provider shape and keep the real
+// country record instead of inventing a synthetic "USA 2" country.
 $final = [];
 
 foreach ($serviceData as $country => $operators) {
     if (!is_array($operators)) continue;
 
-    // 5sim exposes both US pools under one country. Present them as two
-    // selectable countries while retaining the real provider country code.
-    if (strtolower($country) === 'usa') {
-        foreach (['virtual63' => 'USA', 'virtual28' => 'USA 2'] as $operatorKey => $displayName) {
-            if (!isset($operators[$operatorKey]) || !is_array($operators[$operatorKey])) continue;
-            $count = (int)($operators[$operatorKey]['count'] ?? 0);
-            $cost = (float)($operators[$operatorKey]['cost'] ?? 0);
-            if ($count <= 0 || $cost <= 0) continue;
-
-            $base_with_profit = ($cost * $conversion_rate) + $fixed_profit;
-            $final_price = round(custom_price($user_id, $service, 'usa', $base_with_profit, $conn), 2);
-            if ($final_price <= 0) continue;
-
-            $final[] = [
-                'country_code' => $operatorKey === 'virtual28' ? 'usa2' : 'usa',
-                'country_name' => $displayName,
-                'operator' => $operatorKey,
-                'price' => $final_price,
-                'stock' => $count,
-            ];
-        }
-        continue;
-    }
-
-    // All other countries continue to use the cheapest available operator.
-    $bestCost = PHP_FLOAT_MAX;
-    $bestOperator = 'any';
-    $totalStock = 0;
+    $availableOperators = [];
     foreach ($operators as $opName => $opDetails) {
+        if (!is_array($opDetails)) continue;
+
         $count = (int)($opDetails['count'] ?? 0);
         $cost = (float)($opDetails['cost'] ?? 0);
-        if ($count <= 0) continue;
-        $totalStock += $count;
-        if ($cost > 0 && $cost < $bestCost) {
-            $bestCost = $cost;
-            $bestOperator = $opName;
-        }
-    }
-    if ($totalStock <= 0 || $bestCost == PHP_FLOAT_MAX) continue;
+        if ($count <= 0 || $cost <= 0) continue;
 
-    $base_with_profit = ($bestCost * $conversion_rate) + $fixed_profit;
+        $availableOperators[] = [
+            'name' => (string)$opName,
+            'count' => $count,
+            'cost' => $cost,
+            'price' => round(custom_price(
+                $user_id,
+                $service,
+                $country,
+                ($cost * $conversion_rate) + $fixed_profit,
+                $conn
+            ), 2),
+        ];
+    }
+
+    if (empty($availableOperators)) continue;
+
+    usort($availableOperators, function($a, $b) {
+        if ($a['cost'] === $b['cost']) return strcasecmp($a['name'], $b['name']);
+        return $a['cost'] <=> $b['cost'];
+    });
+
+    $bestOperator = $availableOperators[0];
+    $namedOperators = array_values(array_filter($availableOperators, function($op) {
+        return strtolower($op['name']) !== 'any';
+    }));
+    $base_with_profit = ($bestOperator['cost'] * $conversion_rate) + $fixed_profit;
     $final_price = round(custom_price($user_id, $service, $country, $base_with_profit, $conn), 2);
     if ($final_price <= 0) continue;
 
@@ -153,17 +147,54 @@ foreach ($serviceData as $country => $operators) {
     if (isset($countriesList[$country]) && !empty($countriesList[$country]['text_en'])) {
         $countryName = $countriesList[$country]['text_en'];
     }
+
     $final[] = [
         'country_code' => $country,
         'country_name' => $countryName,
-        'operator' => $bestOperator,
+        'operator' => $bestOperator['name'],
         'price' => $final_price,
-        'stock' => $totalStock,
+        'stock' => array_sum(array_map(fn($op) => $op['count'], $availableOperators)),
+        'has_operators' => count($namedOperators) > 0,
+        'operators' => array_map(function($op) {
+            return [
+                'name' => $op['name'],
+                'count' => $op['count'],
+                'price' => $op['price'],
+            ];
+        }, $namedOperators),
     ];
 }
 
-// Sort by country name
-usort($final, function($a, $b) { return strcasecmp($a['country_name'], $b['country_name']); });
+$priorityOrder = [
+    'usa',
+    'united states',
+    'united kingdom',
+    'canada',
+    'australia',
+    'germany',
+    'france',
+    'spain',
+    'saudi arabia',
+];
+$priorityMap = array_flip($priorityOrder);
+
+usort($final, function($a, $b) use ($priorityMap) {
+    $normalize = function ($value) {
+        return strtolower(trim(preg_replace('/\s+/', ' ', (string)$value)));
+    };
+
+    $aKey = $normalize($a['country_name'] ?? '');
+    $bKey = $normalize($b['country_name'] ?? '');
+
+    $aPriority = $priorityMap[$aKey] ?? PHP_INT_MAX;
+    $bPriority = $priorityMap[$bKey] ?? PHP_INT_MAX;
+
+    if ($aPriority !== $bPriority) {
+        return $aPriority <=> $bPriority;
+    }
+
+    return strcasecmp($a['country_name'] ?? '', $b['country_name'] ?? '');
+});
 
 if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
