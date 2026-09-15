@@ -147,6 +147,12 @@ foreach ($serviceData as $country => $operators) {
     if (isset($countriesList[$country]) && !empty($countriesList[$country]['text_en'])) {
         $countryName = $countriesList[$country]['text_en'];
     }
+    $countryNameKey = strtolower(trim($countryName));
+    if ($countryNameKey === 'united states' || $countryNameKey === 'united state') {
+        $countryName = 'USA';
+    } elseif ($countryNameKey === 'england') {
+        $countryName = 'United Kingdom';
+    }
 
     $final[] = [
         'country_code' => $country,
@@ -167,7 +173,6 @@ foreach ($serviceData as $country => $operators) {
 
 $priorityOrder = [
     'usa',
-    'united states',
     'united kingdom',
     'canada',
     'australia',
