@@ -437,6 +437,7 @@ if(isset($userdata['type']) && $userdata['type'] === 'admin'){
         <strong><?php echo $userdata['name']; ?></strong> | Welcome Back
     </span>
 </div>
+  <?php include 'partial/broadcast.php'; ?>
 <!-- KPI -->
 <div class="kpi-grid">
 

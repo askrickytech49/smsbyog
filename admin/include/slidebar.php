@@ -168,6 +168,13 @@ $_usaca_on   = ($api_status[3] ?? 1) == 1;
         </a>
       </li>
 
+      <li>
+        <a href="broadcast" class="sidebar-link <?= nav_active('broadcast', $current) ?>">
+          <i class="bi bi-megaphone"></i>
+          <span class="link-text">Broadcast</span>
+        </a>
+      </li>
+
     </ul>
   </div>
 
