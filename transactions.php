@@ -28,19 +28,14 @@ $page_title = "Transaction History - ".$site_data['web_name'];
 include ('partial/header.php');
 ?>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.5/css/dataTables.dataTables.min.css">
-
 <style>
-:root{
+:root {
   --auth-orange:#e10700;
   --border:#e6e9f0;
   --muted:#6c757d;
 }
 
-/* =========================
-   SHARED
-========================= */
-.auth-card{
+.auth-card {
   background:#fff;
   border:1px solid var(--border);
   border-radius:16px;
@@ -51,14 +46,11 @@ include ('partial/header.php');
 .transaction-page .auth-card {
   position: relative;
   overflow: hidden;
+  margin-top: 40px;
 }
 
 .transaction-page .auth-card::before {
-  content: "";
-  display: block;
-  height: 4px;
-  margin: -24px -24px 22px;
-  background: linear-gradient(90deg, #e10700 0%, #ff5a52 55%, #ffd3cf 100%);
+  display: none;
 }
 
 .auth-header{
@@ -88,86 +80,10 @@ include ('partial/header.php');
   text-transform: uppercase;
 }
 
-
-/* =========================
-   DESKTOP TABLE
-========================= */
-.desktop-only{
-  display:block;
-}
-
-.mobile-only{
-  display:none;
-}
-
-@media(max-width:768px){
-  .desktop-only{display:none}
-  .mobile-only{display:block}
-}
-
-@media(max-width:575px){
-  .transaction-page { padding:16px 12px 36px; }
-  .auth-card { padding:16px; border-radius:14px; }
-  .transaction-page .auth-card::before { margin:-16px -16px 18px; }
-  .auth-header h4 { font-size:19px; }
-  .badge-auth { font-size:10px; white-space:nowrap; }
-}
-
-/* ===== TABLE ===== */
-.dataTables_wrapper table{
-  border-collapse:separate!important;
-  border-spacing:0 8px!important;
-  margin-top:4px!important;
-}
-
-.dataTables_wrapper tbody tr{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:10px;
-  box-shadow:0 3px 10px rgba(15,23,42,.03);
-}
-
-.transaction-page .dataTables_wrapper tbody tr:hover {
-  background:#fff8f5;
-  transform:translateY(-1px);
-}
-
-.dataTables_wrapper thead th {
-  border-bottom:1px solid #e5e9ef!important;
-  color:#64748b!important;
-  font-size:11px!important;
-  font-weight:750!important;
-  letter-spacing:.05em;
-  text-transform:uppercase;
-  padding:11px 14px!important;
-}
-
-.dataTables_wrapper tbody td{
-  padding:14px!important;
-  border:none!important;
-  color:#263247;
-  font-size:13px;
-}
-
-.amount{
-  font-weight:800;
-  color:var(--auth-orange);
-}
-
-.badge-success{
-  background:#e8f7ef;
-  color:#198754;
-}
-
-.badge-danger{
-  background:#fdecea;
-  color:#dc3545;
-}
-
 .transaction-page {
   background:#f5f7fa;
   min-height:calc(100vh - 72px);
-  padding:28px 24px 56px;
+  padding:180px 24px 56px;
   overflow-x:hidden;
 }
 
@@ -177,99 +93,117 @@ include ('partial/header.php');
   padding:0;
 }
 
-.transaction-page .dataTables_wrapper .dataTables_length,
-.transaction-page .dataTables_wrapper .dataTables_filter {
-  color:#64748b;
-  font-size:12px;
-  padding:6px 0 10px;
+.desktop-only{ display:block; }
+.mobile-only{ display:none; }
+
+@media(max-width:768px){
+  .desktop-only{ display:none; }
+  .mobile-only{ display:block; }
 }
 
-.transaction-page .dataTables_wrapper .dataTables_filter input,
-.transaction-page .dataTables_wrapper .dataTables_length select {
-  border:1px solid #dfe4eb!important;
-  border-radius:7px;
+@media(max-width:575px){
+  .transaction-page { padding:16px 12px 36px; }
+  .auth-card {
+    padding:16px;
+    border-radius:14px;
+    margin:0 8px;
+  }
+  .transaction-page .auth-card::before { margin:-16px -16px 18px; }
+  .auth-header h4 { font-size:19px; }
+  .badge-auth { font-size:10px; white-space:nowrap; }
+}
+
+.payment-history-table {
+  table-layout: fixed;
+  border-collapse: collapse !important;
+  margin-top: 4px !important;
+}
+
+.payment-history-table thead th {
+  border-bottom: 1px solid #edf0f3 !important;
+  color: #64748b !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em;
+  padding: 8px 10px !important;
+  text-transform: uppercase;
+}
+
+.payment-history-table tbody tr {
+  background: #fff;
+  border-bottom: 1px solid #edf0f3;
+  box-shadow: none;
+}
+
+.transaction-page .payment-history-table tbody tr:hover {
+  background: #fff8f5;
+}
+
+.payment-history-table tbody td {
+  border: 0 !important;
+  color: #273247;
+  font-size: 11px;
+  padding: 12px 10px !important;
+  vertical-align: middle;
+}
+
+.payment-history-table tbody td:nth-child(2) {
+  font-weight: 700;
+}
+
+.payment-history-table tbody td:nth-child(4),
+.payment-history-table tbody td:nth-child(5) {
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+
+.payment-history-table tbody td:nth-child(6) {
+  color: #08a879;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.payment-history-table th:first-child,
+.payment-history-table td:first-child { width: 38px; color: #94a3b8 !important; }
+.payment-history-table th:nth-child(2) { width: 21%; }
+.payment-history-table th:nth-child(3) { width: 13%; }
+.payment-history-table th:nth-child(4) { width: 17%; }
+.payment-history-table th:nth-child(5) { width: 24%; }
+.payment-history-table th:nth-child(6) { width: 14%; }
+.payment-history-table th:nth-child(7) { width: 18%; }
+
+.amount {
+  font-weight:800;
+  color:var(--auth-orange);
+}
+
+.badge-success{
+  background:#e9f8ef;
+  color:#16834a;
+}
+
+.badge-danger{
+  background:#fdecea;
+  color:#dc3545;
+}
+
+.tx-card {
   background:#fff;
-  color:#172033;
-  padding:7px 9px;
+  border:1px solid #edf0f3;
+  border-radius:12px;
+  padding:12px 14px;
+  margin-bottom:12px;
+  box-shadow:0 4px 12px rgba(15,23,42,.04);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
 }
 
-.transaction-page .dataTables_wrapper .dataTables_filter input:focus {
-  border-color:#e10700!important;
-  box-shadow:0 0 0 3px rgba(225,7,0,.1);
-  outline:none;
-}
-
-.transaction-page .dataTables_wrapper .dataTables_info {
-  color:#64748b;
-  font-size:12px;
-  padding:14px 0 0;
-}
-
-.transaction-page .dataTables_wrapper .dataTables_paginate {
-  padding:10px 0 0;
-}
-
-.transaction-page .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  border:1px solid #e10700!important;
-  background:#e10700!important;
-  color:#fff!important;
-}
-
-.transaction-page .dt-container {
-  color:#64748b;
-  font-size:12px;
-}
-
-.transaction-page .dt-container .dt-length,
-.transaction-page .dt-container .dt-search {
-  padding:6px 0 10px;
-}
-
-.transaction-page .dt-container .dt-search input,
-.transaction-page .dt-container .dt-length select {
-  border:1px solid #dfe4eb!important;
-  border-radius:7px;
-  padding:7px 9px;
-}
-
-.transaction-page .dt-container .dt-paging .dt-paging-button.current {
-  border:1px solid #e10700!important;
-  background:#e10700!important;
-  color:#fff!important;
-}
-
-/* =========================
-   MOBILE CARDS (REAL FIX)
-========================= */
-.tx-card{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:14px;
-  box-shadow:0 5px 16px rgba(15,23,42,.05);
-  position:relative;
-  overflow:hidden;
-}
-
-.tx-card::before {
-  content:"";
-  position:absolute;
-  left:0;
-  top:0;
-  bottom:0;
-  width:3px;
-  background:#e10700;
-}
-
-.tx-top{
+.tx-top {
   display:flex;
   justify-content:space-between;
   margin-bottom:6px;
-}
-
-.tx-status {
-  border:1px solid transparent;
 }
 
 .tx-type{
@@ -281,14 +215,14 @@ include ('partial/header.php');
   font-size:13px;
 }
 
-.tx-status{
+.tx-status {
   font-size:12px;
   font-weight:700;
   padding:4px 10px;
   border-radius:5px;
 }
 
-.tx-row{
+.tx-row {
   display:flex;
   justify-content:space-between;
   font-size:12px;
@@ -298,18 +232,57 @@ include ('partial/header.php');
   border-top:1px solid #f0f2f5;
 }
 
-.text-muteds{
-    font-size: 12px;
-    color: #4a4a4a !important;
+.tx-main {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex:1;
+  min-width:0;
 }
 
-.tx-label{
-  color:var(--muted);
+.tx-title {
+  font-size:14px;
+  font-weight:700;
+  color:#1f2937;
 }
 
-.tx-amount{
+.tx-status-text {
+  font-size:11px;
+  font-weight:700;
+  color:#16834a;
+  letter-spacing:.01em;
+}
+
+.tx-status-text.success { color:#16834a; }
+.tx-status-text.failed { color:#c80700; }
+
+.tx-meta {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+  white-space:nowrap;
+}
+
+.tx-amount {
+  font-size:14px;
   font-weight:800;
-  color:var(--auth-orange);
+  color:#08a879;
+}
+
+.tx-amount.positive { color:#08a879; }
+.tx-amount.negative { color:#c80700; }
+
+.tx-date {
+  font-size:10px;
+  color:#8b95a7;
+}
+
+.tx-label{ color:var(--muted); }
+
+.text-muteds {
+  font-size:12px;
+  color:#4a4a4a !important;
 }
 </style>
 
@@ -337,16 +310,17 @@ include ('partial/header.php');
 
 <?php else: ?>
 
-<!-- ================= DESKTOP ================= -->
-<div class="desktop-only">
-  <table id="myTable" class="display w-100">
+<div class="desktop-only table-responsive">
+  <table class="table align-middle payment-history-table">
     <thead>
       <tr>
         <th>#</th>
         <th>Type</th>
+        <th>Status</th>
+        <th>Method</th>
+        <th>Reference</th>
         <th>Amount</th>
         <th>Date</th>
-        <th>Status</th>
       </tr>
     </thead>
     <tbody>
@@ -354,42 +328,33 @@ include ('partial/header.php');
       <tr>
         <td><?= $i ?></td>
         <td><?= htmlspecialchars($tx['type']) ?></td>
-        <td class="amount">₦ <?= number_format($tx['amount']) ?></td>
-        <td><?= htmlspecialchars($tx['date']) ?></td>
         <td>
           <span class="badge rounded-pill <?= $tx['status']==1?'badge-success':'badge-danger' ?>">
             <?= $tx['status']==1?'Success':'Failed' ?>
           </span>
         </td>
+        <td>Wallet funding</td>
+        <td><?= htmlspecialchars($tx['txn_id']) ?></td>
+        <td>₦<?= number_format($tx['amount'], 2) ?></td>
+        <td><?= htmlspecialchars(date('j M Y', strtotime($tx['date']))) ?></td>
       </tr>
     <?php endforeach; ?>
     </tbody>
   </table>
 </div>
 
-<!-- ================= MOBILE ================= -->
 <div class="mobile-only">
 <?php foreach($transactions as $tx): ?>
   <div class="tx-card">
-    <div class="tx-top">
-      <span class="tx-type"><?= htmlspecialchars($tx['type']) ?></span>
-      <span class="tx-status <?= $tx['status']==1?'badge-success':'badge-danger' ?>">
+    <div class="tx-main">
+      <strong class="tx-title"><?= htmlspecialchars($tx['type']) ?></strong>
+      <span class="tx-status-text <?= $tx['status']==1 ? 'success' : 'failed' ?>">
         <?= $tx['status']==1?'Success':'Failed' ?>
       </span>
     </div>
-
-    <div class="tx-row">
-      <span class="tx-label">Amount</span>
-      <span class="tx-amount">₦ <?= number_format($tx['amount']) ?></span>
-    </div>
-
-    <div class="tx-row">
-      <span class="tx-label">Date</span>
-      <span><?= htmlspecialchars($tx['date']) ?></span>
-    </div>
-    <div class="tx-row">
-      <span class="tx-label">Trans ID </span>
-      <span><?= htmlspecialchars($tx['txn_id']) ?></span>
+    <div class="tx-meta">
+      <strong class="tx-amount <?= $tx['status']==1 ? 'positive' : 'negative' ?>">₦<?= number_format($tx['amount'], 2) ?></strong>
+      <span class="tx-date"><?= htmlspecialchars(date('j M Y', strtotime($tx['date']))) ?></span>
     </div>
   </div>
 <?php endforeach; ?>
@@ -403,18 +368,4 @@ include ('partial/header.php');
 </div>
 
 <?php include ('partial/scripts.php'); ?>
-<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-<script src="https://cdn.datatables.net/2.0.5/js/dataTables.min.js"></script>
-
-<script>
-$(document).ready(function(){
-  if(window.innerWidth > 768){
-    $('#myTable').DataTable({
-      ordering:false,
-      pageLength:10
-    });
-  }
-});
-</script>
-
 <?php include ('partial/footer-end.php'); ?>

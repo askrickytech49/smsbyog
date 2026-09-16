@@ -74,17 +74,19 @@ $page_title = "Api Tool - " . $site_data['web_name'];
   margin-bottom: 12px;
 }
 
-.api-tool-page #api_value {
-  min-height: 46px;
-  border: 1px solid #dce2ea !important;
-  border-radius: 9px;
+    .api-tool-page .header-faq,
+    .api-tool-page .clipboaard-container {
+      margin-left: 6px;
+      margin-right: 6px;
   background: #f8fafc !important;
   color: #172033;
-  font-size: 14px;
-}
-
+    .api-tool-page .header-faq { margin-top: 28px; }
 .api-tool-page #api_value:focus {
-  border-color: #e10700 !important;
+    .api-tool-page .faq-accordion > .col {
+      padding-left: 6px;
+      padding-right: 6px;
+    }
+    .api-tool-page .faq-accordion .card-header button { min-height: 52px; padding: 12px 14px !important; }
   box-shadow: 0 0 0 3px rgba(225, 7, 0, .1) !important;
 }
 
@@ -188,7 +190,11 @@ $page_title = "Api Tool - " . $site_data['web_name'];
 }
 
 @media (max-width: 575px) {
-  .api-tool-page { padding: 18px 12px 36px; }
+  .api-tool-page { padding: 18px 0 36px; }
+  .api-tool-page > .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+  }
   .api-tool-page .faq-wrap,
   .api-tool-page .faq-wrap > .row,
   .api-tool-page .faq-accordion,
@@ -198,9 +204,21 @@ $page_title = "Api Tool - " . $site_data['web_name'];
     max-width: 100%;
     min-width: 0;
   }
+  .api-tool-page .faq-accordion > .col {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .api-tool-page .header-faq,
+  .api-tool-page .clipboaard-container {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
   .api-tool-page .clipboaard-container { padding: 2px; }
   .api-tool-page .clipboaard-container .text-end { display: flex; gap: 8px; }
   .api-tool-page .clipboaard-container .text-end button { flex: 1; padding: 9px 8px; }
+  .api-tool-page .header-faq {
+    margin-top: 28px;
+  }
   .api-tool-page .header-faq h5 { font-size: 18px; }
   .api-tool-page .faq-accordion .card-header button { min-height: 52px; padding: 12px 14px !important; }
 }

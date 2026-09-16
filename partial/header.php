@@ -25,12 +25,12 @@
   <meta property="og:title" content="<?php echo htmlspecialchars($share_page_title, ENT_QUOTES, 'UTF-8'); ?> | user.smsbyog.com">
   <meta property="og:description" content="<?php echo htmlspecialchars($share_description, ENT_QUOTES, 'UTF-8'); ?>">
   <meta property="og:url" content="<?php echo htmlspecialchars($share_url, ENT_QUOTES, 'UTF-8'); ?>">
-  <meta property="og:image" content="<?php echo htmlspecialchars($share_image, ENT_QUOTES, 'UTF-8'); ?>">
+  <meta property="og:image" content="https://user.smsbyog.com/assets/images/Weblink.webp">
   <meta property="og:image:alt" content="SmsByOg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<?php echo htmlspecialchars($share_page_title, ENT_QUOTES, 'UTF-8'); ?> | user.smsbyog.com">
   <meta name="twitter:description" content="<?php echo htmlspecialchars($share_description, ENT_QUOTES, 'UTF-8'); ?>">
-  <meta name="twitter:image" content="<?php echo htmlspecialchars($share_image, ENT_QUOTES, 'UTF-8'); ?>">
+  <meta name="twitter:image" content="https://user.smsbyog.com/assets/images/Weblink.webp">
 <?php include('style.php'); ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
