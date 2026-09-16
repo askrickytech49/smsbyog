@@ -275,10 +275,6 @@ if ($userdata['image_url'] == "") {
   </div>
 </div>
 
-<?php if (basename($_SERVER['PHP_SELF']) !== 'dashboard.php'): ?>
-<?php include __DIR__ . '/broadcast.php'; ?>
-<?php endif; ?>
-
 <script>
   feather.replace();
 </script>

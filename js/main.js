@@ -102,6 +102,12 @@ function loadAllServices() {
 
             document.getElementById('service-search').value = '';
             attachServiceSearch();
+            const requestedService = new URLSearchParams(window.location.search).get('service');
+            if (requestedService) {
+                const requestedRow = [...document.querySelectorAll('#service-list .service-row')]
+                    .find(row => row.dataset.id.toLowerCase() === requestedService.toLowerCase());
+                if (requestedRow) selectServiceStep1(requestedRow.dataset.id, requestedRow.dataset.name);
+            }
         },
         error: function() {
             list.innerHTML = '<div class="empty-state"><p>Failed to load services. Please try again.</p></div>';

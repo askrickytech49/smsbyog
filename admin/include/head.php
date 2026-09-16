@@ -21,7 +21,7 @@
   <?php
     $admin_base = rtrim(dirname(dirname($_SERVER['PHP_SELF'])), '/\\') . '/admin/';
   ?>
-  <link href="<?= $admin_base ?>css/admin-theme.css" rel="stylesheet">
+  <link href="<?= $admin_base ?>css/admin-theme.css?v=<?= filemtime(__DIR__ . '/../css/admin-theme.css') ?>" rel="stylesheet">
 
   <!-- jQuery (needed before any inline scripts) -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

@@ -816,29 +816,55 @@ class radiumsahil {
 
     public function top_services(){
         $final = [];
-        $sql = mysqli_query($this->conn, "SELECT ts.* FROM top_services ts JOIN otp_server os ON ts.server_name=os.id JOIN api_detail a ON os.api_id=a.id WHERE ts.status = 1 AND a.is_active=1 ORDER BY ts.id DESC");
+        $sql = mysqli_query($this->conn, "
+            SELECT an.service_id, an.api_id, MAX(NULLIF(an.service_name, '')) AS purchased_name, COUNT(*) AS purchase_count
+            FROM active_number an
+            JOIN api_detail a ON a.id = an.api_id AND a.is_active = 1
+            WHERE an.service_id IS NOT NULL AND an.service_id <> ''
+            GROUP BY an.service_id, an.api_id
+            ORDER BY purchase_count DESC, an.service_id ASC
+        ");
 
         if (!$sql) { return $final; }
 
+        $seen_services = [];
         while ($row = mysqli_fetch_assoc($sql)) {
-            $stmt_server = $this->conn->prepare("SELECT server_name FROM otp_server WHERE id = ? LIMIT 1");
-            $stmt_server->bind_param("s", $row['server_name']);
-            $stmt_server->execute();
-            $server_sql = $stmt_server->get_result();
+            $service_code = (string)$row['service_id'];
+            $api_id = (int)$row['api_id'];
 
-            if ($server_sql->num_rows !== 1) continue; 
-            $server_data = $server_sql->fetch_assoc();
-
-            $stmt_service = $this->conn->prepare("SELECT id, service_name, service_id FROM service WHERE id = ? LIMIT 1");
-            $stmt_service->bind_param("s", $row['service_id']);
+            $stmt_service = $this->conn->prepare("SELECT service_name, service_id FROM service WHERE service_id = ? LIMIT 1");
+            $stmt_service->bind_param("s", $service_code);
             $stmt_service->execute();
             $service_sql = $stmt_service->get_result();
 
-            if ($service_sql->num_rows !== 1) continue; 
-            $service_data = $service_sql->fetch_assoc();
+            $service_data = $service_sql->fetch_assoc() ?: [
+                'service_name' => $row['purchased_name'] ?: $service_code,
+                'service_id' => $service_code,
+            ];
+
+            $display_name = trim(strip_tags((string)$service_data['service_name']));
+            $display_name = trim(preg_replace('/\s*\(\s*virtual\d+\s*\)/i', '', $display_name));
+            $service_key = strtolower(preg_replace('/[^a-z0-9]+/i', '', $display_name));
+            $service_key = preg_replace('/virtual\d*/', '', $service_key);
+            if ($service_key === '') {
+                $service_key = strtolower($service_code);
+            }
+            if (isset($seen_services[$service_key])) {
+                continue;
+            }
+            $seen_services[$service_key] = true;
+
+            $service_name_key = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '', strip_tags($service_data['service_name']))));
+            $icon_aliases = [
+                'ng' => 'wa',
+                'whatsapp' => 'wa',
+                'whatsappvirtual8' => 'wa',
+                'telegram' => 'tg',
+            ];
+            $icon_code = $icon_aliases[strtolower($service_code)] ?? ($icon_aliases[$service_name_key] ?? strtolower($service_code));
 
             $stmt_icon = $this->conn->prepare("SELECT img_url FROM service_icon WHERE short_code = ? LIMIT 1");
-            $stmt_icon->bind_param("s", $service_data['service_id']);
+            $stmt_icon->bind_param("s", $icon_code);
             $stmt_icon->execute();
             $icon_sql = $stmt_icon->get_result();
 
@@ -846,16 +872,29 @@ class radiumsahil {
                 $img_data = $icon_sql->fetch_assoc();
                 $img_url  = $img_data['img_url'];
             } else {
-                $img_url = "https://i.ibb.co/ySRhxqh/default.png";
+                $icon_slug = $service_name_key ?: 'default';
+                foreach (['whatsapp', 'telegram', 'facebook', 'instagram', 'google', 'twitter', 'tiktok', 'netflix'] as $brand) {
+                    if (strpos($icon_slug, $brand) === 0) {
+                        $icon_slug = $brand;
+                        break;
+                    }
+                }
+                $img_url = "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/{$icon_slug}.png";
             }
 
             $final[] = [
-                'service_name'  => $service_data['service_name'],
-                'service_code'  => $service_data['service_id'], 
-                'service_price' => 0, 
-                'server_name'   => $server_data['server_name'],
+                'service_name'  => $display_name,
+                'service_code'  => $service_code,
+                'service_price' => 0,
+                'server_name'   => $api_id === 8 ? 'Server 1' : ($api_id === 2 ? 'Server 2' : ($api_id === 1 ? 'USA Only' : ($api_id === 3 ? 'USA + Canada' : 'Other Server'))),
                 'service_logo'  => $img_url,
+                'purchase_count' => (int)$row['purchase_count'],
+                'api_id'        => $api_id,
             ];
+
+            if (count($final) >= 5) {
+                break;
+            }
         }
         return $final;
     }
