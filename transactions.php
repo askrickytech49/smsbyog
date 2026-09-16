@@ -44,18 +44,44 @@ include ('partial/header.php');
   background:#fff;
   border:1px solid var(--border);
   border-radius:16px;
-  padding:20px;
-  box-shadow:0 10px 35px rgba(0,0,0,.06);
+  padding:24px;
+  box-shadow:0 12px 32px rgba(15,23,42,.07);
+}
+
+.transaction-page .auth-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.transaction-page .auth-card::before {
+  content: "";
+  display: block;
+  height: 4px;
+  margin: -24px -24px 22px;
+  background: linear-gradient(90deg, #e10700 0%, #ff5a52 55%, #ffd3cf 100%);
 }
 
 .auth-header{
   display:flex;
+  align-items:flex-start;
   justify-content:space-between;
-  margin-bottom:16px;
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.auth-header h4 {
+  margin: 0 0 4px;
+  color: #172033;
+  font-size: 22px;
+  font-weight: 750;
 }
 
 .badge-auth {
   color: var(--auth-orange);
+  background: #fff1ed;
+  border: 1px solid #ffd7d1;
+  border-radius: 999px;
+  padding: 6px 10px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.3px;
@@ -79,21 +105,48 @@ include ('partial/header.php');
   .mobile-only{display:block}
 }
 
+@media(max-width:575px){
+  .transaction-page { padding:16px 12px 36px; }
+  .auth-card { padding:16px; border-radius:14px; }
+  .transaction-page .auth-card::before { margin:-16px -16px 18px; }
+  .auth-header h4 { font-size:19px; }
+  .badge-auth { font-size:10px; white-space:nowrap; }
+}
+
 /* ===== TABLE ===== */
 .dataTables_wrapper table{
   border-collapse:separate!important;
-  border-spacing:0 14px!important;
+  border-spacing:0 8px!important;
+  margin-top:4px!important;
 }
 
 .dataTables_wrapper tbody tr{
   background:#fff;
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:10px;
+  box-shadow:0 3px 10px rgba(15,23,42,.03);
+}
+
+.transaction-page .dataTables_wrapper tbody tr:hover {
+  background:#fff8f5;
+  transform:translateY(-1px);
+}
+
+.dataTables_wrapper thead th {
+  border-bottom:1px solid #e5e9ef!important;
+  color:#64748b!important;
+  font-size:11px!important;
+  font-weight:750!important;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  padding:11px 14px!important;
 }
 
 .dataTables_wrapper tbody td{
-  padding:16px 18px;
+  padding:14px!important;
   border:none!important;
+  color:#263247;
+  font-size:13px;
 }
 
 .amount{
@@ -111,6 +164,80 @@ include ('partial/header.php');
   color:#dc3545;
 }
 
+.transaction-page {
+  background:#f5f7fa;
+  min-height:calc(100vh - 72px);
+  padding:28px 24px 56px;
+  overflow-x:hidden;
+}
+
+.transaction-page > .container-fluid {
+  max-width:1080px;
+  margin:0 auto;
+  padding:0;
+}
+
+.transaction-page .dataTables_wrapper .dataTables_length,
+.transaction-page .dataTables_wrapper .dataTables_filter {
+  color:#64748b;
+  font-size:12px;
+  padding:6px 0 10px;
+}
+
+.transaction-page .dataTables_wrapper .dataTables_filter input,
+.transaction-page .dataTables_wrapper .dataTables_length select {
+  border:1px solid #dfe4eb!important;
+  border-radius:7px;
+  background:#fff;
+  color:#172033;
+  padding:7px 9px;
+}
+
+.transaction-page .dataTables_wrapper .dataTables_filter input:focus {
+  border-color:#e10700!important;
+  box-shadow:0 0 0 3px rgba(225,7,0,.1);
+  outline:none;
+}
+
+.transaction-page .dataTables_wrapper .dataTables_info {
+  color:#64748b;
+  font-size:12px;
+  padding:14px 0 0;
+}
+
+.transaction-page .dataTables_wrapper .dataTables_paginate {
+  padding:10px 0 0;
+}
+
+.transaction-page .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  border:1px solid #e10700!important;
+  background:#e10700!important;
+  color:#fff!important;
+}
+
+.transaction-page .dt-container {
+  color:#64748b;
+  font-size:12px;
+}
+
+.transaction-page .dt-container .dt-length,
+.transaction-page .dt-container .dt-search {
+  padding:6px 0 10px;
+}
+
+.transaction-page .dt-container .dt-search input,
+.transaction-page .dt-container .dt-length select {
+  border:1px solid #dfe4eb!important;
+  border-radius:7px;
+  padding:7px 9px;
+}
+
+.transaction-page .dt-container .dt-paging .dt-paging-button.current {
+  border:1px solid #e10700!important;
+  background:#e10700!important;
+  color:#fff!important;
+}
+
 /* =========================
    MOBILE CARDS (REAL FIX)
 ========================= */
@@ -118,9 +245,21 @@ include ('partial/header.php');
   background:#fff;
   border:1px solid var(--border);
   border-radius:14px;
-  padding:14px 16px;
+  padding:16px;
   margin-bottom:14px;
-  box-shadow:0 6px 20px rgba(0,0,0,.05);
+  box-shadow:0 5px 16px rgba(15,23,42,.05);
+  position:relative;
+  overflow:hidden;
+}
+
+.tx-card::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+  background:#e10700;
 }
 
 .tx-top{
@@ -129,8 +268,13 @@ include ('partial/header.php');
   margin-bottom:6px;
 }
 
+.tx-status {
+  border:1px solid transparent;
+}
+
 .tx-type{
-  background:#f1f3f9;
+  background:#fff1ed;
+  color:#c80700;
   padding:6px 10px;
   border-radius:8px;
   font-weight:600;
@@ -150,6 +294,8 @@ include ('partial/header.php');
   font-size:12px;
   margin-top:6px;
   word-break: break-all;
+  padding-top:8px;
+  border-top:1px solid #f0f2f5;
 }
 
 .text-muteds{
@@ -174,7 +320,7 @@ include ('partial/header.php');
 <div class="page-body-wrapper">
 <?php include ('partial/sidebar.php'); ?>
 
-<div class="page-body"><br><br>
+<div class="page-body transaction-page">
 <div class="container-fluid">
 
 <div class="auth-card">

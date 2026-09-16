@@ -59,7 +59,12 @@
 #simple-bar {
   padding: 12px 12px 24px;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#simple-bar::-webkit-scrollbar {
+  display: none;
 }
 
 /* SECTION HEADERS */
@@ -122,31 +127,34 @@
   color: #000000;
 }
 
-/* ACTIVE STATE (AUTHPADI ORANGE) */
+/* ACTIVE STATE */
 .sidebar-link.active,
 .sidebar-list.active .sidebar-link {
-  background: rgba(255, 122, 0, 0.14) !important;
+  background: linear-gradient(100deg, #fff1e4 0%, #fff8f2 100%) !important;
   color: #e10700;
   font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(225, 7, 0, .08), 0 5px 14px rgba(225, 7, 0, .08);
 }
 
 /* ACTIVE ICON */
 .sidebar-link.active i,
 .sidebar-link.active svg {
   color: #e10700;
+  filter: drop-shadow(0 2px 3px rgba(225, 7, 0, .16));
 }
 
-/* ACTIVE RIGHT INDICATOR */
+/* ACTIVE INDICATOR */
 .sidebar-link.active::after {
   content: "";
   position: absolute;
-  right: 6px;
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
-  height: 22px;
+  width: 3px;
+  height: 24px;
   background: #e10700;
   border-radius: 6px;
+  box-shadow: 0 0 10px rgba(225, 7, 0, .35);
 }
 .simplebar-placeholder{
       display:none;

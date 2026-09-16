@@ -20,7 +20,7 @@ $page_title='Top Services';
 <div class="admin-card">
   <div class="admin-card-body p-0">
     <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+      <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
         <thead><tr><th>Service</th><th>Service ID</th><th>Server</th><th>Action</th></tr></thead>
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)): ?>

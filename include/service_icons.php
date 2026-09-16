@@ -8,6 +8,19 @@
 
 function getServiceIcon($serviceName, $serviceCode = '') {
 
+    $customIconUrl = static function ($path) {
+        if (preg_match('#^(https?:)?//#i', $path) || strpos($path, 'data:') === 0) {
+            return $path;
+        }
+
+        $path = ltrim($path, '/');
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+        $prefix = (basename($scriptDir) === 'admin') ? '../' : '';
+        $file = dirname(__DIR__) . '/' . $path;
+        $version = is_file($file) ? '?v=' . filemtime($file) : '';
+        return $prefix . $path . $version;
+    };
+
     // Normalise for matching
     $name = strtolower(trim($serviceName));
     $code = strtolower(trim($serviceCode));
@@ -27,7 +40,7 @@ function getServiceIcon($serviceName, $serviceCode = '') {
             }
         }
         if (isset($customIcons[$code])) {
-            return $customIcons[$code];
+            return $customIconUrl($customIcons[$code]);
         }
     }
 
@@ -133,14 +146,7 @@ function getServiceIcon($serviceName, $serviceCode = '') {
         }
     }
 
-    // Comprehensive API Fallback: TigerSMS hosts high-quality icons for almost every single service code (wa, tg, alibaba, acz, etc.)
-    // We return this URL, and if it occasionally 404s, the frontend JS `onerror` handler will catch it and swap to the SVG question mark.
-    if (!empty($code)) {
-        $cleanCode = urlencode(strtolower(trim($code)));
-        return "https://tigersms.com/assets/images/services/{$cleanCode}.png";
-    }
-
-    // Ultimate fallback: Question mark logo if the brand is unknown (using robust inline SVG)
+    // Local fallback avoids one failing remote request for every unknown service.
     return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z'/%3E%3C/svg%3E";
 }
 

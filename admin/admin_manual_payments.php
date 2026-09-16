@@ -40,8 +40,8 @@ $page_title='Manual Payments';
 <?php if($msg): ?><div class="alert alert-<?=$msg_type?> mb-3"><?=$msg?></div><?php endif; ?>
 <div class="admin-card">
   <div class="admin-card-body p-0">
-    <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+    <div class="table-responsive admin-mobile-table-responsive">
+      <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
         <thead><tr><th>User</th><th>Amount</th><th>Receipt</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)):
@@ -50,21 +50,21 @@ $page_title='Manual Payments';
           else{ $bs='badge-pending'; $bl='Pending'; }
         ?>
         <tr>
-          <td>
+          <td data-label="User">
             <div style="font-weight:600;font-size:13px"><?=htmlspecialchars($r['name']??'-')?></div>
             <div style="font-size:11px;color:var(--text-muted)"><?=htmlspecialchars($r['email']??'')?></div>
           </td>
-          <td><strong>₦<?=number_format($r['amount']??0)?></strong></td>
-          <td>
+          <td data-label="Amount"><strong>₦<?=number_format($r['amount']??0)?></strong></td>
+          <td data-label="Receipt">
             <?php if(!empty($r['receipt_url'])): ?>
               <a href="<?=htmlspecialchars($r['receipt_url'])?>" target="_blank" class="btn btn-sm btn-light-action"><i class="bi bi-image me-1"></i>View</a>
             <?php else: ?>
               <span style="color:var(--text-muted);font-size:12px">None</span>
             <?php endif; ?>
           </td>
-          <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['date']??'')?></td>
-          <td><span class="status-badge <?=$bs?>"><?=$bl?></span></td>
-          <td>
+          <td data-label="Date" style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['date']??'')?></td>
+          <td data-label="Status"><span class="status-badge <?=$bs?>"><?=$bl?></span></td>
+          <td data-label="Actions">
             <?php if($r['status']==0): ?>
             <div class="d-flex gap-1">
               <form method="post" style="display:inline">

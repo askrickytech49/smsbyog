@@ -52,6 +52,32 @@
 
   // Initialize DataTables
   $(function() {
+    $('.admin-mobile-table').each(function() {
+        var headers = [];
+        $(this).find('thead th').each(function() {
+            headers.push($(this).text().replace(/\s+/g, ' ').trim());
+        });
+        $(this).find('tbody tr').each(function() {
+            var cells = $(this).children('td');
+            cells.each(function(index) {
+                if (!$(this).attr('data-label') && headers[index]) {
+                    $(this).attr('data-label', headers[index]);
+                }
+            });
+            if (cells.length > 3 && !cells.first().find('.table-expand-toggle').length) {
+                cells.first().append('<button type="button" class="table-expand-toggle" aria-expanded="false" aria-label="Show more details"><i class="bi bi-chevron-down"></i></button>');
+            }
+        });
+    });
+
+    $('.admin-mobile-table tbody').on('click', '.table-expand-toggle', function() {
+        var button = $(this);
+        var row = button.closest('tr');
+        var expanded = row.toggleClass('table-row-expanded').hasClass('table-row-expanded');
+        button.attr('aria-expanded', expanded ? 'true' : 'false');
+        button.attr('aria-label', expanded ? 'Hide more details' : 'Show more details');
+    });
+
     $('.admin-datatable').each(function() {
         var orderAttr = $(this).attr('data-order');
         var dtOrder = orderAttr ? JSON.parse(orderAttr) : [[0, 'asc']];
@@ -62,5 +88,6 @@
             language: { search: '', searchPlaceholder: 'Search...' }
         });
     });
+
   });
   </script>

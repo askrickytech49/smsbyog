@@ -26,13 +26,13 @@ $page_title='Admins';
 <div class="admin-card">
   <div class="admin-card-header"><h6>Admin Accounts</h6></div>
   <div class="admin-card-body p-0">
-    <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+    <div class="table-responsive admin-mobile-table-responsive">
+      <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
         <thead><tr><th>Admin</th><th>Type</th><th>Action</th></tr></thead>
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)): ?>
         <tr>
-          <td>
+          <td data-label="Admin">
             <div class="d-flex align-items-center gap-2">
               <div class="user-avatar"><?=strtoupper(substr($r['name']??'A',0,1))?></div>
               <div>
@@ -41,8 +41,8 @@ $page_title='Admins';
               </div>
             </div>
           </td>
-          <td><span class="status-badge badge-active"><?=htmlspecialchars($r['type'])?></span></td>
-          <td>
+          <td data-label="Type"><span class="status-badge badge-active"><?=htmlspecialchars($r['type'])?></span></td>
+          <td data-label="Action">
             <form method="post" onsubmit="return confirm('Remove admin privileges from this user?')">
               <input type="hidden" name="id" value="<?=$r['id']?>">
               <button class="btn btn-sm btn-outline-danger" name="remove"><i class="bi bi-person-dash me-1"></i>Remove</button>

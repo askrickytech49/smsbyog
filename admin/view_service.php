@@ -105,7 +105,7 @@ if (isset($_POST['delete'])) {
 }
 ?>
 
-<table class="table align-items-center table-flush" id="dataTable">
+<table class="table align-items-center table-flush admin-mobile-table" id="dataTable">
 <thead class="thead-light">
 <tr>
     <th>Service Name</th>

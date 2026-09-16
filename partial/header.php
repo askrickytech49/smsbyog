@@ -5,12 +5,32 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content=""Discover the power of seamless communication with our virtual number service! Enhance your business's accessibility and professionalism with virtual numbers that effortlessly connect you with clients worldwide. Our user-friendly platform ensures easy setup and management, empowering you to streamline communication and boost productivity. Explore our range of customizable virtual number solutions today and elevate your business's presence online!"">
+<?php
+  $raw_page_title = trim((string)($page_title ?? 'SmsByOg'));
+  $share_page_title = preg_replace('/\s[-—|]\s.*$/u', '', $raw_page_title) ?: $raw_page_title;
+  $share_page_title = trim($share_page_title);
+  $share_path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+  $share_url = 'https://user.smsbyog.com' . $share_path;
+  $share_image = 'https://user.smsbyog.com/assets/images/Weblink.webp';
+  $share_description = 'Buy virtual numbers, receive OTPs, and manage your SmsByOg wallet.';
+?>
+  <meta name="description" content="<?php echo htmlspecialchars($share_description, ENT_QUOTES, 'UTF-8'); ?>">
   <meta name="keywords" content="Virtual numbers, Virtual phone numbers, Virtual telephony, Virtual communication solutions">
   <meta name="author" content="smsbyog">
   <link rel="icon" href="https://smsbyog.com/favicon.png" type="image/x-icon">
   <link rel="shortcut icon" href="https://smsbyog.com/favicon.png" type="image/x-icon">
-  <title><?php echo $page_title; ?></title>
+  <title><?php echo htmlspecialchars($share_page_title, ENT_QUOTES, 'UTF-8'); ?> | user.smsbyog.com</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="user.smsbyog.com">
+  <meta property="og:title" content="<?php echo htmlspecialchars($share_page_title, ENT_QUOTES, 'UTF-8'); ?> | user.smsbyog.com">
+  <meta property="og:description" content="<?php echo htmlspecialchars($share_description, ENT_QUOTES, 'UTF-8'); ?>">
+  <meta property="og:url" content="<?php echo htmlspecialchars($share_url, ENT_QUOTES, 'UTF-8'); ?>">
+  <meta property="og:image" content="<?php echo htmlspecialchars($share_image, ENT_QUOTES, 'UTF-8'); ?>">
+  <meta property="og:image:alt" content="SmsByOg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<?php echo htmlspecialchars($share_page_title, ENT_QUOTES, 'UTF-8'); ?> | user.smsbyog.com">
+  <meta name="twitter:description" content="<?php echo htmlspecialchars($share_description, ENT_QUOTES, 'UTF-8'); ?>">
+  <meta name="twitter:image" content="<?php echo htmlspecialchars($share_image, ENT_QUOTES, 'UTF-8'); ?>">
 <?php include('style.php'); ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>

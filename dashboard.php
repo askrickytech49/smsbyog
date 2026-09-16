@@ -577,6 +577,11 @@ if(isset($userdata['type']) && $userdata['type'] === 'admin'){
    <?php if (!empty($top_services)): ?>
    
     <?php foreach ($top_services as $s): ?>
+      <?php
+        $service_route = ((int)($s['api_id'] ?? 8) === 2) ? 'buy-number-server2'
+          : (((int)($s['api_id'] ?? 8) === 1) ? 'buy-usa-number'
+          : (((int)($s['api_id'] ?? 8) === 3) ? 'buy-us-ca-number' : 'buy-number-1'));
+      ?>
       <div class="service-row">
         <div class="service-left">
 
@@ -592,12 +597,12 @@ if(isset($userdata['type']) && $userdata['type'] === 'admin'){
             <!-- FIXED: strip HTML from DB -->
             <strong><?= htmlspecialchars(strip_tags($s['service_name'])) ?></strong><br>
             <span class="service-meta">
-              <?= htmlspecialchars($s['service_code']) ?> • <?= htmlspecialchars($s['server_name']) ?>
+              <?= htmlspecialchars($s['server_name']) ?>
             </span>
           </div>
         </div>
 
-        <a href="buy-number-1" class="service-buy">Buy</a>
+        <a href="<?= $service_route ?>?service=<?= urlencode($s['service_code']) ?>" class="service-buy">Buy</a>
       </div>
     <?php endforeach; ?>
   <?php else: ?>

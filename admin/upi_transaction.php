@@ -70,7 +70,7 @@ $sql=mysqli_query($conn,"SELECT * FROM upi_recharge WHERE DATE(recharge_time) = 
                   <h6 class="m-0 font-weight-bold text-primary">Today Transaction</h6>
                 </div>
                 <div class="table-responsive p-3">
-                  <table class="table align-items-center table-flush" id="dataTable">
+                  <table class="table align-items-center table-flush admin-mobile-table" id="dataTable">
                     <thead class="thead-light">
                       <tr>
                                                  <th>Email</th>

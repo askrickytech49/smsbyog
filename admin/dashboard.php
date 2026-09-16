@@ -193,7 +193,7 @@ $page_title = 'Dashboard';
       </div>
       <div class="admin-card-body p-0">
         <div style="overflow-y:auto;max-height:280px;">
-          <table class="admin-table">
+          <table class="admin-table admin-mobile-table">
             <thead><tr><th>#</th><th>User</th><th>Recharged</th></tr></thead>
             <tbody>
             <?php $rank=1; while($row=mysqli_fetch_assoc($top10)): ?>

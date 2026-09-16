@@ -102,8 +102,8 @@ $page_title='Transactions';
     </div>
   </div>
   <div class="admin-card-body p-0">
-    <div class="table-responsive">
-      <table class="admin-table" style="width:100%">
+    <div class="table-responsive admin-transactions-responsive">
+      <table class="admin-table admin-mobile-table admin-transactions-table" style="width:100%">
         <thead>
           <tr>
             <th><input type="checkbox" id="selectAll" class="form-check-input"></th>
@@ -117,17 +117,17 @@ $page_title='Transactions';
           else{ $bs='badge-pending'; $bl='Pending'; }
         ?>
         <tr>
-          <td><?php if($r['status']==0): ?><input type="checkbox" name="txn_ids[]" value="<?=htmlspecialchars($r['txn_id'])?>" class="form-check-input row-check"><?php endif; ?></td>
-          <td>
+          <td data-label="Select"><?php if($r['status']==0): ?><input type="checkbox" name="txn_ids[]" value="<?=htmlspecialchars($r['txn_id'])?>" class="form-check-input row-check"><?php else: ?><span class="text-muted">—</span><?php endif; ?></td>
+          <td data-label="User">
             <div style="font-size:13px;font-weight:600"><?=htmlspecialchars($r['name']??'-')?></div>
             <div style="font-size:11px;color:var(--text-muted)"><?=htmlspecialchars($r['email']??'')?></div>
           </td>
-          <td><strong>₦<?=number_format($r['amount'])?></strong></td>
-          <td style="font-size:12px"><?=htmlspecialchars($r['type']??'')?></td>
-          <td><code style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px"><?=htmlspecialchars($r['txn_id']??'')?></code></td>
-          <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['date']??'')?></td>
-          <td><span class="status-badge <?=$bs?>"><?=$bl?></span></td>
-          <td>
+          <td data-label="Amount"><strong>₦<?=number_format($r['amount'])?></strong></td>
+          <td data-label="Type" style="font-size:12px"><?=htmlspecialchars($r['type']??'')?></td>
+          <td data-label="Transaction ID"><code style="font-size:11px;background:var(--bg);padding:2px 6px;border-radius:4px"><?=htmlspecialchars($r['txn_id']??'')?></code></td>
+          <td data-label="Date" style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['date']??'')?></td>
+          <td data-label="Status"><span class="status-badge <?=$bs?>"><?=$bl?></span></td>
+          <td data-label="Note">
             <div class="d-flex gap-1">
               <input type="hidden" name="txn_id_<?=$r['id']?>" value="<?=htmlspecialchars($r['txn_id']??' ')?>">
               <input type="text" name="note_<?=$r['id']?>" class="form-control form-control-sm" style="min-width:120px;font-size:12px" placeholder="Add note..." value="<?=htmlspecialchars($r['admin_note']??'')?>">

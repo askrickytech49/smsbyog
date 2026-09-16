@@ -91,6 +91,7 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
 <?php include ('partial/header.php'); ?>
 
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+<script src="assets/js/notiflix-aio-3.2.7.min.js"></script>
 <?php include ('partial/loader.php'); ?>
 
 <div class="page-wrapper compact-wrapper" id="pageWrapper">
@@ -405,7 +406,6 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
                 <h5>Instant Bank Transfer</h5>
                 <p>Fund your MyOgSMS wallet using your dedicated bank account</p>
             </div>
-            <div class="xixa-badge">₦</div>
         </div>
 
         <?php
@@ -421,11 +421,11 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
                 $account = isset($virtualAccounts[$slug]) ? $virtualAccounts[$slug] : null; 
             ?>
 
-                <div class="provider-block" style="border: 1px solid #eef2f5; padding: 15px; border-radius: 8px; background: #fafbfc;">
+                <div class="provider-block">
                     <div class="provider-title-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #eef2f5; padding-bottom: 6px;">
-                        <span style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; color: #6c757d;">
-                            <?php echo $displayName; ?>
-                        </span>
+                    <span class="provider-heading">
+                      <?=htmlspecialchars($account['bank_name']??$displayName)?> Account Number
+                    </span>
                         
                         <?php if($account): ?>
                             <span class="badge" style="background: #e2f7ed; color: #1f9254; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; font-weight: bold;">Active</span>
@@ -435,30 +435,26 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
                     </div>
 
                     <?php if($account): ?>
-                        <div class="xixa-details" style="margin-top: 0;">
-                            <div class="xixa-row">
-                                <span class="xixasam">Bank Name</span>
-                                <strong><?php echo $account['bank_name']; ?></strong>
-                            </div>
-
-                            <div class="xixa-row">
-                                <span class="xixasam">Account Name</span>
-                                <span class="acctnamesam"><?php echo $account['account_name']; ?></span>
-                            </div>
-
-                            <div class="xixa-row account-number">
-                                <span class="xixasam">Account Number</span>
-                                <div>
-                                    <strong class="acctNum" id="acctNum_<?php echo $slug; ?>"><?php echo $account['account_number']; ?></strong>
-                                </div>
-                            </div>
-                            
-                            <button onclick="copyAcctText('acctNum_<?php echo $slug; ?>')" class="copy-btn" style="width: 100%; margin-top: 8px;">
-                                Copy Account Number ✓
-                            </button>
+                      <div class="xixa-details">
+                        <div class="xixa-row">
+                          <span class="detail-icon"><i class="bi bi-bank2"></i></span>
+                          <div class="detail-copy"><span class="xixasam">Bank</span><strong><?=htmlspecialchars($account['bank_name'])?></strong></div>
                         </div>
+                        <div class="xixa-row">
+                          <span class="detail-icon"><i class="bi bi-person-badge"></i></span>
+                          <div class="detail-copy"><span class="xixasam">Name</span><span class="acctnamesam"><?=htmlspecialchars($account['account_name'])?></span></div>
+                        </div>
+                        <div class="xixa-row account-number">
+                          <span class="detail-icon"><i class="bi bi-123"></i></span>
+                          <div class="detail-copy"><span class="xixasam">Account Number</span><strong class="acctNum" id="acctNum_<?=$slug?>"><?=htmlspecialchars($account['account_number'])?></strong></div>
+                        </div>
+                        <div class="account-actions">
+                          <button onclick="copyAcctText('acctNum_<?=$slug?>')" class="copy-btn">Copy Number</button>
+                          <button onclick="shareAcctDetails('acctNum_<?=$slug?>', this)" class="share-btn">Share Details</button>
+                        </div>
+                      </div>
                     <?php else: ?>
-                        <div class="xixa-generate" style="padding: 10px 0; margin-top: 0; text-align: left;">
+                      <div class="xixa-generate" style="padding: 10px 0; margin-top: 0; text-align: left;">
                             <p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 10px;">
                                 You don’t have a dedicated <?php echo $displayName; ?> account mapped yet. Generate one now to increase transfer channel reliability options.
                             </p>
@@ -484,7 +480,8 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
 <style>
   .xixa-wrapper {
     width: 100%;
-    max-width: 100%;
+    max-width: 760px;
+    margin: 0 auto 1.5rem;
 }
 
 .acctnamesam{
@@ -499,13 +496,20 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
     box-shadow: 0 20px 60px rgba(0,0,0,0.05);
     border: 1px solid #e10700;
     transition: all 0.3s ease;
-    margin: 10px;
+    width: 100%;
+    margin: 0;
     box-sizing: border-box;
     max-width: 100%;
     overflow: hidden;
 }
 
 @media (max-width: 480px) {
+  .xixa-wrapper {
+    padding-left: 10px;
+    padding-right: 10px;
+    box-sizing: border-box;
+  }
+
     .xixa-card {
         padding: 1rem;
         margin: 0;
@@ -642,7 +646,190 @@ $page_title = "Fund Wallet - " . $site_data['web_name'];
 }
 
 .copy-btn:hover {
-    background: #e10700;
+  background: #bd0600;
+}
+
+/* Branded virtual account details */
+.xixa-card {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 22px !important;
+  background: #fff;
+  border: 1px solid #e7eaef !important;
+  border-top: 1px solid #e7eaef !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .07) !important;
+}
+
+.payment-history-row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.payment-history-row > .col-12 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.xixa-header {
+  margin-bottom: 16px;
+}
+
+.xixa-header h5 {
+  color: #172033;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.xixa-header p {
+  color: #718096;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.xixa-badge {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #e10700;
+  border-radius: 50%;
+  box-shadow: 0 5px 12px rgba(225, 7, 0, .2);
+}
+
+.xixa-providers-container {
+  gap: 12px !important;
+  padding: 0 !important;
+}
+
+.provider-block {
+  padding: 16px !important;
+  border: 1px solid #343434 !important;
+  border-radius: 13px !important;
+  background: #242424 !important;
+  color: #fff;
+}
+
+.provider-title-bar {
+  margin-bottom: 12px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px dashed #373737 !important;
+}
+
+.provider-heading {
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 750;
+  letter-spacing: 0 !important;
+}
+
+.provider-title-bar .badge {
+  background: #e9f8ef !important;
+  color: #16834a !important;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  padding: 5px 9px !important;
+}
+
+.xixa-details {
+  gap: 0 !important;
+}
+
+.xixa-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 54px;
+  padding: 10px 0 !important;
+  gap: 12px;
+  border-bottom: 1px dashed #373737 !important;
+}
+
+.xixa-row:last-of-type {
+  border-bottom: 0 !important;
+}
+
+.xixasam {
+  display: block;
+  color: #a7a7a7 !important;
+  font-size: 10px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.detail-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  border-radius: 9px;
+  background: #f6f7f8;
+  color: #e10700;
+  font-size: 16px;
+}
+
+.detail-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.xixa-row strong,
+.acctnamesam {
+  color: #f3f3f3 !important;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.account-number strong {
+  color: #fff !important;
+  font-size: clamp(20px, 4vw, 27px) !important;
+  letter-spacing: clamp(2px, .7vw, 5px) !important;
+}
+
+.account-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.copy-btn,
+.share-btn {
+  width: 100%;
+  margin-top: 0 !important;
+  padding: 11px 10px !important;
+  border: 1px solid #e10700 !important;
+  border-radius: 9px !important;
+  background: #e10700 !important;
+  color: #fff !important;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.share-btn {
+  background: #fff !important;
+  color: #e10700 !important;
+}
+
+.copy-btn:hover,
+.share-btn:hover {
+  background: #bd0600 !important;
+  border-color: #bd0600 !important;
+  color: #fff !important;
+}
+
+@media (max-width: 480px) {
+  .xixa-card { padding: 16px !important; }
+  .provider-block { padding: 13px !important; }
+  .account-actions { gap: 8px; }
+  .copy-btn, .share-btn { font-size: 12px; }
 }
 
 /* Spinner */
@@ -838,28 +1025,36 @@ $paginatedHistory = array_slice($history, $offset, $limit);
 ?>
 
 <!-- ================= PAYMENT HISTORY ================= -->
-<div class="row mt-4">
+<div class="row mt-4 payment-history-row">
   <div class="col-12">
-    <div class="card shadow-sm">
+    <div class="card shadow-sm payment-history-card">
       <div class="card-body">
 
-        <h5 class="fw-bold mb-3">Payment History</h5>
+        <div class="payment-history-heading">
+          <div>
+            <h5 class="fw-bold mb-1">Payment History</h5>
+            <p>Recent wallet funding activity</p>
+          </div>
+          <span class="history-count"><?=number_format($totalRecords)?> RECORD<?= $totalRecords == 1 ? '' : 'S' ?></span>
+        </div>
 
         <!-- ===== DESKTOP TABLE ===== -->
         <div class="table-responsive desktop-history">
-          <table class="table table-striped align-middle">
+          <table class="table align-middle payment-history-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Amount</th>
+                <th class="row-number">#</th>
                 <th>Type</th>
-                <th>Trans ID</th>
                 <th>Status</th>
+                <th>Method</th>
+                <th>Reference</th>
+                <th>Amount</th>
+                <th>Date</th>
               </tr>
             </thead>
             <tbody>
 
-              <?php if (!empty($paginatedHistory)): foreach ($paginatedHistory as $row): ?>
+              <?php if (!empty($paginatedHistory)): foreach ($paginatedHistory as $index => $row): ?>
 
                 <?php
                   if ($row['status'] == 1) {
@@ -878,20 +1073,22 @@ $paginatedHistory = array_slice($history, $offset, $limit);
                 ?>
 
                 <tr>
-                  <td><?= htmlspecialchars($row['date']) ?></td>
-                  <td>₦<?= number_format($row['amount'], 2) ?></td>
+                  <td><?=($offset + $index + 1)?></td>
                   <td><?= htmlspecialchars($row['type']) ?></td>
-                  <td><?= htmlspecialchars($row['txn_id']) ?></td>
                   <td>
                     <span class="badge <?= $statusClass ?>">
                       <?= $statusText ?>
                     </span>
                   </td>
+                  <td>Wallet funding</td>
+                  <td><?= htmlspecialchars($row['txn_id']) ?></td>
+                  <td>₦<?= number_format($row['amount'], 2) ?></td>
+                  <td><?= htmlspecialchars($row['date']) ?></td>
                 </tr>
 
               <?php endforeach; else: ?>
                 <tr>
-                  <td colspan="5" class="text-center text-muted">No payment history</td>
+                  <td colspan="7" class="text-center text-muted">No payment history</td>
                 </tr>
               <?php endif; ?>
 
@@ -920,26 +1117,13 @@ $paginatedHistory = array_slice($history, $offset, $limit);
             ?>
 
             <div class="txn-card">
-              <div class="txn-top">
-                <span class="txn-type"><?= htmlspecialchars($row['type']) ?></span>
-                <span class="badge <?= $statusClass ?>">
-                  <?= $statusText ?>
-                </span>
+              <div class="txn-main">
+                <strong class="txn-title"><?= htmlspecialchars($row['type']) ?></strong>
+                <span class="txn-status-text <?= $row['status']==1 ? 'success' : ($row['status']==0 ? 'pending' : 'failed') ?>"><?= $statusText ?></span>
               </div>
-
-              <div class="txn-row">
-                <span>Amount</span>
-                <strong class="amount">₦<?= number_format($row['amount'], 2) ?></strong>
-              </div>
-
-              <div class="txn-row">
-                <span>Date</span>
-                <strong><?= htmlspecialchars($row['date']) ?></strong>
-              </div>
-
-              <div class="txn-row ref">
-                <span>Reference</span>
-                <strong><?= htmlspecialchars($row['txn_id']) ?></strong>
+              <div class="txn-meta">
+                <strong class="txn-amount <?= $row['status']==1 ? 'positive' : 'negative' ?>">₦<?= number_format($row['amount'], 2) ?></strong>
+                <span><?= htmlspecialchars(date('j M Y', strtotime($row['date']))) ?></span>
               </div>
             </div>
 
@@ -1168,11 +1352,27 @@ function refreshStatus(){
     function copyAcctText(elementId) {
         var textToCopy = document.getElementById(elementId).innerText;
         navigator.clipboard.writeText(textToCopy).then(function() {
-            alert("Account number copied successfully: " + textToCopy);
+          Notiflix.Notify.success("Account number copied successfully");
         }).catch(function(err) {
             console.error('Could not copy string text structural selector lines: ', err);
         });
     }
+
+      function shareAcctDetails(elementId, button) {
+        var number = document.getElementById(elementId).innerText;
+        var provider = button.closest('.provider-block');
+        var bank = provider ? provider.querySelector('.xixa-row:nth-child(1) strong').innerText : '';
+        var name = provider ? provider.querySelector('.xixa-row:nth-child(2) .acctnamesam').innerText : '';
+        var details = 'Bank: ' + bank + '\nAccount Name: ' + name + '\nAccount Number: ' + number;
+
+        if (navigator.share) {
+          navigator.share({ title: 'Wallet account details', text: details }).catch(function() {});
+        } else {
+          navigator.clipboard.writeText(details).then(function() {
+            Notiflix.Notify.success('Account details copied successfully');
+          });
+        }
+      }
 
     function triggerVaGeneration(providerSlug) {
     // 🟢 Target the active buttons dynamically based on class selectors
@@ -1314,6 +1514,172 @@ function resetVaGenerationButtons(activeBtn, allButtons, targetText) {
 .desktop-history { display: block; }
 .mobile-history { display: none; }
 
+.payment-history-card {
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #e7eaef !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 30px rgba(15,23,42,.07) !important;
+}
+
+.payment-history-card .card-body {
+  padding: 22px !important;
+}
+
+.payment-history-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.payment-history-heading h5 {
+  color: #172033;
+  font-size: 18px;
+}
+
+.payment-history-heading p {
+  margin: 0;
+  color: #718096;
+  font-size: 12px;
+}
+
+.history-count {
+  color: #e10700;
+  background: #fff1ed;
+  border: 1px solid #ffd7d1;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.desktop-history .table {
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+
+.desktop-history .table thead th {
+  border: 0;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  padding: 9px 12px;
+  text-transform: uppercase;
+}
+
+.desktop-history .table tbody tr {
+  background: #fbfcfd;
+  box-shadow: inset 0 0 0 1px #edf0f4;
+}
+
+.desktop-history .table tbody td {
+  border: 0;
+  color: #273247;
+  font-size: 12px;
+  padding: 13px 12px;
+  vertical-align: middle;
+}
+
+.desktop-history .table tbody tr td:first-child {
+  border-radius: 9px 0 0 9px;
+  font-weight: 700;
+}
+
+.desktop-history .table tbody tr td:last-child {
+  border-radius: 0 9px 9px 0;
+}
+
+.desktop-history .table tbody td:nth-child(2) {
+  color: #e10700;
+  font-weight: 800;
+}
+
+.payment-history-table {
+  table-layout: fixed;
+  border-collapse: collapse !important;
+}
+
+.desktop-history .payment-history-table thead th {
+  padding: 8px 10px !important;
+  border-bottom: 1px solid #edf0f3 !important;
+  font-size: 9px !important;
+  letter-spacing: .04em;
+}
+
+.desktop-history .payment-history-table tbody tr {
+  background: #fff;
+  border-bottom: 1px solid #edf0f3;
+  box-shadow: none;
+}
+
+.desktop-history .payment-history-table tbody tr:hover {
+  background: #fff8f5;
+}
+
+.desktop-history .payment-history-table tbody td {
+  padding: 12px 10px !important;
+  border-bottom: 0 !important;
+  font-size: 11px;
+}
+
+.desktop-history .payment-history-table tbody tr td:first-child,
+.desktop-history .payment-history-table tbody tr td:last-child {
+  border-radius: 0;
+}
+
+.payment-history-table th:first-child,
+.payment-history-table td:first-child { width: 38px; color: #94a3b8 !important; }
+.payment-history-table th:nth-child(2) { width: 21%; }
+.payment-history-table th:nth-child(3) { width: 13%; }
+.payment-history-table th:nth-child(4) { width: 17%; }
+.payment-history-table th:nth-child(5) { width: 24%; }
+.payment-history-table th:nth-child(6) { width: 14%; }
+.payment-history-table th:nth-child(7) { width: 18%; }
+.payment-history-table td:nth-child(4),
+.payment-history-table td:nth-child(5) {
+  color: #64748b;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.payment-history-table td:nth-child(2) {
+  color: #273247 !important;
+  font-weight: 700;
+}
+
+.payment-history-table td:nth-child(6) {
+  color: #e10700;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) and (min-width: 768px) {
+  .payment-history-table th:nth-child(4),
+  .payment-history-table td:nth-child(4) { display: none; }
+}
+
+.desktop-history .badge,
+.txn-card .badge {
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 750;
+  padding: 5px 9px;
+}
+
+.desktop-history .bg-success,
+.txn-card .bg-success { background: #e9f8ef !important; color: #16834a !important; }
+.desktop-history .bg-warning,
+.txn-card .bg-warning { background: #fff4d6 !important; color: #9a6700 !important; }
+.desktop-history .bg-danger,
+.txn-card .bg-danger { background: #fff0ef !important; color: #c80700 !important; }
+
 @media (max-width: 767px) {
   .desktop-history { display: none; }
   .mobile-history { display: block; }
@@ -1323,10 +1689,22 @@ function resetVaGenerationButtons(activeBtn, allButtons, targetText) {
 .txn-card{
   background: #fff;
   border-radius: 14px;
-  padding: 14px;
+  padding: 16px;
   margin-bottom: 12px;
-  border: 1px solid #eef1f6;
-  box-shadow: 0 4px 14px rgba(0,0,0,.04);
+  border: 1px solid #e7eaef;
+  box-shadow: 0 5px 16px rgba(15,23,42,.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.txn-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #e10700;
 }
 
 .txn-top{
@@ -1339,7 +1717,8 @@ function resetVaGenerationButtons(activeBtn, allButtons, targetText) {
 .txn-type{
   font-size: 13px;
   font-weight: 600;
-  background: #f1f3f6;
+  background: #fff1ed;
+  color: #c80700;
   padding: 4px 10px;
   border-radius: 20px;
 }
@@ -1348,7 +1727,9 @@ function resetVaGenerationButtons(activeBtn, allButtons, targetText) {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  margin-bottom: 6px;
+  margin-bottom: 0;
+  padding: 9px 0 0;
+  border-top: 1px solid #f0f2f5;
 }
 
 .txn-row span{
@@ -1364,6 +1745,110 @@ function resetVaGenerationButtons(activeBtn, allButtons, targetText) {
   font-size: 12px;
   color: #555;
   word-break: break-all;
+}
+
+/* Reference-style mobile transaction list */
+.mobile-history {
+  margin: 0 -4px;
+}
+
+.mobile-history .txn-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  margin: 0;
+  padding: 10px 4px;
+  border: 0;
+  border-bottom: 1px solid #edf0f3;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mobile-history .txn-card::before { display: none; }
+
+.txn-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 17px;
+}
+
+.txn-icon-success { background: #dff7f0; color: #08a879; }
+.txn-icon-pending { background: #fff3d9; color: #b7791f; }
+.txn-icon-failed { background: #f7e5e5; color: #b43a3a; }
+
+.txn-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.txn-title {
+  overflow: hidden;
+  color: #273247;
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txn-status-text {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.txn-status-text.success { color: #08a879; }
+.txn-status-text.pending { color: #b7791f; }
+.txn-status-text.failed { color: #c04444; }
+
+.txn-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.txn-amount {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.txn-amount.positive { color: #08a879; }
+.txn-amount.negative { color: #b43a3a; }
+
+.txn-meta > span {
+  color: #a8b0bd;
+  font-size: 10px;
+}
+
+@media (max-width: 767px) {
+  .payment-history-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .payment-history-row > .col-12 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .payment-history-card {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .payment-history-card .card-body { padding: 16px !important; }
+  .payment-history-heading h5 { font-size: 17px; }
+  .history-count { font-size: 9px; }
 }
 
 </style>

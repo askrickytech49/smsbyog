@@ -20,7 +20,7 @@ $page_title='OTP Servers';
 <div class="admin-card">
   <div class="admin-card-body p-0">
     <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+      <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
         <thead><tr><th>Server Name</th><th>Country Code</th><th>API Provider</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)): ?>
@@ -29,7 +29,7 @@ $page_title='OTP Servers';
           <td><code style="background:var(--bg);padding:3px 8px;border-radius:6px"><?=htmlspecialchars($r['server_code'])?></code></td>
           <td><?=htmlspecialchars($r['api_name']??$r['api_id'])?></td>
           <td><span class="status-badge <?=$r['status']=='1'?'badge-active':'badge-blocked'?>"><?=$r['status']=='1'?'Active':'Inactive'?></span></td>
-          <td class="d-flex gap-2">
+          <td class="d-flex gap-2 table-action-group otp-server-actions">
             <a href="edit_server?id=<?=$r['id']?>" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i></a>
             <form method="post" onsubmit="return confirm('Delete this server?')" style="display:inline">
               <input type="hidden" name="id" value="<?=$r['id']?>">

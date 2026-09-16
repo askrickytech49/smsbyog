@@ -20,15 +20,15 @@ $page_title = 'All Users';
 <div class="admin-card">
   <div class="admin-card-header"><h6>User List</h6></div>
   <div class="admin-card-body p-0">
-    <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+    <div class="table-responsive admin-mobile-table-responsive">
+      <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
         <thead><tr>
           <th>User</th><th>Balance</th><th>Recharged</th><th>OTP Bought</th><th>Status</th><th>Action</th>
         </tr></thead>
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)): ?>
         <tr>
-          <td>
+          <td data-label="User">
             <div class="d-flex align-items-center gap-2">
               <div class="user-avatar"><?=strtoupper(substr($r['name']??'U',0,1))?></div>
               <div>
@@ -37,15 +37,15 @@ $page_title = 'All Users';
               </div>
             </div>
           </td>
-          <td><strong>₦<?=number_format($r['balance']??0)?></strong></td>
-          <td>₦<?=number_format($r['total_recharge']??0)?></td>
-          <td><?=number_format($r['total_otp']??0)?></td>
-          <td>
+          <td data-label="Balance"><strong>₦<?=number_format($r['balance']??0)?></strong></td>
+          <td data-label="Recharged">₦<?=number_format($r['total_recharge']??0)?></td>
+          <td data-label="OTP Bought"><?=number_format($r['total_otp']??0)?></td>
+          <td data-label="Status">
             <span class="status-badge <?=$r['status']=='1'?'badge-active':'badge-blocked'?>">
               <?=$r['status']=='1'?'Active':'Blocked'?>
             </span>
           </td>
-          <td>
+          <td data-label="Action">
             <a href="edit_user?user_id=<?=$r['id']?>" class="btn btn-sm btn-primary">
               <i class="bi bi-pencil me-1"></i>Edit
             </a>

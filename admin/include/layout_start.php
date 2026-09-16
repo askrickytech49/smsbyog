@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title><?= htmlspecialchars($page_title ?? 'Admin') ?> — SmsByOg</title>
+  <?php
+    $admin_page_title = trim((string)($page_title ?? 'Admin'));
+    $admin_page_title = preg_replace('/\s[-—|]\s.*$/u', '', $admin_page_title) ?: $admin_page_title;
+  ?>
+  <title><?= htmlspecialchars($admin_page_title, ENT_QUOTES, 'UTF-8') ?> | user.smsbyog.com</title>
   <?php include __DIR__ . '/head.php'; ?>
 </head>
 <body>

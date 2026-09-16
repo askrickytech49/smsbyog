@@ -46,6 +46,148 @@ $page_title = "My Profile - " . $site_data['web_name'];
 ?>
 <?php include ('partial/header.php'); ?>
 
+<style>
+.profile-page {
+    background: #f5f7fa;
+    min-height: calc(100vh - 72px);
+    padding: 28px 0 56px;
+}
+
+.profile-page .profile-container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.profile-page .profile-card {
+    background: #fff;
+    border: 1px solid #e8ebf0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+    overflow: hidden;
+    margin-bottom: 22px;
+}
+
+.profile-page .profile-hero {
+    position: relative;
+    text-align: center;
+    padding: 34px 24px 30px;
+    background: linear-gradient(135deg, #fff8f5 0%, #fff 62%);
+}
+
+.profile-page .profile-hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #e10700;
+}
+
+.profile-page .profile-avatar {
+    width: 104px;
+    height: 104px;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 6px 18px rgba(225, 7, 0, .16);
+    background: #fff1ed;
+}
+
+.profile-page .profile-name {
+    margin: 16px 0 3px;
+    color: #172033;
+    font-size: 22px;
+    font-weight: 750;
+}
+
+.profile-page .profile-email {
+    margin: 0 0 18px;
+    color: #718096;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.profile-page .profile-button,
+.profile-page #change_pass,
+.profile-page #saveButton,
+.profile-page #changeButton {
+    border: 1px solid #e10700 !important;
+    border-radius: 9px;
+    background: #e10700 !important;
+    background-image: none !important;
+    box-shadow: 0 5px 12px rgba(225, 7, 0, .18);
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 20px;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.profile-page .profile-button:hover,
+.profile-page #change_pass:hover,
+.profile-page #saveButton:hover,
+.profile-page #changeButton:hover {
+    background: #bd0600 !important;
+    border-color: #bd0600 !important;
+    box-shadow: 0 7px 16px rgba(225, 7, 0, .24);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.profile-page .password-header {
+    border-bottom: 1px solid #edf0f4;
+    padding: 22px 28px;
+}
+
+.profile-page .password-header h5 {
+    margin: 0;
+    color: #172033;
+    font-size: 18px;
+    font-weight: 750;
+}
+
+.profile-page .password-body {
+    padding: 26px 28px 20px;
+}
+
+.profile-page .password-body label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.profile-page .password-body .form-control {
+    min-height: 44px;
+    border: 1px solid #dfe4eb;
+    border-radius: 8px;
+    color: #172033;
+    font-size: 14px;
+}
+
+.profile-page .password-body .form-control:focus {
+    border-color: #e10700;
+    box-shadow: 0 0 0 3px rgba(225, 7, 0, .1);
+}
+
+.profile-page .password-footer {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #edf0f4;
+    padding: 18px 28px;
+}
+
+@media (max-width: 575px) {
+    .profile-page { padding: 16px 0 36px; }
+    .profile-page .profile-container { padding: 0 12px; }
+    .profile-page .profile-hero { padding: 28px 18px 24px; }
+    .profile-page .profile-name { font-size: 20px; }
+    .profile-page .password-header,
+    .profile-page .password-body { padding-left: 18px; padding-right: 18px; }
+    .profile-page .password-footer { padding: 16px 18px; }
+    .profile-page #change_pass { width: 100%; }
+}
+</style>
+
 <?php include ('partial/loader.php'); ?>
 
 <div class="page-wrapper compact-wrapper" id="pageWrapper">
@@ -61,8 +203,9 @@ $page_title = "My Profile - " . $site_data['web_name'];
             <!-- <?php include ('partial/breadcrumb.php'); ?> -->
             <!-- Container-fluid starts-->
             <br><br>
-            <div class="container-fluid mt-6">
-                <div class="card">
+                        <div class="container-fluid profile-page">
+                            <div class="profile-container">
+                                <div class="profile-card">
                     <?php
                     if ($userdata['image_url'] == "") {
                         $img_url = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB0BxzvzydjIyLEeBinlgJZbKee9JDswT6Zw&usqp=CAU';
@@ -73,20 +216,20 @@ $page_title = "My Profile - " . $site_data['web_name'];
 
                     ?>
                         <input type="hidden" name="tokens" id="tokens" value="<?php echo $_SESSION['token']; ?>">
-                    <div class="card-body avatar-showcase">
+                    <div class="profile-hero avatar-showcase">
                         <div class="avatars justify-content-center">
                             <center>
-                                <div class="avatar"><img id="imagePreview" class="rounded-circle"
+                                <div class="avatar"><img id="imagePreview" class="rounded-circle profile-avatar"
                                         src="<?php echo $img_url; ?>" alt="pic" width="100" height="100">
                                     <div class="status"></div>
                                 </div>
-                                <p style="font-size:20px; font-weight:bold; margin-bottom:0px">
+                                <p class="profile-name">
                                     <?php echo $userdata['name']; ?></p>
-                                <p style="font-size:14px; font-weight:bold; margin-top:2px; color:rgb(108, 115, 127)">
+                                <p class="profile-email">
                                     <?php echo $userdata['email']; ?></p>
                                 <form id="imageUploadForm" enctype="multipart/form-data">
                                     <input type="file" name="image" id="image" style="display:none;">
-                                    <button class="btn btn-pill btn-primary" type="button" title=""
+                                    <button class="btn profile-button" type="button" title=""
                                         data-bs-original-title="btn btn-pill btn-primary btn-lg"
                                         id="uploadButton">Upload Profile Picture</button>
                                 </form>
@@ -99,11 +242,11 @@ $page_title = "My Profile - " . $site_data['web_name'];
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                                    <div class="card-header">
+                <div class="profile-card">
+                                    <div class="password-header">
                                         <h5>Change Password</h5>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="password-body">
                                         <form class="theme-form">
                                             <div class="mb-3">
                                                 <label class="col-form-label pt-0" for="exampleInputEmail1">Old Password</label>
@@ -119,11 +262,12 @@ $page_title = "My Profile - " . $site_data['web_name'];
                                             </div>
                                         </form>
                                     </div>
-                                    <div class="card-footer text-end">
+                                    <div class="password-footer">
                                         <button class="btn btn-primary" id="change_pass" data-bs-original-title="" title="">Change Password</button>
                                       </div>
                                 </div>
-            </div>
+                            </div>
+                        </div>
         </div>
 
 

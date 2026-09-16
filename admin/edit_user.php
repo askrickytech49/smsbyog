@@ -183,17 +183,17 @@ $page_title='Edit User — '.htmlspecialchars($user['name']??'');
       <div class="admin-card-header"><h6><i class="bi bi-clock-history me-2 text-red"></i>Recent Transactions</h6></div>
       <div class="admin-card-body p-0">
         <div class="table-responsive">
-          <table class="admin-table">
+          <table class="admin-table admin-mobile-table">
             <thead><tr><th>Amount</th><th>Type</th><th>Status</th><th>Date</th></tr></thead>
             <tbody>
             <?php while($t=mysqli_fetch_assoc($txns)):
               $ts=$t['status']==1?'badge-approved':($t['status']==-1?'badge-rejected':'badge-pending');
               $tl=$t['status']==1?'Approved':($t['status']==-1?'Rejected':'Pending'); ?>
             <tr>
-              <td><strong>₦<?=number_format($t['amount']??0)?></strong></td>
-              <td style="font-size:12px"><?=htmlspecialchars($t['type']??'')?></td>
-              <td><span class="status-badge <?=$ts?>"><?=$tl?></span></td>
-              <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($t['date']??'')?></td>
+              <td data-label="Amount"><strong>₦<?=number_format($t['amount']??0)?></strong></td>
+              <td data-label="Type" style="font-size:12px"><?=htmlspecialchars($t['type']??'')?></td>
+              <td data-label="Status"><span class="status-badge <?=$ts?>"><?=$tl?></span></td>
+              <td data-label="Date" style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($t['date']??'')?></td>
             </tr>
             <?php endwhile; ?>
             </tbody>
@@ -207,20 +207,20 @@ $page_title='Edit User — '.htmlspecialchars($user['name']??'');
       <div class="admin-card-header"><h6><i class="bi bi-phone me-2 text-red"></i>Recent Numbers</h6></div>
       <div class="admin-card-body p-0">
         <div class="table-responsive">
-          <table class="admin-table">
+          <table class="admin-table admin-mobile-table">
             <thead><tr><th>Number</th><th>Service</th><th>Price</th><th>OTP</th><th>Time</th></tr></thead>
             <tbody>
             <?php while($n=mysqli_fetch_assoc($nums)): ?>
             <tr>
-              <td><strong>+<?=htmlspecialchars(ltrim($n['number'], '+'))?></strong></td>
-              <td style="font-size:12px"><?=htmlspecialchars($n['service_name']??$n['service_id'])?></td>
-              <td>₦<?=number_format($n['service_price']??0)?></td>
-              <td>
+              <td data-label="Number"><strong>+<?=htmlspecialchars(ltrim($n['number'], '+'))?></strong></td>
+              <td data-label="Service" style="font-size:12px"><?=htmlspecialchars($n['service_name']??$n['service_id'])?></td>
+              <td data-label="Price">₦<?=number_format($n['service_price']??0)?></td>
+              <td data-label="OTP">
                 <?php if($n['sms_text']): ?>
                   <code style="background:rgba(22,163,74,.1);color:var(--success);padding:2px 6px;border-radius:4px;font-size:12px"><?=htmlspecialchars($n['sms_text'])?></code>
                 <?php else: ?><span style="color:var(--text-muted);font-size:12px">—</span><?php endif; ?>
               </td>
-              <td style="font-size:11px;color:var(--text-muted)"><?=htmlspecialchars($n['buy_time']??'')?></td>
+              <td data-label="Time" style="font-size:11px;color:var(--text-muted)"><?=htmlspecialchars($n['buy_time']??'')?></td>
             </tr>
             <?php endwhile; ?>
             </tbody>

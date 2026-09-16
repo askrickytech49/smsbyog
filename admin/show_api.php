@@ -65,7 +65,7 @@ while($data=mysqli_fetch_assoc($sql)):
 <div class="col-12 col-md-6 api-card-col" data-id="<?=$data['id']?>">
   <div class="admin-card h-100" id="api-card-<?=$data['id']?>" style="<?=$data['is_active']?'':'opacity:.6;'?>">
     <div class="admin-card-header">
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 api-card-actions">
         <i class="bi bi-grip-vertical text-muted drag-handle-api" style="cursor: grab; font-size: 1.2rem;"></i>
         <h6 class="mb-0"><i class="bi bi-plug me-2 text-red"></i><?=htmlspecialchars($data['api_name'])?></h6>
       </div>

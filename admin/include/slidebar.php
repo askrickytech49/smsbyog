@@ -123,13 +123,6 @@ $_usaca_on   = ($api_status[3] ?? 1) == 1;
         </a>
       </li>
 
-      <li>
-        <a href="top_service" class="sidebar-link <?= nav_active(['top_service','add_top_service'], $current) ?>">
-          <i class="bi bi-star"></i>
-          <span class="link-text">Top Services</span>
-        </a>
-      </li>
-
       <!-- CONFIGURATION -->
       <li><span class="sidebar-section-label">Config</span></li>
 

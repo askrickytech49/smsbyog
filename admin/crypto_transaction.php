@@ -67,7 +67,7 @@ $sql=mysqli_query($conn,"SELECT * FROM crypto_recharge ORDER BY id DESC LIMIT 20
                   <h6 class="m-0 font-weight-bold text-primary">Recent 200 Transaction</h6>
                 </div>
                 <div class="table-responsive p-3">
-                  <table class="table align-items-center table-flush" id="dataTable">
+                  <table class="table align-items-center table-flush admin-mobile-table" id="dataTable">
                     <thead class="thead-light">
                       <tr>
                                                  <th>Email</th>

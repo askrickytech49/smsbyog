@@ -191,7 +191,7 @@ $page_title='Edit API';
         </div>
         <div class="admin-card-body p-0">
             <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-                <table class="table table-hover align-middle mb-0" id="servicesTable">
+                <table class="table table-hover align-middle mb-0 api-services-table" id="servicesTable">
                     <thead class="bg-light position-sticky top-0" style="z-index: 1;">
                         <tr>
                             <th class="ps-3" style="width: 40px;"></th> <!-- Drag Handle -->
@@ -341,7 +341,8 @@ document.querySelectorAll('.service-toggle').forEach(function(toggle) {
 });
 
 // Bulk Select All / Deselect All
-document.getElementById('btnSelectAll').addEventListener('click', function() {
+const btnSelectAll = document.getElementById('btnSelectAll');
+if (btnSelectAll) btnSelectAll.addEventListener('click', function() {
     if (!confirm('Activate ALL services for this API?')) return;
     const apiId = <?=$api_id?>;
     const codes = [];
@@ -381,7 +382,8 @@ document.getElementById('btnSelectAll').addEventListener('click', function() {
     });
 });
 
-document.getElementById('btnDeselectAll').addEventListener('click', function() {
+const btnDeselectAll = document.getElementById('btnDeselectAll');
+if (btnDeselectAll) btnDeselectAll.addEventListener('click', function() {
     if (!confirm('Deactivate ALL services for this API? Nothing will show on user side.')) return;
     const apiId = <?=$api_id?>;
     

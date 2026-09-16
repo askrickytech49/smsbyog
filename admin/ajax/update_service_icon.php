@@ -10,6 +10,9 @@ if (!isset($_POST['service_code'])) {
 
 $service_code = mysqli_real_escape_string($conn, $_POST['service_code']);
 $action = $_POST['action'] ?? 'upload';
+$iconUrl = static function ($path) {
+    return '../' . ltrim($path, '/');
+};
 
 // ACTION: Remove custom icon
 if ($action === 'remove') {
@@ -60,7 +63,7 @@ if (isset($_FILES['icon_file']) && $_FILES['icon_file']['error'] === UPLOAD_ERR_
         $savePath_esc = mysqli_real_escape_string($conn, $savePath);
         mysqli_query($conn, "INSERT INTO service_custom_icons (service_code, icon_path) VALUES ('$service_code', '$savePath_esc') 
                              ON DUPLICATE KEY UPDATE icon_path='$savePath_esc'");
-        echo json_encode(['success' => true, 'message' => 'Icon uploaded', 'icon_url' => $savePath . '?t=' . time()]);
+        echo json_encode(['success' => true, 'message' => 'Icon uploaded', 'icon_url' => $iconUrl($savePath) . '?t=' . time()]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to save file']);
     }

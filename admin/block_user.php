@@ -20,13 +20,13 @@ $page_title = 'Blocked Users';
 <div class="admin-card">
   <div class="admin-card-header"><h6>Blocked User List</h6></div>
   <div class="admin-card-body p-0">
-    <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+    <div class="table-responsive admin-mobile-table-responsive">
+      <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
         <thead><tr><th>User</th><th>Balance</th><th>Recharged</th><th>Action</th></tr></thead>
         <tbody>
         <?php while($r=mysqli_fetch_assoc($sql)): ?>
         <tr>
-          <td>
+          <td data-label="User">
             <div class="d-flex align-items-center gap-2">
               <div class="user-avatar" style="background:rgba(220,38,38,.1);color:var(--danger)"><?=strtoupper(substr($r['name']??'U',0,1))?></div>
               <div>
@@ -35,9 +35,9 @@ $page_title = 'Blocked Users';
               </div>
             </div>
           </td>
-          <td>₦<?=number_format($r['balance']??0)?></td>
-          <td>₦<?=number_format($r['total_recharge']??0)?></td>
-          <td><a href="edit_user?user_id=<?=$r['id']?>" class="btn btn-sm btn-primary"><i class="bi bi-pencil me-1"></i>Edit</a></td>
+          <td data-label="Balance">₦<?=number_format($r['balance']??0)?></td>
+          <td data-label="Recharged">₦<?=number_format($r['total_recharge']??0)?></td>
+          <td data-label="Action"><a href="edit_user?user_id=<?=$r['id']?>" class="btn btn-sm btn-primary"><i class="bi bi-pencil me-1"></i>Edit</a></td>
         </tr>
         <?php endwhile; ?>
         </tbody>

@@ -52,7 +52,7 @@ $page_title = 'Services';
 <div class="admin-card">
   <div class="admin-card-body p-0">
     <div class="table-responsive">
-      <table class="admin-table admin-datatable" style="width:100%">
+      <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
         <thead>
           <tr><th>Service Name</th><th>Service ID</th><th>Price</th><th>Status</th><th>Actions</th></tr>
         </thead>
@@ -63,7 +63,7 @@ $page_title = 'Services';
           <td><code style="background:var(--bg);padding:3px 8px;border-radius:6px;font-size:12px"><?=htmlspecialchars($r['service_id']??'')?></code></td>
           <td><?=isset($r['service_price'])&&$r['service_price']>0?'₦'.number_format($r['service_price']):'<span style="color:var(--text-muted);font-size:12px">Dynamic</span>'?></td>
           <td><span class="status-badge <?=$r['status']=='1'?'badge-active':'badge-blocked'?>"><?=$r['status']=='1'?'Active':'Inactive'?></span></td>
-          <td class="d-flex gap-2">
+          <td class="d-flex gap-2 table-action-group">
             <a href="edit_service?id=<?=$r['id']?>" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i></a>
             <form method="post" onsubmit="return confirm('Delete this service?')" style="display:inline">
               <input type="hidden" name="id" value="<?=$r['id']?>">

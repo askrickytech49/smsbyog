@@ -43,6 +43,168 @@ $page_title = "Api Tool - " . $site_data['web_name'];
 <?php include ('partial/header.php'); ?>
 <link rel="stylesheet" type="text/css"
   href="assets/css/vendors/icofont.css">
+<style>
+.api-tool-page {
+  background: #f5f7fa;
+  min-height: calc(100vh - 72px);
+  padding: 28px 24px 56px;
+  overflow-x: hidden;
+}
+
+.api-tool-page .faq-wrap,
+.api-tool-page .faq-wrap > .row {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.api-tool-page .card {
+  border: 1px solid #e6eaf0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .06) !important;
+  overflow: hidden;
+}
+
+.api-tool-page .clipboaard-container {
+  padding: 8px;
+}
+
+.api-tool-page .clipboaard-container .card-description {
+  color: #172033;
+  font-size: 16px !important;
+  margin-bottom: 12px;
+}
+
+.api-tool-page #api_value {
+  min-height: 46px;
+  border: 1px solid #dce2ea !important;
+  border-radius: 9px;
+  background: #f8fafc !important;
+  color: #172033;
+  font-size: 14px;
+}
+
+.api-tool-page #api_value:focus {
+  border-color: #e10700 !important;
+  box-shadow: 0 0 0 3px rgba(225, 7, 0, .1) !important;
+}
+
+.api-tool-page .btn-clipboard,
+.api-tool-page .btn-clipboard-cut {
+  border: 1px solid #e10700 !important;
+  border-radius: 8px !important;
+  background: #e10700 !important;
+  background-image: none !important;
+  color: #fff !important;
+  font-weight: 700;
+  padding: 9px 18px;
+}
+
+.api-tool-page .btn-clipboard:hover,
+.api-tool-page .btn-clipboard-cut:hover {
+  background: #bd0600 !important;
+  border-color: #bd0600 !important;
+}
+
+.api-tool-page .header-faq {
+  margin: 28px 0 14px;
+}
+
+.api-tool-page .header-faq h5 {
+  color: #172033;
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.api-tool-page .faq-accordion > .col > .card {
+  margin-bottom: 10px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .04) !important;
+}
+
+.api-tool-page .faq-accordion .card-header {
+  padding: 0 !important;
+  border-bottom: 0 !important;
+  background: #fff !important;
+}
+
+.api-tool-page .faq-accordion .card-header button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px !important;
+  color: #172033 !important;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.api-tool-page .faq-accordion .card-header button:hover,
+.api-tool-page .faq-accordion .card-header button:focus {
+  color: #e10700 !important;
+  background: #fff8f5;
+}
+
+.api-tool-page .faq-accordion .card-header button svg {
+  width: 18px;
+  margin-right: 10px;
+  color: #e10700;
+}
+
+.api-tool-page .faq-accordion .collapse > div {
+  padding: 18px !important;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.api-tool-page .faq-accordion pre {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 14px !important;
+  border-radius: 8px !important;
+  background: #172033 !important;
+  color: #ffd9d6 !important;
+  font-size: 12px !important;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-x: hidden !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.api-tool-page .faq-accordion .collapse p {
+  margin-left: 0 !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  line-height: 1.6;
+}
+
+.api-tool-page .faq-accordion .collapse p[style*="color:blue"],
+.api-tool-page .faq-accordion .collapse p[style*="color:red"] {
+  color: #e10700 !important;
+}
+
+@media (max-width: 575px) {
+  .api-tool-page { padding: 18px 12px 36px; }
+  .api-tool-page .faq-wrap,
+  .api-tool-page .faq-wrap > .row,
+  .api-tool-page .faq-accordion,
+  .api-tool-page .faq-accordion > .col,
+  .api-tool-page .faq-accordion > .col > .card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .api-tool-page .clipboaard-container { padding: 2px; }
+  .api-tool-page .clipboaard-container .text-end { display: flex; gap: 8px; }
+  .api-tool-page .clipboaard-container .text-end button { flex: 1; padding: 9px 8px; }
+  .api-tool-page .header-faq h5 { font-size: 18px; }
+  .api-tool-page .faq-accordion .card-header button { min-height: 52px; padding: 12px 14px !important; }
+}
+</style>
 <?php include ('partial/loader.php'); ?>
 
 <div class="page-wrapper compact-wrapper" id="pageWrapper">
@@ -54,7 +216,7 @@ $page_title = "Api Tool - " . $site_data['web_name'];
     <!-- Page Sidebar Start-->
     <?php include ('partial/sidebar.php'); ?>
     <!-- Page Sidebar Ends-->
-    <div class="page-body">
+    <div class="page-body api-tool-page">
       <!-- <?php include ('partial/breadcrumb.php'); ?> -->
       <!-- Container-fluid starts-->
       <br><br>

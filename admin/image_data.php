@@ -82,7 +82,7 @@ $sql = mysqli_query($conn, "SELECT * FROM service_icon ORDER BY id DESC");
 
                   }
                   ?>
-                  <table class="table align-items-center table-flush" id="dataTable">
+                  <table class="table align-items-center table-flush admin-mobile-table" id="dataTable">
                     <thead class="thead-light">
                       <tr>
                         <th>Short Code</th>

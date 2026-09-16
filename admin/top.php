@@ -127,15 +127,13 @@ $page_title = 'Sell History';
       </div>
       <div class="admin-card-body p-0">
         <div class="table-responsive">
-          <table class="admin-table admin-datatable" style="width:100%">
+          <table class="admin-table admin-mobile-table admin-datatable" style="width:100%">
             <thead><tr><th>Service</th><th>Server</th><th>Count</th><th>Revenue</th></tr></thead>
             <tbody>
             <?php
             $sells_rows = [];
             while($r=mysqli_fetch_assoc($sells)) $sells_rows[] = $r;
-            if(empty($sells_rows)): ?>
-            <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:32px">No sales in this date range</td></tr>
-            <?php else: foreach($sells_rows as $r): ?>
+            if(!empty($sells_rows)): foreach($sells_rows as $r): ?>
             <tr>
               <td><strong><?=htmlspecialchars(strip_tags($r['service_name']??'-'))?></strong></td>
               <td style="font-size:12px;color:var(--text-muted)"><?=htmlspecialchars($r['server_id']??'')?></td>
@@ -164,7 +162,7 @@ $page_title = 'Sell History';
             No active numbers right now
           </div>
         <?php else: ?>
-        <table class="admin-table">
+        <table class="admin-table admin-mobile-table">
           <thead><tr><th>User</th></tr></thead>
           <tbody>
           <?php mysqli_data_seek($active_users,0); while($r=mysqli_fetch_assoc($active_users)): ?>
