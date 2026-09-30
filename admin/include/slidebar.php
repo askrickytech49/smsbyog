@@ -133,12 +133,7 @@ $_usaca_on   = ($api_status[3] ?? 1) == 1;
         </a>
       </li>
 
-      <li>
-        <a href="show_server" class="sidebar-link <?= nav_active(['show_server','add_server','edit_server'], $current) ?>">
-          <i class="bi bi-server"></i>
-          <span class="link-text">OTP Servers</span>
-        </a>
-      </li>
+
 
       <li>
         <a href="show_service" class="sidebar-link <?= nav_active(['show_service','view_service','add_service','edit_service'], $current) ?>">

@@ -186,7 +186,7 @@ $page_title='Edit API';
   <div class="col-12 col-md-7">
     <div class="admin-card">
         <div class="admin-card-header d-flex justify-content-between align-items-center">
-            <h6>Manage Services</h6>
+            <h6 class="mb-0">Manage Services</h6>
             <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search services..." style="max-width: 200px;">
         </div>
         <div class="admin-card-body p-0">
@@ -240,6 +240,14 @@ $page_title='Edit API';
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+            
+            <div class="p-3 border-top bg-light d-flex justify-content-between align-items-center" style="border-bottom-left-radius: inherit; border-bottom-right-radius: inherit;">
+                <span class="text-muted small fw-medium">Bulk Actions</span>
+                <div class="d-flex gap-2">
+                    <button type="button" id="btnSelectAll" class="btn btn-sm btn-primary px-3">Toggle All ON</button>
+                    <button type="button" id="btnDeselectAll" class="btn btn-sm btn-light border px-3">Toggle All OFF</button>
+                </div>
             </div>
         </div>
     </div>
@@ -373,12 +381,12 @@ if (btnSelectAll) btnSelectAll.addEventListener('click', function() {
             alert('Error: ' + data.message);
         }
         this.disabled = false;
-        this.innerHTML = '<i class="bi bi-check-all me-1"></i>All ON';
+        this.innerHTML = 'Toggle All ON';
     })
     .catch(() => {
         alert('Network error');
         this.disabled = false;
-        this.innerHTML = '<i class="bi bi-check-all me-1"></i>All ON';
+        this.innerHTML = 'Toggle All ON';
     });
 });
 
@@ -411,12 +419,12 @@ if (btnDeselectAll) btnDeselectAll.addEventListener('click', function() {
             alert('Error: ' + data.message);
         }
         this.disabled = false;
-        this.innerHTML = '<i class="bi bi-x-lg me-1"></i>All OFF';
+        this.innerHTML = 'Toggle All OFF';
     })
     .catch(() => {
         alert('Network error');
         this.disabled = false;
-        this.innerHTML = '<i class="bi bi-x-lg me-1"></i>All OFF';
+        this.innerHTML = 'Toggle All OFF';
     });
 });
 
