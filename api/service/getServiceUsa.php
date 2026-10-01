@@ -117,8 +117,8 @@ $service_name  = $details['name'] ?? 'Unknown Service';
             $raw_api_price = (float)($details['cost'] ?? 0);
             $service_name  = $details['name'] ?? 'Unknown Service';
             
-            // Convert boolean true/false to 1/0 for your logic
-            $stock_count   = ($details['in_stock'] === true) ? 1 : 0;
+            // Use the new stock number from API instead of in_stock boolean
+            $stock_count   = isset($details['stock']) ? (int)$details['stock'] : 0;
     
             // 2. Perform Calculations
            // Convert USD price to Naira
